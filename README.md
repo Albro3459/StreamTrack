@@ -1,8 +1,8 @@
-# WhatWereWatching
+# StreamTrack
 
 ## Overview
-**WhatWereWatching** is a **React Native & TypeScript** app built with **Expo Go**. It helps users discover movies & TV shows, create watchlists, find streaming options, and even use a fun spinner to pick something to watch.  
- * This project was built along with [@jslade4](https://github.com/jslade4) for our **Interface Design and Technology** class. 
+**StreamTrack** is a **React Native & TypeScript** app built with **Expo Go**. It helps users discover movies & TV shows, create watchlists, find streaming options, and even use a fun spinner to pick something to watch.  
+ * This project was originally built with [@jslade4](https://github.com/jslade4) for our **Interface Design and Technology** class. 
 
 ## Screen Shots
 <div style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 60px;">
@@ -17,12 +17,12 @@ Follow these steps to set up and run What Were Watching locally:
 
 ### 1. Clone the repository
 ```sh
-git clone https://github.com/Albro3459/WhatWereWatching.git
+git clone https://github.com/Albro3459/StreamTrack.git
 ```
 
 ### 2. Navigate into the project directory
 ```sh
-cd WhatWereWatching
+cd StreamTrack
 ```
 
 ### 3. Install dependencies
