@@ -13,7 +13,7 @@
 
 ## Installation
 
-Follow these steps to set up and run What Were Watching locally:
+Follow these steps to set up and run Stream Track locally:
 
 ### 1. Clone the repository
 ```sh

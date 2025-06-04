@@ -22,7 +22,8 @@ export default function Index() {
     const [isSigningUp, setIsSigningUp] = useState(false);
   
     // Create an Animated value to handle the height change
-    const animatedHeight = useState(new Animated.Value(470))[0];
+    const animatedHeight = useState(new Animated.Value(380))[0];
+    const animatedTopPad = useState(new Animated.Value(200))[0];
 
     const handleSignIn = async () => {
         if (!inputUsername.trim() || !inputPassword) {
@@ -46,7 +47,12 @@ export default function Index() {
         setIsSigningUp(false);
         // Animate the height change
         Animated.timing(animatedHeight, {
-          toValue: 625, // Toggle between 465px and 615px
+          toValue: 515, // Toggle between 465px and 615px
+          duration: 500, // Animation duration (in milliseconds)
+          useNativeDriver: false,
+        }).start();
+        Animated.timing(animatedTopPad, {
+          toValue: 125, // Toggle between 465px and 665px
           duration: 500, // Animation duration (in milliseconds)
           useNativeDriver: false,
         }).start();
@@ -82,7 +88,12 @@ export default function Index() {
         setIsSigningIn(false);
         // Animate the height change
         Animated.timing(animatedHeight, {
-          toValue: 660, // Toggle between 465px and 665px
+          toValue: 550, // Toggle between 465px and 665px
+          duration: 500, // Animation duration (in milliseconds)
+          useNativeDriver: false,
+        }).start();
+        Animated.timing(animatedTopPad, {
+          toValue: 125, // Toggle between 465px and 665px
           duration: 500, // Animation duration (in milliseconds)
           useNativeDriver: false,
         }).start();
@@ -97,18 +108,16 @@ export default function Index() {
         <KeyboardAwareScrollView contentContainerStyle={{ flexGrow: 1 }} style={{ backgroundColor: Colors.backgroundColor, padding: "5%" }}>
             <Animated.View // white rectangle (no absolute positioning now)
                 style={{
-                height: animatedHeight,
-                backgroundColor: "white",
-                borderRadius: 15,
-                marginTop: screenHeight*0.15, // Added a margin to space it from the top
+                  height: animatedHeight,
+                  backgroundColor: "white",
+                  borderRadius: 15,
+                  marginTop: animatedTopPad, // Added a margin to space it from the top
                 }}
             >
                 {/* Top Section with welcome text and image */}
                 <View style={{ alignItems: "center", paddingTop: 30 }}>
-                    <View style={[styles.textContainer, (isSigningIn || isSigningUp) && {paddingBottom: 0}]}>
-                        <Text style={{ fontSize: 30 }}>This is</Text>
-
-                        <Text style={styles.appNameText}>What We're Watching</Text>
+                    <View style={[styles.textContainer, {paddingTop: 10}, (isSigningIn || isSigningUp) && {paddingBottom: 10}]}>
+                        <Text style={styles.appNameText}>Stream Track</Text>
 
                     </View>
 
@@ -213,7 +222,7 @@ const styles = StyleSheet.create({
     },
     appNameText: {
         paddingTop: 10,
-        fontSize: 52, 
+        fontSize: 48, 
         fontFamily: RalewayFont, 
         color: Colors.backgroundColor,
         alignSelf: "center",

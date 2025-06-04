@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "what_were_watching",
-    "slug": "what_were_watching",
+    "name": "stream_track",
+    "slug": "stream_track",
     "version": "1.0.0",
     "orientation": "portrait",
     "newArchEnabled": true,

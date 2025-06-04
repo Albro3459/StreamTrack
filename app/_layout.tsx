@@ -114,7 +114,7 @@ export default function RootLayout() {
             <Stack.Screen
                 name="LandingPage"
                 options={({ navigation }) => ({
-                    title: "What We're Watching",
+                    title: "Stream Track",
                     gestureEnabled: false,
                     headerBackVisible: false,
                     headerTitleStyle: {
