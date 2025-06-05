@@ -1,10 +1,3 @@
-
-
-
-
-
-
-
 const backgroundColor = "#1c2237";
 const cardBackgroundColor = "#2a2f45";
 
