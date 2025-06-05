@@ -1,41 +1,41 @@
 type Genre = {
     id: string;
     name: string;
-  };
-  
-  type Audio = {
+};
+
+type Audio = {
     language: string;
     region?: string; // Optional
-  };
-  
-  type Subtitle = {
+};
+
+type Subtitle = {
     closedCaptions: boolean;
     locale: {
-      language: string;
+        language: string;
     };
-  };
-  
-  type Price = {
+};
+
+type Price = {
     amount: string;
     currency: string;
     formatted: string;
-  };
-  
-  export type ServiceImageSet = {
+};
+
+export type ServiceImageSet = {
     lightThemeImage: string;
     darkThemeImage: string;
     whiteImage: string;
-  };
-  
-  export type Service = {
+};
+
+export type Service = {
     id: string;
     name: string;
     homePage: string;
     themeColorCode: string;
     imageSet: ServiceImageSet;
-  };
-  
-  export type StreamingOption = {
+};
+
+export type StreamingOption = {
     service: Service;
     type: 'rent' | 'buy' | 'subscription';
     link: string;
@@ -47,40 +47,40 @@ type Genre = {
     expiresSoon: boolean;
     expiresOn?: number; // Optional
     availableSince: number;
-  };
-  
-  type ImageSet = {
+};
+
+type ImageSet = {
     verticalPoster: {
-      w240?: string;
-      w360?: string;
-      w480?: string;
-      w600?: string;
-      w720?: string;
+        w240?: string;
+        w360?: string;
+        w480?: string;
+        w600?: string;
+        w720?: string;
     };
     horizontalPoster: {
-      w360?: string;
-      w480?: string;
-      w720?: string;
-      w1080?: string;
-      w1440?: string;
+        w360?: string;
+        w480?: string;
+        w720?: string;
+        w1080?: string;
+        w1440?: string;
     };
     verticalBackdrop: {
-      w240?: string;
-      w360?: string;
-      w480?: string;
-      w600?: string;
-      w720?: string;
+        w240?: string;
+        w360?: string;
+        w480?: string;
+        w600?: string;
+        w720?: string;
     };
     horizontalBackdrop: {
-      w360?: string;
-      w480?: string;
-      w720?: string;
-      w1080?: string;
-      w1440?: string;
+        w360?: string;
+        w480?: string;
+        w720?: string;
+        w1080?: string;
+        w1440?: string;
     };
-  };
-  
-  export type Content = {
+};
+
+export type Content = {
     itemType: 'show';
     showType: 'movie' | 'series';
     id: string;
@@ -99,20 +99,20 @@ type Genre = {
     episodeCount: number | null;
     imageSet: ImageSet;
     streamingOptions: {
-      [countryCode: string]: StreamingOption[];
+        [countryCode: string]: StreamingOption[];
     };
-  };
+};
 
 
-  // CUSTOM:
+// CUSTOM:
 
-  export type Posters = {
+export type Posters = {
     vertical?: string | null;
     horizontal?: string | null;
-  };
+};
 
-  export type PosterContent = Content & {
+export type PosterContent = Content & {
     posters: Posters
-  };
-  
-  export default {};
+};
+
+export default {};

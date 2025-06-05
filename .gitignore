@@ -21,4 +21,6 @@ expo-env.d.ts
 # @end expo-cli
 
 # Hide all the keys
-**/secrets
+**/secrets/
+
+.vscode/

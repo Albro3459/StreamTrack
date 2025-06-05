@@ -171,12 +171,14 @@ export default function RootLayout() {
                     ),
                 })}
             />
-            {/* <Stack.Screen
+
+            <Stack.Screen
                 name="SpinnerPage"
                 options={() => ({
                     title: "Spin to Pick",
-                    gestureEnabled: false,
-                    headerBackVisible: false,
+                    // gestureEnabled: false,
+                    // headerBackVisible: false,
+                    headerBackButtonDisplayMode: "minimal",
                     headerTintColor: "white",
                     headerTitleStyle: {
                         fontSize: 24,
@@ -193,13 +195,15 @@ export default function RootLayout() {
                     headerRight: () => (
                         <TouchableOpacity onPress={() => {
                             // ClearLoadState();
-                            navigation.navigate('LandingPage');
+                            router.replace('/LandingPage');
                         }}>
                             <Feather name="home" size={28} color="white" />
                         </TouchableOpacity>
                     ),
                 })}
             />
+           
+
             <Stack.Screen
                 name="LibraryPage"
                 options={() => ({
@@ -228,8 +232,9 @@ export default function RootLayout() {
                 name="InfoPage" 
                 options={() => ({
                     title: "Info", 
-                    headerBackVisible: false,
-                    gestureEnabled: false,
+                    headerBackButtonDisplayMode: "minimal",
+                    // headerBackVisible: false,
+                    // gestureEnabled: false,
                     headerTintColor: "white",
                     headerTitleStyle: {
                         fontSize: 24,
@@ -244,7 +249,7 @@ export default function RootLayout() {
                     //     </Pressable>
                     // ),
                 })}
-            /> */}
+            /> 
             <Stack.Screen 
                 name="ProfilePage" 
                 options={() => ({
