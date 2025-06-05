@@ -26,7 +26,7 @@ export const useUserDataStore = create<UserDataStore>((set) => ({
   fetchUserData: async (token) => {
     set({ loading: true, error: null });
 
-    // const result = await APIHelper(token);
+    // const result = await APIHelper(token); // fetch from API later
     const result = {
         success: true,
         error: "None",

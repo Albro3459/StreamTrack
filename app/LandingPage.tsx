@@ -3,12 +3,16 @@ import { getIdToken, onAuthStateChanged, User } from "firebase/auth";
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import { useUserDataStore } from "./stores/userStore";
+import Heart from "./components/heartComponent";
+import { Colors } from "@/constants/Colors";
 
 export default function LandingPage() {
 
   const [user, setUser] = useState<User | null>();
 
   const { userData, fetchUserData } = useUserDataStore(); 
+
+  const [heartColor, setHeartColor] = useState<string>(Colors.selectedHeartColor);
 
   useEffect(() => {
         const fetchInitialUserData = async () => {
@@ -35,6 +39,11 @@ export default function LandingPage() {
   return (
     <View style={styles.container}>
       <Text style={styles.text}>Welcome to the Landing Page!</Text>
+      <Heart 
+        heartColor={heartColor}
+        size={25}
+        onPress={() => setHeartColor(heartColor === Colors.unselectedHeartColor ? Colors.selectedHeartColor : Colors.unselectedHeartColor)}
+      />
     </View>
   );
 }
