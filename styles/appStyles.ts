@@ -2,7 +2,7 @@ import { Dimensions, StyleSheet } from "react-native";
 import { Colors } from "../constants/Colors";
 
 export const RalewayFont = 'Raleway_800ExtraBold';
-export const KuraleFont = "Kurale_400Regular";
+// export const KuraleFont = "Kurale_400Regular";
 
 
 export const appStyles = StyleSheet.create({

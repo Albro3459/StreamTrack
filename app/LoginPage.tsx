@@ -3,6 +3,7 @@ import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from "reac
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/firebaseConfig";
 import { useRouter } from "expo-router";
+import { Colors } from "@/constants/Colors";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -39,7 +40,7 @@ export default function LoginPage() {
             }
         } else {
             try {
-                await signInWithEmailAndPassword(auth, "brodsky.alex22@gmail.com", "Alex3459");
+                await signInWithEmailAndPassword(auth, email, password);
                 router.replace("/LandingPage");
             } catch (e) {
                 Alert.alert("Sign In Failed", e.message);
@@ -50,7 +51,8 @@ export default function LoginPage() {
     return (
         <View style={styles.container}>
             <Text style={styles.title}>Stream Track</Text>
-            <View style={styles.inputContainer}>
+            
+            <View style={[styles.inputContainer, { paddingBottom: isSignUp ? 4 : 10 } ]}>
                 <TextInput
                     style={styles.input}
                     placeholder="Email"
@@ -65,7 +67,7 @@ export default function LoginPage() {
                     onChangeText={setPassword}
                     secureTextEntry
                 />
-                {isSignUp && (
+                {isSignUp ? (
                     <TextInput
                         style={styles.input}
                         placeholder="Confirm Password"
@@ -73,15 +75,16 @@ export default function LoginPage() {
                         onChangeText={setConfirmPassword}
                         secureTextEntry
                     />
+                ) : (
+                    <View style={styles.row}>
+                        <TouchableOpacity onPress={() => Alert.alert("Forgot Email", "Feature coming soon")}>
+                            <Text style={styles.linkText}>Forgot Email?</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => Alert.alert("Forgot Password", "Feature coming soon")}>
+                            <Text style={styles.linkText}>Forgot Password?</Text>
+                        </TouchableOpacity>
+                    </View>
                 )}
-                <View style={styles.row}>
-                    <TouchableOpacity onPress={() => Alert.alert("Forgot Email", "Feature coming soon")}>
-                        <Text style={styles.linkText}>Forgot Email?</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => Alert.alert("Forgot Password", "Feature coming soon")}>
-                        <Text style={styles.linkText}>Forgot Password?</Text>
-                    </TouchableOpacity>
-                </View>
             </View>
             <TouchableOpacity style={styles.button} onPress={handleAuth}>
                 <Text style={styles.buttonText}>{isSignUp ? "Sign Up" : "Sign In"}</Text>
@@ -103,18 +106,18 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: "center",
         padding: 24,
-        backgroundColor: "#f5f5fa",
+        backgroundColor: Colors.backgroundColor,
     },
     title: {
-        fontSize: 38,
+        fontSize: 45,
         fontWeight: "bold",
         textAlign: "center",
         marginBottom: 32,
-        color: "#36454F"
+        color: Colors.grayCell,
     },
     inputContainer: {
         marginBottom: 32,
-        backgroundColor: "white",
+        backgroundColor: Colors.cardBackgroundColor,
         borderRadius: 15,
         padding: 18,
         shadowColor: "#000",
@@ -126,10 +129,11 @@ const styles = StyleSheet.create({
     input: {
         height: 50,
         borderRadius: 10,
-        backgroundColor: "#e6e6e6",
+        backgroundColor: Colors.reviewTextColor,
         paddingHorizontal: 15,
         marginBottom: 15,
         fontSize: 16,
+        color: Colors.tabBarColor
     },
     row: {
         flexDirection: "row",
@@ -138,29 +142,34 @@ const styles = StyleSheet.create({
         marginBottom: 5,
     },
     linkText: {
-        color: "#6478FF",
+        color: Colors.italicTextColor,
         fontSize: 13,
         fontStyle: "italic",
         textDecorationLine: "underline"
     },
     button: {
-        backgroundColor: "#6478FF",
+        backgroundColor: Colors.buttonColor,
         borderRadius: 10,
         paddingVertical: 16,
         alignItems: "center",
         marginBottom: 15,
+        shadowRadius: 10,
+        shadowColor: "black",
+        shadowOpacity: 0.3,
+        shadowOffset: { width: 0, height: 5 },
+        elevation: 5,
     },
     buttonText: {
-        color: "white",
+        color: Colors.unselectedTextColor,
         fontSize: 18,
         fontWeight: "600"
     },
     secondaryButton: {
-        backgroundColor: "white",
+        backgroundColor: Colors.cardBackgroundColor,
         borderWidth: 1,
-        borderColor: "#6478FF",
+        borderColor: Colors.buttonColor,
     },
     secondaryButtonText: {
-        color: "#6478FF"
+        color: Colors.buttonColor
     }
 });

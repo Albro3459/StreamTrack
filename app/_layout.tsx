@@ -7,7 +7,7 @@ import { Fontisto, Feather } from '@expo/vector-icons';
 import { Colors } from "@/constants/Colors";
 import { useEffect } from "react";
 import { useFonts, Raleway_800ExtraBold } from '@expo-google-fonts/raleway';
-import { Kurale_400Regular } from '@expo-google-fonts/kurale';
+// import { Kurale_400Regular } from '@expo-google-fonts/kurale';
 import { onAuthStateChanged } from "firebase/auth";
 import { auth } from "@/firebaseConfig";
 import { LogOut } from "./helpers/authHelper";
@@ -21,7 +21,7 @@ export default function RootLayout() {
 
     const [fontsLoaded] = useFonts({
         Raleway_800ExtraBold,
-        Kurale_400Regular,
+        // Kurale_400Regular,
     });
 
     // const handleInfoPageBackPress = (navigation) => {
