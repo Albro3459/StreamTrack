@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import { Content, PosterContent, Posters, StreamingOption } from '../types/contentType';
 import db from '../data/db.json';
-import { RAPIDAPI_KEY, TMDB_BEARER_TOKEN } from '@/keys';
+import { RAPIDAPI_KEY, TMDB_BEARER_TOKEN } from '@/secrets/API_keys';
 import { Filter, Genres, PaidOptions, Services, Types } from '../types/filterTypes';
 import { STORAGE_KEY } from '@/Global';
 import { TMDB } from '../types/tmdbType';

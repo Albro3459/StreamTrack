@@ -13,7 +13,7 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 export default function Index() {
     // const pathname = usePathname();
 
-    const [inputUsername, setInputUsername] = useState<string>("");
+    const [inputEmail, setInputEmail] = useState<string>("");
     const [inputPassword, setInputPassword] = useState<string>("");
     const [inputConfirmPassword, setInputConfirmPassword] = useState<string>("");
   
@@ -26,14 +26,14 @@ export default function Index() {
     const animatedTopPad = useState(new Animated.Value(200))[0];
 
     const handleSignIn = async () => {
-        if (!inputUsername.trim() || !inputPassword) {
-          Alert.alert("Error", "Please enter a username and password.");
+        if (!inputEmail.trim() || !inputPassword) {
+          Alert.alert("Error", "Please enter an email and password.");
           return;
         }
 
         SignInReset();
         
-        Global.username = inputUsername.trim();
+        Global.username = inputEmail.trim().split('@')[0];
         Global.password = inputPassword;
 
         Global.justSignedIn = true;
@@ -60,7 +60,7 @@ export default function Index() {
     
       const handleSignUp = async () => {
         await LogoutUser();
-        if (!inputUsername || !inputPassword || !inputConfirmPassword) {
+        if (!inputEmail || !inputPassword || !inputConfirmPassword) {
           Alert.alert("Error", "Please fill out all fields.");
           return;
         }
@@ -69,12 +69,12 @@ export default function Index() {
           return;
         }
     
-        // if (inputPassword.length < 6 || inputConfirmPassword.length < 6) {
-        //   Alert.alert("Error", "Passwords Must Be At Least 6 Characters.");
-        //   return;
-        // }
+        if (inputPassword.length < 6 || inputConfirmPassword.length < 6) {
+          Alert.alert("Error", "Passwords Must Be At Least 6 Characters.");
+          return;
+        }
         SignInReset();
-        Global.username = inputUsername;
+        Global.username = inputEmail;
         Global.password = inputPassword;
 
         Global.justSignedUp = true;
@@ -121,20 +121,20 @@ export default function Index() {
 
                     </View>
 
-                    {/*Username and password entry*/}
+                    {/* Email and password entry */}
                     {(isSigningIn || isSigningUp) && (
                     <View style={styles.inputContainer}>
                         <View style={styles.inputGroup}>
                         <TextInput
                             style={styles.textField}
-                            placeholder="Username"
+                            placeholder="Email"
                             placeholderTextColor={Colors.italicTextColor}
-                            value={inputUsername}
-                            onChangeText={setInputUsername}
+                            value={inputEmail}
+                            onChangeText={setInputEmail}
                             autoCapitalize="none"
                         />
                         {isSigningIn && (
-                            <Text style={styles.italicText}>Forgot Username?</Text>
+                            <Text style={styles.italicText}>Forgot Email?</Text>
                         )}
                         </View>
 

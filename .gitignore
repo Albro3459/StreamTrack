@@ -19,5 +19,5 @@ web-build/
 expo-env.d.ts
 # @end expo-cli
 
-
-**/keys.ts
+# Hide all the keys
+**/secrets
