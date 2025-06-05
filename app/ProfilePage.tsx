@@ -1,44 +1,39 @@
 import { Text, TextInput, View, StyleSheet, ScrollView, Image, Pressable, Alert } from "react-native";
-import React, { useEffect, useLayoutEffect, useState } from 'react';
+import React, { useState } from 'react';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { PressableBubblesGroup,} from './components/formComponents';
-import { usePathname, useNavigation, router } from "expo-router"
+import { Stack, useRouter } from "expo-router"
 import { Colors } from "@/constants/Colors";
 import { dateToString, stringToDate } from "./helpers/dateHelper";
 import { Feather } from "@expo/vector-icons";
 import { LogOut } from "./helpers/authHelper";
 import { auth } from "@/firebaseConfig";
 import { RalewayFont } from "@/styles/appStyles";
+import { useUserDataStore } from "./stores/userStore";
 
 
 export default function ProfilePage() {
-    const navigation = useNavigation();
-    const pathname = usePathname();
+    const router = useRouter();
+
+    //genre options
+    const [genreOptions, setGenreOptions] = useState<string[]>(["Fantasy", "Horror", "Action", "Comedy", "Romantic", "Sci-Fi", "Adventure", "Thriller", "Other"]);
+
+    const { userData, fetchUserData } = useUserDataStore();
 
     // State for text inputs
-    // const [nameText, setNameText] = useState<string>(Global.name);
-    const [nameText, setNameText] = useState<string>("");
+    const [nameText, setNameText] = useState<string | null>(userData.name);
 
-    // const [birthdayText, setBirthdayText] = useState<string>(Global.birthday);
-    const [birthdayText, setBirthdayText] =  useState<string>("");
+    const [birthdayText, setBirthdayText] =  useState<string | null>(userData.birthday);
     // Date picker for birthday
     const [selectedDate, setSelectedDate] = useState<Date | null>(stringToDate(birthdayText) || new Date());
     const handleConfirmDate = (birthdayDate: Date) => {
         setBirthdayText(dateToString(birthdayDate));
         setSelectedDate(birthdayDate);
     };
-    // const [locationText, setLocationText] = useState(Global.location); // temporary placeholder, will be from the db
-    const [locationText, setLocationText] = useState<string>("");
-
-    // const [bioText, setBioText] = useState(Global.bio); // temporary placeholder, will be from the db
-    const [bioText, setBioText] =  useState<string>("");
-
-    //pronoun options
-    const [genres, setGenres] = useState<string[]>(["Fantasy", "Horror", "Action", "Comedy", "Romantic", "Sci-Fi", "Adventure", "Other"]);
-
-    // State for selected attributes
-    // const [selectedGenres, setSelectedGenres] = useState<Set<string>>(Global.genres);
-    const [selectedGenres, setSelectedGenres] = useState<Set<string>>(new Set<string>());
+    
+    const [locationText, setLocationText] = useState<string | null>(userData.location);
+    const [bioText, setBioText] =  useState<string | null>(userData.bio);
+    const [selectedGenres, setSelectedGenres] = useState<Set<string> | null>(userData.genres);
 
     const saveProfile = (name: string, birthday: string, location: string, bio: string, genres: Set<string>) => {
 
@@ -64,150 +59,139 @@ export default function ProfilePage() {
         );
     };
 
-    // useEffect(() => {
-    //     const fetchProfile = () => {
-    //         if (pathname === "/ProfilePage") {
-    //             setNameText(Global.name);
-    //             setBirthdayText(Global.birthday);
-    //             setLocationText(Global.location);
-    //             setBioText(Global.bio);
-    //             setSelectedGenres(Global.genres);
-    //         }
-    //     };  
-    //     fetchProfile();
-    // }, [Global]);
-
-
-    // Adding a working save button to the top nav bar
-    useLayoutEffect(() => {
-        navigation.setOptions({
-          headerRight: () => (
-            <Pressable onPress={() => saveProfile(nameText, birthdayText, locationText, bioText, selectedGenres)}>
-                <Feather name="save" size={35} />                
-            </Pressable>
-          ),
-        });
-      }, [navigation, nameText, birthdayText, locationText, bioText, selectedGenres]);
-
     return (
-        <ScrollView style={styles.background}>
-            {/* Picture + Name */}
-            <View style={styles.topContainer}>
-                <Image
-                    source={require("../assets/images/ProfilePic.png")}
-                    style={styles.image}
-                />
-                {/* <Text style={[styles.nameText, { marginTop: -55 }]}>John Slade</Text> */}
-            </View>
-
-            {/* First container */}
-            <View style={[styles.container, { marginTop: 0-15 }]}>
-                <View style={styles.labelContainer}>
-                    <Text style={styles.labelText}>Name:</Text>
-                    <Text style={{ color: 'red', marginLeft: 2 }}>*</Text>
-                    <View style={{ flex: 1, flexDirection: "row", justifyContent: "flex-end" }}>
-                    </View>
-                </View>
-                <TextInput
-                    style={[styles.textField, nameText.length > 0 ? styles.selectedTextBox : null]}
-                    value={nameText}
-                    onChangeText={(newText) => setNameText(newText)}
-                />
-
-
-                <View style={styles.labelContainer}>
-                    <Text style={styles.labelText}>Birthday:</Text>
-                    <Text style={{ color: "red", marginLeft: 2 }}>*</Text>
-                    </View>
-                    <View
-                    style={[
-                        styles.dateContainer,
-                        birthdayText && birthdayText.length > 0
-                        ? styles.selectedDateContainer
-                        : null,
-                    ]}
-                    >
-                    {selectedDate && (
-                    <DateTimePicker
-                        value={selectedDate || new Date()}
-                        mode="date"
-                        display="default"
-                        style={styles.datePicker}
-                        accentColor="transparent"
-                        // themeVariant={birthdayText && birthdayText.length > 0 ? "dark" : "light"}
-                        themeVariant="dark"
-                        textColor="white"
-                        onChange={(event, date) => {
-                        if (date) {
-                            handleConfirmDate(date);
-                        }
-                        }}
+        <>
+            <Stack.Screen
+                options={{
+                    headerRight: () => (
+                        <Pressable
+                            onPress={() => saveProfile(nameText, birthdayText, locationText, bioText, selectedGenres)}
+                            // style={{ marginRight: 16 }} // optional, for spacing
+                        >
+                            <Feather name="save" size={28} />
+                        </Pressable>
+                    ),
+                }}
+            />
+            <ScrollView style={styles.background}>
+                {/* Picture + Name */}
+                <View style={styles.topContainer}>
+                    <Image
+                        source={require("../assets/images/ProfilePic.png")}
+                        style={styles.image}
                     />
-                    )}
-                    </View>
+                    {/* <Text style={[styles.nameText, { marginTop: -55 }]}>John Slade</Text> */}
+                </View>
 
-                <View style={styles.labelContainer}>
-                    <Text style={styles.labelText}>Location:</Text>
-                    <Text style={{ color: 'red', marginLeft: 2 }}>*</Text>
-                    <View style={{ flex: 1, flexDirection: "row", justifyContent: "flex-end" }}>
+                {/* First container */}
+                <View style={[styles.container, { marginTop: 0-15 }]}>
+                    <View style={styles.labelContainer}>
+                        <Text style={styles.labelText}>Name:</Text>
+                        <Text style={{ color: 'red', marginLeft: 2 }}>*</Text>
+                        <View style={{ flex: 1, flexDirection: "row", justifyContent: "flex-end" }}>
+                        </View>
+                    </View>
+                    <TextInput
+                        style={[styles.textField, nameText.length > 0 ? styles.selectedTextBox : null]}
+                        value={nameText}
+                        onChangeText={(newText) => setNameText(newText)}
+                    />
+
+
+                    <View style={styles.labelContainer}>
+                        <Text style={styles.labelText}>Birthday:</Text>
+                        <Text style={{ color: "red", marginLeft: 2 }}>*</Text>
+                        </View>
+                        <View
+                        style={[
+                            styles.dateContainer,
+                            birthdayText && birthdayText.length > 0
+                            ? styles.selectedDateContainer
+                            : null,
+                        ]}
+                        >
+                        {selectedDate && (
+                        <DateTimePicker
+                            value={selectedDate || new Date()}
+                            mode="date"
+                            display="default"
+                            style={styles.datePicker}
+                            accentColor="transparent"
+                            // themeVariant={birthdayText && birthdayText.length > 0 ? "dark" : "light"}
+                            themeVariant="dark"
+                            textColor="white"
+                            onChange={(event, date) => {
+                            if (date) {
+                                handleConfirmDate(date);
+                            }
+                            }}
+                        />
+                        )}
+                        </View>
+
+                    <View style={styles.labelContainer}>
+                        <Text style={styles.labelText}>Location:</Text>
+                        <Text style={{ color: 'red', marginLeft: 2 }}>*</Text>
+                        <View style={{ flex: 1, flexDirection: "row", justifyContent: "flex-end" }}>
+                        </View>
+                    </View>
+                    <TextInput
+                        style={[styles.textField, locationText.length > 0 ? styles.selectedTextBox : null]}
+                        value={locationText}
+                        onChangeText={(newText) => setLocationText(newText)}
+                    />
+
+                    <View style={styles.labelContainer}>
+                        <Text style={styles.labelText}>Favorite Genres:</Text>
+                        <View style={{ flex: 1, flexDirection: "row", justifyContent: "flex-end" }}>
+                        </View>
+                    </View>
+                    <View style={styles.pressableContainer}>
+                        <PressableBubblesGroup
+                            labels={genreOptions}
+                            selectedLabels={selectedGenres}
+                            setLabelState={setSelectedGenres}
+                            styles={styles}
+                        />
                     </View>
                 </View>
-                <TextInput
-                    style={[styles.textField, locationText.length > 0 ? styles.selectedTextBox : null]}
-                    value={locationText}
-                    onChangeText={(newText) => setLocationText(newText)}
-                />
 
-                <View style={styles.labelContainer}>
-                    <Text style={styles.labelText}>Favorite Genres:</Text>
-                    <View style={{ flex: 1, flexDirection: "row", justifyContent: "flex-end" }}>
+                <View style={styles.separatorLine}></View>
+
+                {/* Second container */}
+                <View style={styles.container}>
+                    <View style={styles.labelContainer}>
+                        <Text style={styles.labelText}>Bio:</Text>
+                        <View style={{ flex: 1, flexDirection: "row", justifyContent: "flex-end" }}>
+                        </View>
                     </View>
-                </View>
-                <View style={styles.pressableContainer}>
-                    <PressableBubblesGroup
-                        labels={genres}
-                        selectedLabels={selectedGenres}
-                        setLabelState={setSelectedGenres}
-                        styles={styles}
+                    <TextInput
+                        style={[styles.textBox, bioText.length > 0 ? styles.selectedTextBox : null]}
+                        value={bioText}
+                        onChangeText={(newText) => setBioText(newText)}
+                        multiline={true}
                     />
                 </View>
-            </View>
 
-            <View style={styles.separatorLine}></View>
+                <View style={styles.separatorLine}></View>
 
-            {/* Second container */}
-            <View style={styles.container}>
-                <View style={styles.labelContainer}>
-                    <Text style={styles.labelText}>Bio:</Text>
-                    <View style={{ flex: 1, flexDirection: "row", justifyContent: "flex-end" }}>
-                    </View>
+                {/* Button container */}
+                <View style={styles.buttonContainer} >
+                    {/* Button */}
+                    {/* { Global.justSignedUp ? (
+                        <Pressable style={styles.button} onPress={() => saveProfile(nameText, birthdayText, locationText, bioText, selectedGenres)}>
+                            <Text style={{ color: "white", fontWeight: "bold", fontSize: 30 }}>Save</Text>
+                        </Pressable>
+                    ) : ( */}
+                        <Pressable style={styles.button} onPress={async () => { await LogOut(auth); router.push('/');}}>
+                            <Text style={{ color: "black", fontWeight: "bold", fontSize: 30 }}>Logout</Text>
+                        </Pressable>
+                    {/* )} */}
                 </View>
-                <TextInput
-                    style={[styles.textBox, bioText.length > 0 ? styles.selectedTextBox : null]}
-                    value={bioText}
-                    onChangeText={(newText) => setBioText(newText)}
-                    multiline={true}
-                />
-            </View>
 
-            <View style={styles.separatorLine}></View>
-
-            {/* Button container */}
-            <View style={styles.buttonContainer} >
-                {/* Button */}
-                {/* { Global.justSignedUp ? (
-                    <Pressable style={styles.button} onPress={() => saveProfile(nameText, birthdayText, locationText, bioText, selectedGenres)}>
-                        <Text style={{ color: "white", fontWeight: "bold", fontSize: 30 }}>Save</Text>
-                    </Pressable>
-                ) : ( */}
-                    <Pressable style={styles.button} onPress={async () => { await LogOut(auth); router.push('/');}}>
-                        <Text style={{ color: "black", fontWeight: "bold", fontSize: 30 }}>Logout</Text>
-                    </Pressable>
-                {/* )} */}
-            </View>
-
-            {/* <View style={{ padding: "8%" }}></View> */}
-        </ScrollView>
+                {/* <View style={{ padding: "8%" }}></View> */}
+            </ScrollView>
+        </>
     );
 }
 
