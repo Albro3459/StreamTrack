@@ -14,11 +14,11 @@ import { Feather, Ionicons } from '@expo/vector-icons';
 import FilterModal from './components/filterModalComponent';
 import { Filter } from './types/filterTypes';
 import { TMDBSearch } from './helpers/APIHelper';
-import { TMDB_inner, TMDB_new } from './types/tmdbType';
+import { TMDB_Content, TMDB } from './types/tmdbType';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
-const SearchPage = () => {
+export default function SearchPage() {
   const pathname = usePathname();
 
   const [onPageLoad, setOnPageLoad] = useState(true);
@@ -50,7 +50,7 @@ const SearchPage = () => {
   type Movie = {
     id: string;
     rating: number;
-    content: TMDB_inner | null;
+    content: TMDB_Content | null;
   };
   const [movies, setMovies] = useState<Movie[]>([]);
 
@@ -72,7 +72,7 @@ const SearchPage = () => {
 
     const search = async (searchText: string) => {
         if (searchText.length > 0) {
-            const content: TMDB_new = await TMDBSearch(searchText);
+            const content: TMDB = await TMDBSearch(searchText);
             const movies: Movie[] = content.results.map(x => {
                 return {
                     id: x.id.toString(),
@@ -276,5 +276,3 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 });
-
-export default SearchPage;
