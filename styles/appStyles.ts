@@ -81,6 +81,7 @@ export const appStyles = StyleSheet.create({
       },
       cardContent: {
         flex: 1,
+        paddingHorizontal: 10
       },
       cardTitle: {
         fontSize: 18,

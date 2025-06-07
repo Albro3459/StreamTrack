@@ -257,196 +257,191 @@ export default function SpinnerPage() {
 
     return (
         <GestureHandlerRootView>
-          <View style={{paddingHorizontal: 20, paddingTop: 30, marginBottom: -80, backgroundColor: Colors.backgroundColor}}>
-            {/* <DropDownPicker
-                multiple={true}
-                min={0}
-                theme="DARK"
-                mode="BADGE"
-                badgeDotColors={["#e76f51", "#00b4d8", "#e9c46a", "#e76f51", "#8ac926", "#00b4d8", "#e9c46a"]}
-                placeholder='Select a list to shuffle...'
-                style={{backgroundColor: Colors.tabBarColor}}
+            <View style={{paddingHorizontal: 20, paddingTop: 30, marginBottom: -80, backgroundColor: Colors.backgroundColor}}>
+                {/* <DropDownPicker
+                    multiple={true}
+                    min={0}
+                    theme="DARK"
+                    mode="BADGE"
+                    badgeDotColors={["#e76f51", "#00b4d8", "#e9c46a", "#e76f51", "#8ac926", "#00b4d8", "#e9c46a"]}
+                    placeholder='Select a list to shuffle...'
+                    style={{backgroundColor: Colors.tabBarColor}}
 
-                open={dropDownOpen}
-                setOpen={setDropDownOpen}
-                value={selectedLists}
-                setValue={setSelectedLists}
-                items={Object.keys(lists).map((list) => ({ label: list, value: list }))}
-              /> */}
-          </View>
+                    open={dropDownOpen}
+                    setOpen={setDropDownOpen}
+                    value={selectedLists}
+                    setValue={setSelectedLists}
+                    items={Object.keys(lists).map((list) => ({ label: list, value: list }))}
+                /> */}
+            </View>
 
-          <Spinner 
-            list={moviesAndShows} 
-            // onFinish={handleWinner} 
-            onFinish={() => {}}
-          />
+            <Spinner 
+                list={moviesAndShows} 
+                // onFinish={handleWinner} 
+                onFinish={() => {}}
+            />
 
-          {/* Input Section */}
-          <View>
-            <Pressable style={styles.inputContainer} onPress={() => {setDropDownOpen(false); setSearchModalVisible(true);}}>
-              <View style={{paddingTop: 10, paddingRight: 15}}>
-                <Feather name="search" size={28} color="white" />
-              </View>
-              <Text
-                style={[styles.input, {flex: 1, paddingTop: 15}]}
-              >
-              {inputText && inputText.length > 0 ? inputText : "Find shows or movies to add..."}
-              </Text>  
-              {/* <TouchableOpacity style={styles.addButton} 
-                onPress={() => setSearchModalVisible(true)}
-                // onPress={async () => await addSegment(inputText)}
+            {/* Input Section */}
+            <View>
+                <Pressable style={styles.inputContainer} onPress={() => {setDropDownOpen(false); setSearchModalVisible(true);}}>
+                <View style={{paddingTop: 10, paddingRight: 15}}>
+                    <Feather name="search" size={28} color="white" />
+                </View>
+                <Text
+                    style={[styles.input, {flex: 1, paddingTop: 15}]}
                 >
-                <Text style={styles.addButtonText}>Add</Text>
-              </TouchableOpacity> */}
-              {moviesAndShows && moviesAndShows.length > 0 && (
-              <TouchableOpacity style={styles.addButton} 
-                onPress={() => {setDropDownOpen(false); setEditModalVisible(true);}}
-                // onPress={async () => await addSegment(inputText)}
+                {inputText && inputText.length > 0 ? inputText : "Find shows or movies to add..."}
+                </Text>  
+                {/* <TouchableOpacity style={styles.addButton} 
+                    onPress={() => setSearchModalVisible(true)}
+                    // onPress={async () => await addSegment(inputText)}
+                    >
+                    <Text style={styles.addButtonText}>Add</Text>
+                </TouchableOpacity> */}
+                {moviesAndShows && moviesAndShows.length > 0 && (
+                <TouchableOpacity style={styles.addButton} 
+                    onPress={() => {setDropDownOpen(false); setEditModalVisible(true);}}
+                    // onPress={async () => await addSegment(inputText)}
+                    >
+                    <Text style={styles.addButtonText}>Edit</Text>
+                </TouchableOpacity>
+                )}
+                </Pressable>
+            </View>
+
+            {winner && showOverlay && (
+                <View style={styles.overlay}>
+                    <View style={styles.winnerContainer}>
+                        <View style={{flexDirection: "row", alignItems: "center"}}>
+                            <Text style={styles.winnerText}>Winner!</Text>
+                            <Entypo name='circle-with-cross' size={25} color={"white"}
+                                style={{
+                                    position: "absolute",
+                                    padding: 0,
+                                    margin: 0,
+                                    left: screenWidth*0.48
+                                }} 
+                                onPress={() => setShowOverlay(false)} />
+                        </View>
+                        <Pressable
+                            //   onPress={() => {
+                            //       Global.backPressLoadSpinner = true;
+                            //       router.push({
+                            //             pathname: '/InfoPage',
+                            //             params: { id: winner.id },
+                            //         })  
+                            //     }}
+                            onLongPress={() => {setAddToListModal(true);}}
+                        >
+                            <View style={[appStyles.cardContainer, {width: screenWidth*0.7, alignSelf: "center"}]}>
+                                <Image source={{ uri: winner.posters && winner.posters.vertical }} style={appStyles.cardPoster} />
+                                <View style={[appStyles.cardContent]}>
+                                    <Text style={[appStyles.cardTitle, {paddingBottom: 5}]}>{winner.title.split(":").length == 0 ? winner.title : winner.title.split(":")[0]}</Text>
+                                    <Text style={appStyles.cardRating}>⭐ 4.2</Text>
+                                </View>
+                                <Heart 
+                                    heartColor={(heartColors && heartColors[winner.id]) || Colors.unselectedHeartColor}
+                                    size={35}
+                                    // onPress={() => moveItemToFavoriteList(winner.id)}
+                                    //   onPress={async () => await moveItemToTab(winner, FAVORITE_TAB, setLists, setPosterLists, [setAddToListModal], setHeartColors)}
+                                />
+                            </View>
+                        </Pressable>
+                    </View>
+                </View>
+            )}
+
+            {/* Move Modal */}
+            {/* {winner && (
+                <Modal
+                    transparent={true}
+                    visible={addToListModal}
+                    animationType="fade"
+                    onRequestClose={() => setAddToListModal(false)}
                 >
-                <Text style={styles.addButtonText}>Edit</Text>
-              </TouchableOpacity>
-              )}
-            </Pressable>
-          </View>
+                    <Pressable
+                    style={appStyles.modalOverlay}
+                    onPress={() => setAddToListModal(false)}
+                    >
+                    <View style={appStyles.modalContent}>
+                        <Text style={appStyles.modalTitle}>
+                        Move "{winner?.title}" to:
+                        </Text>
+                        {winner && Object.keys(lists).filter((list) => list !== FAVORITE_TAB).map((tab, index) => (
+                        tab === FAVORITE_TAB ? (
+                            <View key={`LandingPage-${winner.id}-heart-${index}`} style={{paddingTop: 10}}>
+                            <Heart 
+                                heartColor={heartColors[winner?.id] || Colors.unselectedHeartColor}
+                                size={35}
+                                // onPress={() => moveItemToFavoriteList(winner?.id)}
+                                onPress={async () => await moveItemToTab(winner, tab, setLists, setPosterLists, [setAddToListModal], setHeartColors)}
+                            />
+                            </View>
+                        ) : (
+                            <TouchableOpacity
+                                key={`LandingPage-${winner.id}-${tab}-${index}`}
+                                style={[appStyles.modalButton, isItemInList(winner, tab, lists) && appStyles.selectedModalButton]}
+                                // onPress={() => moveItemToList(winner, tab)}
+                                onPress={async () => await moveItemToTab(winner, tab, setLists, setPosterLists, [setAddToListModal], null)}
+                            >
+                                <Text style={appStyles.modalButtonText}>
+                                {tab} {isItemInList(winner, tab, lists) ? "✓" : ""}
+                                </Text>
+                            </TouchableOpacity>
+                        )
+                        ))}
+                    </View>
+                    </Pressable>
+                </Modal>
+            )} */}
 
-          {winner && showOverlay && (
-              <View style={styles.overlay}>
-                  <View style={styles.winnerContainer}>
-                      <View style={{flexDirection: "row", alignItems: "center"}}>
-                          <Text style={styles.winnerText}>Winner!</Text>
-                          <Entypo name='circle-with-cross' size={25} color={"white"}
-                              style={{
-                                  position: "absolute",
-                                  padding: 0,
-                                  margin: 0,
-                                  left: screenWidth*0.48
-                              }} 
-                              onPress={() => setShowOverlay(false)} />
-                      </View>
-                      <Pressable
-                        //   onPress={() => {
-                        //       Global.backPressLoadSpinner = true;
-                        //       router.push({
-                        //             pathname: '/InfoPage',
-                        //             params: { id: winner.id },
-                        //         })  
-                        //     }}
-                          onLongPress={() => {setAddToListModal(true);}}
-                      >
-                          <View style={[appStyles.cardContainer, {width: screenWidth*0.7, alignSelf: "center"}]}>
-                              <Image source={{ uri: winner.posters && winner.posters.vertical }} style={appStyles.cardPoster} />
-                              <View style={[appStyles.cardContent]}>
-                                  <Text style={[appStyles.cardTitle, {paddingBottom: 5}]}>{winner.title.split(":").length == 0 ? winner.title : winner.title.split(":")[0]}</Text>
-                                  <Text style={appStyles.cardRating}>⭐ 4.2</Text>
-                              </View>
-                              <Heart 
-                                  heartColor={(heartColors && heartColors[winner.id]) || Colors.unselectedHeartColor}
-                                  size={35}
-                                  // onPress={() => moveItemToFavoriteList(winner.id)}
-                                //   onPress={async () => await moveItemToTab(winner, FAVORITE_TAB, setLists, setPosterLists, [setAddToListModal], setHeartColors)}
-                              />
-                          </View>
-                      </Pressable>
-                  </View>
-              </View>
-          )}
-
-          {/* Move Modal */}
-          {winner && (
-              <Modal
-                  transparent={true}
-                  visible={addToListModal}
-                  animationType="fade"
-                  onRequestClose={() => setAddToListModal(false)}
-              >
-                  <Pressable
-                  style={appStyles.modalOverlay}
-                  onPress={() => setAddToListModal(false)}
-                  >
-                  <View style={appStyles.modalContent}>
-                      <Text style={appStyles.modalTitle}>
-                      Move "{winner?.title}" to:
-                      </Text>
-                      {/* {winner && Object.keys(lists).filter((list) => list !== FAVORITE_TAB).map((tab, index) => (
-                      tab === FAVORITE_TAB ? (
-                          <View key={`LandingPage-${winner.id}-heart-${index}`} style={{paddingTop: 10}}>
-                          <Heart 
-                              heartColor={heartColors[winner?.id] || Colors.unselectedHeartColor}
-                              size={35}
-                              // onPress={() => moveItemToFavoriteList(winner?.id)}
-                              onPress={async () => await moveItemToTab(winner, tab, setLists, setPosterLists, [setAddToListModal], setHeartColors)}
-                          />
-                          </View>
-                      ) : (
-                          <TouchableOpacity
-                              key={`LandingPage-${winner.id}-${tab}-${index}`}
-                              style={[appStyles.modalButton, isItemInList(winner, tab, lists) && appStyles.selectedModalButton]}
-                              // onPress={() => moveItemToList(winner, tab)}
-                              onPress={async () => await moveItemToTab(winner, tab, setLists, setPosterLists, [setAddToListModal], null)}
-                          >
-                              <Text style={appStyles.modalButtonText}>
-                              {tab} {isItemInList(winner, tab, lists) ? "✓" : ""}
-                              </Text>
-                          </TouchableOpacity>
-                      )
-                      ))} */}
-                  </View>
-                  </Pressable>
-              </Modal>
-          )}
-
-          {/* Modal for Search */}
-          <Modal
-              visible={isSearchModalVisible}
-              transparent
-              animationType="fade"
-              onRequestClose={handleSearchModalClose}
+            {/* Modal for Search */}
+            <Modal
+                visible={isSearchModalVisible}
+                transparent
+                animationType="fade"
+                onRequestClose={handleSearchModalClose}
             >
-              <Pressable onPress={() => { Keyboard.dismiss(); handleSearchModalClose(); }}>
+                <Pressable onPress={() => { Keyboard.dismiss(); handleSearchModalClose(); }}>
                 <View style={styles.modalOverlay}>
-                  <View style={{ marginBottom: screenHeight*1.2, flexDirection: "column"}}>
+                    <View style={{ marginBottom: screenHeight*1.2, flexDirection: "column"}}>
                     <View style={[styles.modalInput, {zIndex: 10}]}>
-                      <TextInput
+                        <TextInput
                         style={[styles.input, {width: screenWidth * 0.7},]}
                         placeholder="Search..."
                         placeholderTextColor="#aaa"
                         value={inputText}
                         onChangeText={setInputText}
                         onSubmitEditing={async () => {
-                          // setIsSearching(true);
-                          try {
                             await handleAddSegment(inputText);
-                          } finally {
-                            // setIsSearching(false);
-                          }
                         }}
                         returnKeyType="search"
                         autoFocus
-                      />
-                      <TouchableOpacity style={styles.addButton} onPress={async () => {
-                                                                              setIsSearching(true);
-                                                                              try {
+                        />
+                        <TouchableOpacity style={styles.addButton} onPress={async () => {
+                                                                                setIsSearching(true);
+                                                                                try {
                                                                                 await handleAddSegment(inputText);
-                                                                              } finally {
+                                                                                } finally {
                                                                                 setIsSearching(false);
-                                                                              }
+                                                                                }
                                                                             }}>
                         <Text style={styles.addButtonText}>Add</Text>
-                      </TouchableOpacity>
+                        </TouchableOpacity>
                     </View>                               
-                  </View>
+                    </View>
                 </View>
-              </Pressable>
+                </Pressable>
 
-              {/* Loading Overlay */}
-              {isSearching && (
+                {/* Loading Overlay */}
+                {isSearching && (
                 <View style={styles.loadingOverlay}>
-                  <View style={styles.loadingContainer}>
+                    <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color="#fff" />
                     <Text style={styles.loadingText}>Searching...</Text>
-                  </View>
+                    </View>
                 </View>
-              )}
+                )}
             </Modal>
 
 

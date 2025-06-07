@@ -13,6 +13,8 @@ import { PosterList, WatchList } from './types/listsType';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import FilterModal from './components/filterModalComponent';
 import { Filter } from './types/filterTypes';
+import { TMDBSearch } from './helpers/APIHelper';
+import { TMDB_inner, TMDB_new } from './types/tmdbType';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -40,10 +42,15 @@ const SearchPage = () => {
   const [selectedResult, setSelectedResult] = useState<Content>(null);
   const [searchAddToListModal, setSearchAddToListModal] = useState(false);
 
+//   type Movie = {
+//     id: string;
+//     rating: number;
+//     content: PosterContent | null;
+//   };
   type Movie = {
     id: string;
     rating: number;
-    content: PosterContent | null;
+    content: TMDB_inner | null;
   };
   const [movies, setMovies] = useState<Movie[]>([]);
 
@@ -63,108 +70,19 @@ const SearchPage = () => {
     }
   };
 
-//   const search = async (searchText: string, filter: Filter) => {
-//     if (searchText.length <= 0 && filter.selectedGenres.length === 0 && 
-//         filter.selectedTypes.length === 0 && filter.selectedServices.length === 0 && filter.selectedPaidOptions.length === 0) {
-//         setMovies([]);
-//         Global.searchMovies = [];
-//         Global.searchFilter = filter;
-//         return;
-//     }
-//     setSearchText(searchText);
-//     setOnPageLoad(false);
-//     // if (isSearching) { return; }
-//     await (async () => {
-//       setIsSearching(true);
-//       try {
-//         const contents: PosterContent[] = await searchByKeywords(searchText, filter);
-//         if (contents) {
-//           const mappedMovies = contents.map((content: PosterContent, index) => ({
-//             id: content.id,
-//             rating:  parseFloat((content.rating/20).toFixed(2)), // rating is on 100 pt scale so this converts to 5 star scale
-//             content: content,
-//           }));
-//           setMovies(mappedMovies);
-//           Global.searchMovies = mappedMovies;
-//           Global.searchFilter = filter;
-
-//           try {
-//             // Load saved tabs from AsyncStorage
-//             const savedTabs = await AsyncStorage.getItem(STORAGE_KEY);
-//             if (savedTabs) {
-//               const parsedTabs: WatchList = savedTabs
-//                                       ? sortTabs({ ...DEFAULT_TABS, ...JSON.parse(savedTabs) }) // Ensure tabs are sorted
-//                                       : DEFAULT_TABS;
-//               setLists(parsedTabs);
-//               // Initialize heartColors based on the Favorite tab
-//               const savedHeartColors = Object.values(parsedTabs).flat().reduce<{ [key: string]: string }>((acc, content: Content) => {
-//                 acc[content.id] = parsedTabs.Favorite.some((fav) => fav.id === content.id)
-//                   ? Colors.selectedHeartColor
-//                   : Colors.unselectedHeartColor;
-//                 return acc;
-//               }, {});
-//               setHeartColors(savedHeartColors);
-//             }
-//           } catch (error) {
-//             console.error('Error loading library content:', error);
-//           }
-//         }
-//       } finally {
-//         if (flatListRef.current && movies && movies.length > 0) {
-//           flatListRef.current.scrollToOffset({ animated: true, offset: 0});
-//         }
-//         setIsSearching(false);
-//       }
-//     })();
-//   };
-
-//   useEffect(() => {
-//     const reFetch = async () => {
-//       if (pathname === "/SearchPage") {
-//         if (Global.backPressLoadSearch) {
-//           setOnPageLoad(false);
-//           // console.log("SEARCH back press load begin");
-//           // Re-initialize search state
-//           if (Global.searchMovies && Global.searchMovies.length > 0) {
-//             setMovies([...Global.searchMovies]);
-//           }
-//           if (Global.searchFilter) {
-//             setSelectedGenres(Global.searchFilter.selectedGenres);
-//             setSelectedTypes(Global.searchFilter.selectedTypes);
-//             setSelectedServices(Global.searchFilter.selectedServices);
-//             setSelectedPaidOptions(Global.searchFilter.selectedPaidOptions);
-//           }
-
-//           try {
-//             // console.log("starting to pull lists");
-//             // Load saved tabs from AsyncStorage
-//             const savedTabs = await AsyncStorage.getItem(STORAGE_KEY);
-//             if (savedTabs) {
-//               const parsedTabs: WatchList = savedTabs
-//                           ? sortTabs({ ...DEFAULT_TABS, ...JSON.parse(savedTabs) }) // Ensure tabs are sorted
-//                           : DEFAULT_TABS;
-//               setLists(parsedTabs);
-
-//               // Initialize heartColors based on the Favorite tab
-//               const savedHeartColors = Object.values(parsedTabs).flat().reduce<{ [key: string]: string }>((acc, content: Content) => {
-//                 acc[content.id] = parsedTabs.Favorite.some((fav) => fav.id === content.id)
-//                   ? Colors.selectedHeartColor
-//                   : Colors.unselectedHeartColor;
-//                 return acc;
-//               }, {});
-//               setHeartColors(savedHeartColors);
-//               // console.log("SAVED lists");
-//             }
-//           } catch (error) {
-//             console.error('Error loading library content:', error);
-//           }
-//         }
-//         Global.backPressLoadSearch = false;
-//       }
-//     }
-
-//     reFetch();
-//   }, [pathname]); // need this for this one
+    const search = async (searchText: string) => {
+        if (searchText.length > 0) {
+            const content: TMDB_new = await TMDBSearch(searchText);
+            const movies: Movie[] = content.results.map(x => {
+                return {
+                    id: x.id.toString(),
+                    rating:  parseFloat((x.vote_average/2).toFixed(2)), // rating is on 10 pt scale so this converts to 5 star scale
+                    content: x,
+                }
+            });
+            setMovies(movies);
+        }
+    };
 
   return (
     <Pressable style={{height: screenHeight-70}} onPress={Keyboard.dismiss}>
@@ -173,6 +91,7 @@ const SearchPage = () => {
         <View style={{flexDirection: "row", columnGap: 10, justifyContent: "center"}} >
             <Pressable 
                 style={{paddingTop: 5}} 
+                onPress={async () => await search(searchText)}
                 // onPress={async () => await search(searchText, { selectedGenres, selectedTypes, selectedServices, selectedPaidOptions} as Filter )}
             >
                 <Feather name="search" size={28} color="white" />
@@ -213,7 +132,7 @@ const SearchPage = () => {
             </Text>
           </View>
         ) : (
-          <FlatList
+          <FlatList<Movie>
             ref={flatListRef}
             data={movies}
             keyExtractor={(item) => item.id}
@@ -223,23 +142,25 @@ const SearchPage = () => {
                     //   Global.backPressLoadSearch = true;
                       router.push({
                           pathname: '/InfoPage',
-                          params: { id: item.id },
+                          params: { id: item.id, media_type: item.content.media_type, vertical: item.content.poster_path, horizontal: item.content.backdrop_path },
                       });
                     }}
-                    onLongPress={() => {setSelectedResult(item.content); setSearchAddToListModal(true);}}
+                    // onLongPress={() => {setSelectedResult(item.content); setSearchAddToListModal(true);}}
                 >
                 <View style={appStyles.cardContainer}>
-                  <Image source={{ uri: item.content.posters.vertical }} style={appStyles.cardPoster} />
-                  <View style={appStyles.cardContent}>
-                    <Text style={appStyles.cardTitle}>{item.content.title}</Text>
-                    <Text style={[appStyles.cardDescription, {paddingHorizontal: 10}]}>{item.content.overview}</Text>
-                    <Text style={appStyles.cardRating}>⭐ {item.rating}</Text>
-                  </View>
-                  <Heart 
-                    heartColor={(heartColors && heartColors[item.id]) || Colors.unselectedHeartColor}
-                    size={40}
-                    // onPress={async () => await moveItemToTab(item.content, FAVORITE_TAB, setLists, setPosterLists, [setSearchAddToListModal], setHeartColors)}
-                  />
+                  {/* <Image source={{ uri: item.content.posters.vertical }} style={appStyles.cardPoster} /> */}
+                    <Image source={{ uri: item.content.poster_path }} style={appStyles.cardPoster} />
+                    <View style={appStyles.cardContent}>
+                        {/* <Text style={appStyles.cardTitle}>{item.content.title}</Text> */}
+                        <Text style={appStyles.cardTitle}>{item.content.media_type === "movie" ? item.content.title : item.content.name}</Text>
+                        <Text style={appStyles.cardDescription}>{item.content.overview}</Text>
+                        <Text style={appStyles.cardRating}>⭐ {item.rating}</Text>
+                    </View>
+                    <Heart 
+                        heartColor={(heartColors && heartColors[item.id]) || Colors.unselectedHeartColor}
+                        size={40}
+                        // onPress={async () => await moveItemToTab(item.content, FAVORITE_TAB, setLists, setPosterLists, [setSearchAddToListModal], setHeartColors)}
+                    />
                 </View>
               </Pressable>
             )}
