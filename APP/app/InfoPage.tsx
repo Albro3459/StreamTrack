@@ -65,7 +65,7 @@ function InfoPage() {
     );
 
     const freeServices: ServiceType[] = serviceObjects.filter((service) => service.price === '0');
-    const paidServices: ServiceType[] = serviceObjects.filter((service) => service.price != '0');
+    const paidServices: ServiceType[] = serviceObjects.filter((service) => service.price !== '0');
 
     return { freeServices, paidServices} ;
   };
@@ -94,12 +94,11 @@ function InfoPage() {
    const [infoModalVisible, setInfoModalVisible] = useState(false);
 
   const getServicePrice = (option: StreamingOption) : string => {
-    const service = option.service;
-    if (service && option.price && option.price.amount && option.price.currency === "USD") {
-      const priceAmount = parseFloat(option.price.amount);
-      if (!isNaN(priceAmount)) {
-        return priceAmount === 0 ? "0" : `From $${priceAmount.toFixed(2)}`
-      }
+    if (option && option.service && option.price && option.price.amount && option.price.currency === "USD") {
+        const priceAmount = parseFloat(option.price.amount);
+        if (!isNaN(priceAmount)) {
+            return priceAmount === 0 ? "0" : `From $${priceAmount.toFixed(2)}`
+        }
     }
     return "0";
   };
