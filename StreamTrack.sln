@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StreamTrack", "API\StreamTrack.csproj", "{B8AEEA76-E661-0FD3-87C8-62FF9D5B2660}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B8AEEA76-E661-0FD3-87C8-62FF9D5B2660}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B8AEEA76-E661-0FD3-87C8-62FF9D5B2660}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B8AEEA76-E661-0FD3-87C8-62FF9D5B2660}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B8AEEA76-E661-0FD3-87C8-62FF9D5B2660}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C28C391D-418C-4BC8-B217-CD40A7293DA2}
+	EndGlobalSection
+EndGlobal

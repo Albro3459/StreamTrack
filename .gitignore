@@ -20,6 +20,12 @@
 **/expo-env.d.ts
 # @end expo-cli
 
+
+
+# CSharp
+API/bin
+API/obj
+
 # Hide all the keys
 **/secrets/
 
