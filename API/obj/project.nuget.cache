@@ -1,9 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "nRih84Y2l4y/yzd5a1A0odc4UfC2pQn8a5aRHd2KsLmhC1FtK8EP7AddoD84lDJtsPOgxX4zGdJChdAVlsZrRQ==",
+  "dgSpecHash": "7wa3EOfIV4lL/ZC9UZDGmgEhfmL9JzDqa2kjGqrgp4YFGL0hHapxk0GkP4JZQvTiqGMaiByyBV7OVhIGnQ91bA==",
   "success": true,
   "projectFilePath": "/Users/alexbrodsky/GitHub/StreamTrack/API/StreamTrack.csproj",
   "expectedPackageFiles": [
+    "/Users/alexbrodsky/.nuget/packages/automapper/14.0.0/automapper.14.0.0.nupkg.sha512",
     "/Users/alexbrodsky/.nuget/packages/humanizer.core/2.14.1/humanizer.core.2.14.1.nupkg.sha512",
     "/Users/alexbrodsky/.nuget/packages/microsoft.aspnetcore.authentication.jwtbearer/8.0.17/microsoft.aspnetcore.authentication.jwtbearer.8.0.17.nupkg.sha512",
     "/Users/alexbrodsky/.nuget/packages/microsoft.aspnetcore.openapi/8.0.4/microsoft.aspnetcore.openapi.8.0.4.nupkg.sha512",

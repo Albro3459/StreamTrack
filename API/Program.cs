@@ -7,23 +7,37 @@ using API.Infrastructure;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<StreamTrackDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("Development")));
+    options.UseSqlite(builder.Configuration.GetConnectionString("Development"))
+);
 
 builder.Services.AddControllers();
-
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// builder.Services.AddAuthentication(
-//     JwtBearerDefaults.AuthenticationScheme
-// ).AddBearerToken();
+// Auth
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options => {
+        var firebase = builder.Configuration.GetSection("Firebase");
+        options.Authority = firebase["Issuer"];
+        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters {
+            ValidateIssuer = true,
+            ValidIssuer = firebase["Issuer"],
+            ValidateAudience = true,
+            ValidAudience = firebase["Audience"],
+            ValidateLifetime = true
+        };
+    });
 
-// var mapperConfig = new MapperConfiguration(mc => {
-//     mc.AddProfile(new Map());
-// });
-// IMapper mapper = mapperConfig.CreateMapper();
-// builder.Services.AddSingleton(mapper);
+// Require authentication globally for all controllers
+builder.Services.AddAuthorization(options => {
+    options.FallbackPolicy = new Microsoft.AspNetCore.Authorization.AuthorizationPolicyBuilder()
+        .RequireAuthenticatedUser()
+        .Build();
+});
+
+
+builder.Services.AddAutoMapper(typeof(Program));
+// builder.Services.AddAutoMapper(typeof(MappingProfile)); // Make custom profile
 
 var app = builder.Build();
 
@@ -33,10 +47,14 @@ if (app.Environment.IsDevelopment()) {
     app.UseSwaggerUI();
 }
 
+// ORDER MATTERS
+
 app.UseHttpsRedirection();
 
-// app.UseAuthorization();
+app.UseAuthentication();
 
-// app.MapControllers();
+app.UseAuthorization();
+
+app.MapControllers();
 
 app.Run();
