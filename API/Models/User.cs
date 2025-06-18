@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace API.Models;
 
-public class User {
+public class User : SoftDeletableEntity {
     [Key]
     [Required]
     public string UserID { get; set; } = string.Empty;
@@ -14,7 +14,8 @@ public class User {
 
     public ICollection<ListShares> ListShares { get; set; } = new List<ListShares>();
 
+    public ICollection<Genre> Genres { get; set; } = new List<Genre>();
+
     public ICollection<StreamingService> StreamingServices { get; set; } = new List<StreamingService>();
 
-    public ICollection<Genre> Genres { get; set; } = new List<Genre>();
 }

@@ -16,6 +16,7 @@ import { useUserDataStore } from "./stores/userStore";
 import { Review } from "./types/reviewType";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/firebaseConfig";
+import { getUserData } from "./helpers/dataAPIHelper";
 
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
@@ -171,6 +172,10 @@ export default function LandingPage () {
             if (user && !userData) {
                 const token = await user.getIdToken();
                 await fetchUserData(token);
+                                
+                // TEST
+                const data = await getUserData(token);
+                console.log(data);
             }
         };
         fetchInitialUserData();

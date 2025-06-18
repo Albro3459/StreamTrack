@@ -1,11 +1,10 @@
-// using AutoMapper;
+using AutoMapper;
 
-// public class UserProfile : Profile
-// {
-//     public UserProfile()
-//     {
-//         // Example mapping: source -> destination
-//         CreateMap<User, UserDTO>();
-//         // Add more mappings here
-//     }
-// }
+using API.Models;
+using API.DTOs;
+
+public class UserProfile : Profile {
+    public UserProfile() {
+        CreateMap<User, UserDataDTO>().ReverseMap();
+    }
+}

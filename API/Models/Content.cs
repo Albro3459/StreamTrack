@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace API.Models;
 
-public class Content {
+public class Content : SoftDeletableEntity {
     [Key]
     [Required]
     public string ContentID { get; set; } = string.Empty;

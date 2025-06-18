@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 
 using API.Models;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace API.Infrastructure;
 
@@ -48,21 +49,56 @@ public class StreamTrackDbContext : DbContext {
         modelBuilder.Entity<ListShares>()
             .HasKey(ls => new { ls.ListID, ls.UserID });
 
+        var stringListComparer = new ValueComparer<List<string>>(
+            (c1, c2) => c1.SequenceEqual(c2),
+            c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+            c => c.ToList()
+        );
+
         modelBuilder.Entity<Content>()
             .Property(e => e.Cast)
             .HasConversion(
                 x => JsonSerializer.Serialize(x, null as JsonSerializerOptions),
                 x => JsonSerializer.Deserialize<List<string>>(x, null as JsonSerializerOptions) ?? new()
-            );
+            ).Metadata.SetValueComparer(stringListComparer);
 
         modelBuilder.Entity<Content>()
             .Property(e => e.Directors)
             .HasConversion(
                 x => JsonSerializer.Serialize(x, null as JsonSerializerOptions),
                 x => JsonSerializer.Deserialize<List<string>>(x, null as JsonSerializerOptions) ?? new()
-            );
+            ).Metadata.SetValueComparer(stringListComparer);
+
+        modelBuilder.Entity<User>().HasQueryFilter(u => !u.IsDeleted);
+        modelBuilder.Entity<List>().HasQueryFilter(l => !l.IsDeleted);
+        modelBuilder.Entity<ListShares>().HasQueryFilter(l => !l.IsDeleted);
+        modelBuilder.Entity<Content>().HasQueryFilter(c => !c.IsDeleted);
+        modelBuilder.Entity<Genre>().HasQueryFilter(g => !g.IsDeleted);
+        modelBuilder.Entity<StreamingService>().HasQueryFilter(s => !s.IsDeleted);
+        modelBuilder.Entity<StreamingOption>().HasQueryFilter(s => !s.IsDeleted);
 
         // ... seed data
 
+        modelBuilder.Entity<User>().HasData(new User {
+            UserID = "JMPOe14DyzcyxyVNBjqVjhssB5y2",
+            Email = "brodsky.alex22@gmail.com",
+            IsDeleted = false
+        });
+
+        modelBuilder.Entity<Genre>().HasData(
+            new Genre { GenreID = "1", Name = "Comedy", IsDeleted = false },
+            new Genre { GenreID = "2", Name = "Drama", IsDeleted = false }
+        );
+
+        modelBuilder.Entity<User>()
+            .HasMany(u => u.Genres)
+            .WithMany(g => g.Users)
+            .UsingEntity<Dictionary<string, object>>(
+                "UserGenre",
+                j => j.HasData(
+                    new { UsersUserID = "JMPOe14DyzcyxyVNBjqVjhssB5y2", GenresGenreID = "1" },
+                    new { UsersUserID = "JMPOe14DyzcyxyVNBjqVjhssB5y2", GenresGenreID = "2" }
+                )
+            );
     }
 }

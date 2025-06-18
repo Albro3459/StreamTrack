@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace API.Models;
 
-public class StreamingOption {
+public class StreamingOption : SoftDeletableEntity {
     [Key, Column(Order = 0)]
     [Required]
     public string ContentID { get; set; } = string.Empty;

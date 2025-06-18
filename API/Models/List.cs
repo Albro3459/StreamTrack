@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace API.Models;
 
-public class List {
+public class List : SoftDeletableEntity {
     [Key]
     [Required]
     public string ListID { get; set; } = string.Empty;

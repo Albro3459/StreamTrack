@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer; // Going to need to use firebase tokens
+using Microsoft.OpenApi.Models;
 // using AutoMapper;
 
 using API.Infrastructure;
@@ -12,7 +13,36 @@ builder.Services.AddDbContext<StreamTrackDbContext>(options =>
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+// builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(options => {
+    options.SwaggerDoc("v1", new OpenApiInfo { Title = "StreamTrack", Version = "v1" });
+
+    // Add JWT bearer security definition
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme {
+        Description = "JWT Authorization header using the Bearer scheme. Example: 'Authorization: Bearer {token}'",
+        Name = "Authorization",
+        In = ParameterLocation.Header,
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer"
+    });
+
+    // Apply Bearer Auth globally
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[] {}
+        }
+    });
+});
 
 // Auth
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -36,8 +66,7 @@ builder.Services.AddAuthorization(options => {
 });
 
 
-builder.Services.AddAutoMapper(typeof(Program));
-// builder.Services.AddAutoMapper(typeof(MappingProfile)); // Make custom profile
+builder.Services.AddAutoMapper(typeof(Program)); // All profiles in this project
 
 var app = builder.Build();
 

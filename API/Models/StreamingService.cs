@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace API.Models;
 
-public class StreamingService {
+public class StreamingService : SoftDeletableEntity {
     [Key]
     [Required]
     public string ServiceID { get; set; } = string.Empty;
