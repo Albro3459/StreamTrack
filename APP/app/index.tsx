@@ -11,7 +11,8 @@ export default function Index() {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
-                router.replace("/LandingPage");
+                // router.replace("/LandingPage");
+                router.replace("/ProfilePage");
                 return;
             }
             else {

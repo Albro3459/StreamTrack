@@ -82,6 +82,8 @@ public class StreamTrackDbContext : DbContext {
         modelBuilder.Entity<User>().HasData(new User {
             UserID = "JMPOe14DyzcyxyVNBjqVjhssB5y2",
             Email = "brodsky.alex22@gmail.com",
+            FirstName = "Alex",
+            LastName = "Brodsky",
             IsDeleted = false
         });
 

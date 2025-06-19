@@ -10,6 +10,12 @@ public class User : SoftDeletableEntity {
     [Required]
     public string Email { get; set; } = string.Empty;
 
+    [Required]
+    public string FirstName { get; set; } = string.Empty;
+
+    [Required]
+    public string LastName { get; set; } = string.Empty;
+
     public ICollection<List> OwnedLists { get; set; } = new List<List>();
 
     public ICollection<ListShares> ListShares { get; set; } = new List<ListShares>();

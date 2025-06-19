@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace StreamTrack.Migrations
 {
     [DbContext(typeof(StreamTrackDbContext))]
-    [Migration("20250618005010_Seed")]
-    partial class Seed
+    [Migration("20250619015156_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -229,8 +229,16 @@ namespace StreamTrack.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.HasKey("UserID");
 
@@ -241,7 +249,9 @@ namespace StreamTrack.Migrations
                         {
                             UserID = "JMPOe14DyzcyxyVNBjqVjhssB5y2",
                             Email = "brodsky.alex22@gmail.com",
-                            IsDeleted = false
+                            FirstName = "Alex",
+                            IsDeleted = false,
+                            LastName = "Brodsky"
                         });
                 });
 

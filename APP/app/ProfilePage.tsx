@@ -1,4 +1,4 @@
-import { Text, TextInput, View, StyleSheet, ScrollView, Image, Pressable, Alert } from "react-native";
+import { Text, TextInput, View, StyleSheet, ScrollView, Image, Pressable, Alert, Dimensions } from "react-native";
 import React, { useState } from 'react';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { PressableBubblesGroup,} from './components/formComponents';
@@ -9,33 +9,44 @@ import { Feather } from "@expo/vector-icons";
 import { LogOut } from "./helpers/authHelper";
 import { auth } from "@/firebaseConfig";
 import { RalewayFont } from "@/styles/appStyles";
-import { useUserDataStore } from "./stores/userStore";
+import { useUserDataStore } from "./stores/userDataStore";
+import { GenreData } from "./types/StreamTrackAPI/types";
 
+const screenWidth = Dimensions.get("window").width;
 
 export default function ProfilePage() {
     const router = useRouter();
 
     //genre options
-    const [genreOptions, setGenreOptions] = useState<string[]>(["Fantasy", "Horror", "Action", "Comedy", "Romantic", "Sci-Fi", "Adventure", "Thriller", "Other"]);
+
+    const [genreOptions, setGenreOptions] = useState<string[]>(["Action", "Comedy", "Drama", "Horror", "Romance", "Rom-Com", "Sci-Fi", "Thriller", "Western"]);
+    const streamingServices: { [key: string]: string } = {
+        "Amazon Prime": "https://media.movieofthenight.com/services/prime/logo-dark-theme.svg",
+        "Apple TV": "https://media.movieofthenight.com/services/apple/logo-dark-theme.svg",
+        "Disney+": "https://media.movieofthenight.com/services/disney/logo-dark-theme.svg",
+        "Hulu": "https://media.movieofthenight.com/services/hulu/logo-dark-theme.svg",
+        "HBO Max": "https://media.movieofthenight.com/services/max/logo-dark-theme.svg",
+        "Netflix": "https://media.movieofthenight.com/services/netflix/logo-dark-theme.svg",
+        "Paramount+": "https://media.movieofthenight.com/services/paramount/logo-dark-theme.svg",
+        "Peacock": "https://media.movieofthenight.com/services/peacock/logo-dark-theme.svg",
+    };
 
     const { userData, fetchUserData } = useUserDataStore();
 
     // State for text inputs
-    const [nameText, setNameText] = useState<string | null>(userData.name);
-
-    const [birthdayText, setBirthdayText] =  useState<string | null>(userData.birthday);
-    // Date picker for birthday
-    const [selectedDate, setSelectedDate] = useState<Date | null>(stringToDate(birthdayText) || new Date());
-    const handleConfirmDate = (birthdayDate: Date) => {
-        setBirthdayText(dateToString(birthdayDate));
-        setSelectedDate(birthdayDate);
-    };
+    const [firstNameText, setFirstNameText] = useState<string>(userData.firstName);
+    const [lastNameText, setLastNameText] = useState<string>(userData.lastName);
     
-    const [locationText, setLocationText] = useState<string | null>(userData.location);
-    const [bioText, setBioText] =  useState<string | null>(userData.bio);
-    const [selectedGenres, setSelectedGenres] = useState<Set<string> | null>(userData.genres);
+    const [selectedGenres, setSelectedGenres] = useState<Set<string>>(
+        new Set(userData.genres.map(g => g.name)) // Objects work weird in sets. Use the strings
+    );
 
-    const saveProfile = (name: string, birthday: string, location: string, bio: string, genres: Set<string>) => {
+    const [selectedStreamingServices, setSelectedStreamingServices] = useState<Set<string>>(
+        new Set()
+        // new Set(userData.streamingServices.map(g => g.name)) // Objects work weird in sets. Use the strings
+    );
+
+    const saveProfile = (firstName: string, lastName: string, genres: Set<string>, streamingServices: Set<string>) => {
 
         Alert.alert(
             'Success',
@@ -65,7 +76,7 @@ export default function ProfilePage() {
                 options={{
                     headerRight: () => (
                         <Pressable
-                            onPress={() => saveProfile(nameText, birthdayText, locationText, bioText, selectedGenres)}
+                            onPress={() => saveProfile(firstNameText, lastNameText, selectedGenres, selectedStreamingServices)}
                             // style={{ marginRight: 16 }} // optional, for spacing
                         >
                             <Feather name="save" size={28} />
@@ -74,71 +85,29 @@ export default function ProfilePage() {
                 }}
             />
             <ScrollView style={styles.background}>
-                {/* Picture + Name */}
-                <View style={styles.topContainer}>
-                    <Image
-                        source={require("../assets/images/ProfilePic.png")}
-                        style={styles.image}
-                    />
-                    {/* <Text style={[styles.nameText, { marginTop: -55 }]}>John Slade</Text> */}
-                </View>
-
                 {/* First container */}
-                <View style={[styles.container, { marginTop: 0-15 }]}>
-                    <View style={styles.labelContainer}>
-                        <Text style={styles.labelText}>Name:</Text>
-                        <Text style={{ color: 'red', marginLeft: 2 }}>*</Text>
+                <View style={[styles.container]}>
+                    <View style={[styles.labelContainer, {paddingTop: 10}]}>
+                        <Text style={styles.labelText}>First Name:</Text>
+                        {/* <Text style={{ color: 'red', marginLeft: 2 }}>*</Text> */}
                         <View style={{ flex: 1, flexDirection: "row", justifyContent: "flex-end" }}>
                         </View>
                     </View>
                     <TextInput
-                        style={[styles.textField, nameText.length > 0 ? styles.selectedTextBox : null]}
-                        value={nameText}
-                        onChangeText={(newText) => setNameText(newText)}
+                        style={[styles.textField, firstNameText.length > 0 ? styles.selectedTextBox : null]}
+                        value={firstNameText}
+                        onChangeText={(newText) => setFirstNameText(newText)}
                     />
-
-
                     <View style={styles.labelContainer}>
-                        <Text style={styles.labelText}>Birthday:</Text>
-                        <Text style={{ color: "red", marginLeft: 2 }}>*</Text>
-                        </View>
-                        <View
-                        style={[
-                            styles.dateContainer,
-                            birthdayText && birthdayText.length > 0
-                            ? styles.selectedDateContainer
-                            : null,
-                        ]}
-                        >
-                        {selectedDate && (
-                        <DateTimePicker
-                            value={selectedDate || new Date()}
-                            mode="date"
-                            display="default"
-                            style={styles.datePicker}
-                            accentColor="transparent"
-                            // themeVariant={birthdayText && birthdayText.length > 0 ? "dark" : "light"}
-                            themeVariant="dark"
-                            textColor="white"
-                            onChange={(event, date) => {
-                            if (date) {
-                                handleConfirmDate(date);
-                            }
-                            }}
-                        />
-                        )}
-                        </View>
-
-                    <View style={styles.labelContainer}>
-                        <Text style={styles.labelText}>Location:</Text>
-                        <Text style={{ color: 'red', marginLeft: 2 }}>*</Text>
+                        <Text style={styles.labelText}>Last Name:</Text>
+                        {/* <Text style={{ color: 'red', marginLeft: 2 }}>*</Text> */}
                         <View style={{ flex: 1, flexDirection: "row", justifyContent: "flex-end" }}>
                         </View>
                     </View>
                     <TextInput
-                        style={[styles.textField, locationText.length > 0 ? styles.selectedTextBox : null]}
-                        value={locationText}
-                        onChangeText={(newText) => setLocationText(newText)}
+                        style={[styles.textField, lastNameText.length > 0 ? styles.selectedTextBox : null]}
+                        value={lastNameText}
+                        onChangeText={(newText) => setLastNameText(newText)}
                     />
 
                     <View style={styles.labelContainer}>
@@ -154,32 +123,29 @@ export default function ProfilePage() {
                             styles={styles}
                         />
                     </View>
-                </View>
 
-                <View style={styles.separatorLine}></View>
-
-                {/* Second container */}
-                <View style={styles.container}>
                     <View style={styles.labelContainer}>
-                        <Text style={styles.labelText}>Bio:</Text>
+                        <Text style={styles.labelText}>Streaming Services:</Text>
                         <View style={{ flex: 1, flexDirection: "row", justifyContent: "flex-end" }}>
                         </View>
                     </View>
-                    <TextInput
-                        style={[styles.textBox, bioText.length > 0 ? styles.selectedTextBox : null]}
-                        value={bioText}
-                        onChangeText={(newText) => setBioText(newText)}
-                        multiline={true}
-                    />
+                    <View style={styles.pressableContainer}>
+                        <PressableBubblesGroup
+                            selectedLabels={selectedStreamingServices}
+                            setLabelState={setSelectedStreamingServices}
+                            styles={styles}
+                            services={streamingServices}
+                        />
+                    </View>
                 </View>
 
-                <View style={styles.separatorLine}></View>
+                {/* <View style={styles.separatorLine}></View> */}
 
                 {/* Button container */}
                 <View style={styles.buttonContainer} >
                     {/* Button */}
                     {/* { Global.justSignedUp ? (
-                        <Pressable style={styles.button} onPress={() => saveProfile(nameText, birthdayText, locationText, bioText, selectedGenres)}>
+                        <Pressable style={styles.button} onPress={() => saveProfile(firstNameText, lastNameText, selectedGenres, selectedStreamingServices)}>
                             <Text style={{ color: "white", fontWeight: "bold", fontSize: 30 }}>Save</Text>
                         </Pressable>
                     ) : ( */}
@@ -224,6 +190,7 @@ const styles = StyleSheet.create({
         paddingVertical: "4%",
         borderRadius: 15,
         marginVertical: "5%",
+        marginTop: "10%"
     },
     labelContainer: {
         flexDirection: "row",
@@ -279,7 +246,7 @@ const styles = StyleSheet.create({
     },
     labelText: {
         color: "black",
-        fontSize: 25,
+        fontSize: 20,
         fontFamily: RalewayFont,
         // alignSelf: "flex-start",
         paddingBottom: 5,
@@ -296,6 +263,8 @@ const styles = StyleSheet.create({
         borderRadius: 30,
         backgroundColor: Colors.unselectedColor,
         padding: "4%",
+        justifyContent: 'center',
+        alignItems: 'center', 
     },
     pressableText: {
         fontSize: 16,

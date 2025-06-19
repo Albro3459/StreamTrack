@@ -16,7 +16,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // import { DEFAULT_TABS, FAVORITE_TAB, isItemInList, moveItemToTab, sortTabs, turnTabsIntoPosterTabs } from './helpers/listHelper';
 import { PosterList, WatchList } from './types/listsType';
 import { MEDIA_TYPE } from './types/tmdbType';
-import { RapidAPIGetByID } from './helpers/APIHelper';
+import { RapidAPIGetByID } from './helpers/contentAPIHelper';
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -253,59 +253,59 @@ function InfoPage() {
                 <Text style={styles.sectionTitle}>Overview</Text>
                 <Text style={styles.text}>{content && content.overview}</Text>
 
-                <Text style={styles.sectionTitle}>Where to Watch</Text>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', columnGap: 10, padding: 10 }}>
-                {content && streamingServices().freeServices.map((service, index) => (
-                    <Pressable
-                        key={index}
-                        style={{
-                            maxWidth: screenWidth / 5,
-                            maxHeight: 50,
-                            margin: 5,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}
-                        onPress={() => {
-                            if (service.link) {
-                                Linking.openURL(service.link).catch(err => console.error("Failed to open URL:", err));
-                            } else {
-                                console.log("No link available");
-                            }
-                        }}
-                    >
+                <Text style={[styles.sectionTitle, {marginBottom: 0} ]}>Where to Watch</Text>
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', columnGap: 10, padding: 10, paddingTop: 0 }}>
+                    {content && streamingServices().freeServices.map((service, index) => (
+                        <Pressable
+                            key={index}
+                            style={{
+                                maxWidth: screenWidth / 5,
+                                maxHeight: 50,
+                                margin: 5,
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                            }}
+                            onPress={() => {
+                                if (service.link) {
+                                    Linking.openURL(service.link).catch(err => console.error("Failed to open URL:", err));
+                                } else {
+                                    console.log("No link available");
+                                }
+                            }}
+                        >
+                            <SvgUri
+                                uri={service.darkThemeImage}
+                                width={screenWidth / 5}
+                                height={screenWidth / 5}
+                            />
+                        </Pressable>
+                    ))}
+                    {content && streamingServices().paidServices.map((service, index) => (
+                        <Pressable
+                            key={index}
+                            style={{
+                                maxWidth: screenWidth / 5,
+                                maxHeight: 50,
+                                margin: 5,
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                            }}
+                            onPress={() => {
+                                if (service.link) {
+                                    Linking.openURL(service.link).catch(err => console.error("Failed to open URL:", err));
+                                } else {
+                                    console.log("No link available");
+                                }
+                            }}
+                        >
                         <SvgUri
                             uri={service.darkThemeImage}
                             width={screenWidth / 5}
                             height={screenWidth / 5}
                         />
-                    </Pressable>
-                ))}
-                {content && streamingServices().paidServices.map((service, index) => (
-                    <Pressable
-                        key={index}
-                        style={{
-                            maxWidth: screenWidth / 5,
-                            maxHeight: 50,
-                            margin: 5,
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                        }}
-                        onPress={() => {
-                            if (service.link) {
-                            Linking.openURL(service.link).catch(err => console.error("Failed to open URL:", err));
-                            } else {
-                            console.log("No link available");
-                            }
-                        }}
-                    >
-                    <SvgUri
-                        uri={service.darkThemeImage}
-                        width={screenWidth / 5}
-                        height={screenWidth / 5}
-                    />
-                    <Text style={{color: Colors.reviewTextColor, fontSize: 12, marginTop: -10, paddingBottom: 10}}>{service.price}</Text>
-                    </Pressable>
-                ))}
+                        <Text style={{color: Colors.reviewTextColor, fontSize: 12, marginTop: -10, paddingBottom: 10}}>{service.price}</Text>
+                        </Pressable>
+                    ))}
                 </View>
 
                 <Text style={styles.sectionTitle}>Genre</Text>

@@ -1,5 +1,5 @@
 import { DataAPIURL } from "@/secrets/DataAPIUrl";
-import { UserData } from "../types/dataAPITypes";
+import { UserData } from "../types/StreamTrackAPI/types";
 
 export const getUserData = async (token: string): Promise<UserData | null> => {
     try {
@@ -8,7 +8,7 @@ export const getUserData = async (token: string): Promise<UserData | null> => {
         const options = {
             method: 'GET',
             headers: {
-                accept: 'text/plain',
+                accept: 'application/json',
                 Authorization: `Bearer ${token}`
             }
         };

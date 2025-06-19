@@ -13,7 +13,7 @@ import { PosterList, WatchList } from './types/listsType';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import FilterModal from './components/filterModalComponent';
 import { Filter } from './types/filterTypes';
-import { TMDBSearch } from './helpers/APIHelper';
+import { TMDBSearch } from './helpers/contentAPIHelper';
 import { TMDB_Content, TMDB } from './types/tmdbType';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");

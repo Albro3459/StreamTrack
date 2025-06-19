@@ -12,11 +12,11 @@ import Heart from "./components/heartComponent";
 // import { Global, STORAGE_KEY } from "@/Global";
 // import { DEFAULT_TABS, FAVORITE_TAB, isItemInList, moveItemToTab, sortTabs } from "./helpers/listHelper";
 import { WatchList } from "./types/listsType";
-import { useUserDataStore } from "./stores/userStore";
+import { useUserDataStore } from "./stores/userDataStore";
 import { Review } from "./types/reviewType";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/firebaseConfig";
-import { getUserData } from "./helpers/dataAPIHelper";
+import { getUserData } from "./helpers/StreamTrackAPIHelper";
 
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
@@ -223,7 +223,7 @@ export default function LandingPage () {
   return (
     <View style={styles.container} >
       <ScrollView style={{ marginBottom: LIBRARY_OVERLAY_HEIGHT}} showsVerticalScrollIndicator={false}>
-        <Text style={styles.welcomeText}>WELCOME BACK {userData ? userData.name.length > 0 ? `\n${userData.name.toUpperCase()}` : "USER" : "USER"}!</Text>
+        <Text style={styles.welcomeText}>WELCOME BACK {userData ? userData.firstName.length > 0 ? userData.firstName.toUpperCase() : "USER" : "USER"}!</Text>
         {/* Trending Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>TRENDING</Text>
@@ -382,7 +382,6 @@ const styles = StyleSheet.create({
     fontFamily: RalewayFont,
     color: "#fff",
     marginBottom: 20,
-    alignSelf: "center"
   },
   section: {
     marginBottom: 30,

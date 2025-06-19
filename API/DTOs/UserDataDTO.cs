@@ -6,6 +6,10 @@ namespace API.DTOs;
 public class UserDataDTO {
     public string Email { get; set; } = string.Empty;
 
+    public string FirstName { get; set; } = string.Empty;
+
+    public string LastName { get; set; } = string.Empty;
+
     // public List<List> OwnedLists { get; set; } = new List<List>();
 
     // public List<ListShares> ListShares { get; set; } = new List<ListShares>();

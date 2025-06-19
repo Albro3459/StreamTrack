@@ -2,7 +2,7 @@ import { auth } from "@/firebaseConfig";
 import { getIdToken, onAuthStateChanged, User } from "firebase/auth";
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
-import { useUserDataStore } from "./stores/userStore";
+import { useUserDataStore } from "./stores/userDataStore";
 import Heart from "./components/heartComponent";
 import { Colors } from "@/constants/Colors";
 
