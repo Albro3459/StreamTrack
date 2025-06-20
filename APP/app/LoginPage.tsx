@@ -4,6 +4,7 @@ import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "fire
 import { auth } from "@/firebaseConfig";
 import { useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
+import { createUser } from "./helpers/StreamTrackAPIHelper";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -34,6 +35,12 @@ export default function LoginPage() {
             }
             try {
                 await createUserWithEmailAndPassword(auth, email, password);
+
+                const user = auth.currentUser;
+                const token = await user.getIdToken();
+
+                createUser(token); // Fire-and-forget
+
                 router.replace("/ProfilePage");
             } catch (e) {
                 Alert.alert("Sign Up Failed", e.message);

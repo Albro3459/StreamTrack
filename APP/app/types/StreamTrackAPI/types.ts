@@ -1,8 +1,9 @@
 export type UserData = {
-    email: string;
-    firstName: string;
-    lastName: string;
-    genres: GenreData[];
+    email: string | null;
+    firstName: string | null;
+    lastName: string | null;
+    genres: GenreData[] | null;
+    // streamingServices: StreamingService[] | null;
 };
 
 export type GenreData = {

@@ -10,10 +10,8 @@ public class User : SoftDeletableEntity {
     [Required]
     public string Email { get; set; } = string.Empty;
 
-    [Required]
     public string FirstName { get; set; } = string.Empty;
 
-    [Required]
     public string LastName { get; set; } = string.Empty;
 
     public ICollection<List> OwnedLists { get; set; } = new List<List>();
@@ -23,5 +21,19 @@ public class User : SoftDeletableEntity {
     public ICollection<Genre> Genres { get; set; } = new List<Genre>();
 
     public ICollection<StreamingService> StreamingServices { get; set; } = new List<StreamingService>();
+
+    // Constructors
+    public User() { }
+
+    public User(string UserID) {
+        this.UserID = UserID;
+    }
+
+    public User(string UserID, string Email, string FirstName, string LastName) {
+        this.UserID = UserID;
+        this.Email = Email;
+        this.FirstName = FirstName;
+        this.LastName = LastName;
+    }
 
 }

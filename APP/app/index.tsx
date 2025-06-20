@@ -1,18 +1,33 @@
 import { auth } from "@/firebaseConfig";
 import { useRouter } from "expo-router";
-import { onAuthStateChanged } from "firebase/auth";
-import React, { useEffect } from "react";
+import { onAuthStateChanged, User } from "firebase/auth";
+import React, { useEffect, useState } from "react";
 import { View, Image, StyleSheet } from "react-native";
 import { LogOut } from "./helpers/authHelper";
+import { useUserDataStore } from "./stores/userDataStore";
 
 export default function Index() {
     const router = useRouter();
 
+    const { userData, fetchUserData } = useUserDataStore();
+
+    const [user, setUser] = useState<User | null>();
+
+    useEffect(() => {
+        const fetchInitialKeys = async () => {
+            if (user && !userData) {
+                const token = await user.getIdToken();
+                await fetchUserData(token);
+            }
+        };
+        fetchInitialKeys();
+    }, [user, userData, fetchUserData]);
+
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
-                // router.replace("/LandingPage");
-                router.replace("/ProfilePage");
+                setUser(user);
+                router.replace("/LandingPage");
                 return;
             }
             else {

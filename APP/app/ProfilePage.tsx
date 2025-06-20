@@ -34,16 +34,18 @@ export default function ProfilePage() {
     const { userData, fetchUserData } = useUserDataStore();
 
     // State for text inputs
-    const [firstNameText, setFirstNameText] = useState<string>(userData.firstName);
-    const [lastNameText, setLastNameText] = useState<string>(userData.lastName);
+    const [firstNameText, setFirstNameText] = useState<string | null>(userData?.firstName);
+    const [lastNameText, setLastNameText] = useState<string | null>(userData?.lastName);
     
     const [selectedGenres, setSelectedGenres] = useState<Set<string>>(
-        new Set(userData.genres.map(g => g.name)) // Objects work weird in sets. Use the strings
+        userData?.genres ? new Set(userData.genres.map(g => g.name)) // Objects work weird in sets. Use the strings
+            : new Set()
     );
 
     const [selectedStreamingServices, setSelectedStreamingServices] = useState<Set<string>>(
-        new Set()
-        // new Set(userData.streamingServices.map(g => g.name)) // Objects work weird in sets. Use the strings
+        // userData?.streamingServices ? new Set(userData.streamingServices.map(g => g.name)) // Objects work weird in sets. Use the strings
+        //     : 
+            new Set()
     );
 
     const saveProfile = (firstName: string, lastName: string, genres: Set<string>, streamingServices: Set<string>) => {
@@ -94,8 +96,8 @@ export default function ProfilePage() {
                         </View>
                     </View>
                     <TextInput
-                        style={[styles.textField, firstNameText.length > 0 ? styles.selectedTextBox : null]}
-                        value={firstNameText}
+                        style={[styles.textField, firstNameText && firstNameText.length > 0 ? styles.selectedTextBox : null]}
+                        value={firstNameText || ""}
                         onChangeText={(newText) => setFirstNameText(newText)}
                     />
                     <View style={styles.labelContainer}>
@@ -105,8 +107,8 @@ export default function ProfilePage() {
                         </View>
                     </View>
                     <TextInput
-                        style={[styles.textField, lastNameText.length > 0 ? styles.selectedTextBox : null]}
-                        value={lastNameText}
+                        style={[styles.textField, lastNameText && lastNameText.length > 0 ? styles.selectedTextBox : null]}
+                        value={lastNameText || ""}
                         onChangeText={(newText) => setLastNameText(newText)}
                     />
 
