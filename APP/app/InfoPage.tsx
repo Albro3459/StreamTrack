@@ -32,8 +32,8 @@ interface InfoPageParams {
 // Prevent splash screen from hiding until everything is loaded
 SplashScreen.preventAutoHideAsync();
 
-function InfoPage() {
-  const pathname = usePathname();
+export default function InfoPage() {
+//   const pathname = usePathname();
 
   const { id, media_type, vertical, horizontal } = useLocalSearchParams() as InfoPageParams;
 //   const contentID = id ? id.toString() : null;
@@ -807,5 +807,3 @@ const styles = StyleSheet.create({
       textAlign: 'center',
     },
 });
-
-export default InfoPage;

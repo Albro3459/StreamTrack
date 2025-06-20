@@ -6,5 +6,7 @@ using API.DTOs;
 public class UserProfile : Profile {
     public UserProfile() {
         CreateMap<User, UserDataDTO>().ReverseMap();
+
+        CreateMap<List, ListDTO>().ReverseMap();
     }
 }

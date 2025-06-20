@@ -17,7 +17,7 @@ export default function Index() {
         const fetchInitialKeys = async () => {
             if (user && !userData) {
                 const token = await user.getIdToken();
-                await fetchUserData(token);
+                await fetchUserData(token, user.email);
             }
         };
         fetchInitialKeys();

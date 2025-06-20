@@ -41,7 +41,11 @@ export default function LoginPage() {
 
                 createUser(token); // Fire-and-forget
 
-                router.replace("/ProfilePage");
+                // router.replace("/ProfilePage");
+                router.replace({
+                    pathname: '/ProfilePage',
+                    params: { isSigningUp: 1 }, // Have to pass as number or string
+                });
             } catch (e) {
                 Alert.alert("Sign Up Failed", e.message);
             }

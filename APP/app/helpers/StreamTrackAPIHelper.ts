@@ -1,5 +1,5 @@
 import { DataAPIURL } from "@/secrets/DataAPIUrl";
-import { UserData } from "../types/StreamTrackAPI/types";
+import { UpdateUserProfileData, UserData } from "../types/dataTypes";
 
 export const getUserData = async (token: string): Promise<UserData | null> => {
     try {
@@ -29,7 +29,7 @@ export const getUserData = async (token: string): Promise<UserData | null> => {
         console.error('Fetch user data failed:', err);
         return null;
     }
-}
+};
 
 export const createUser = async (token: string) => {
     try {
@@ -54,6 +54,40 @@ export const createUser = async (token: string) => {
     } catch (err) {
         console.error('Create user failed:', err);
     }
-}
+};
+
+export const updateUserProfile = async (token: string, firstName: string, lastName: string, genres: Set<string>, streamingServices: Set<string>) => {
+    try {
+        const url = DataAPIURL + "API/User/Update";
+
+        const body: UpdateUserProfileData = {
+            FirstName: firstName,
+            LastName: lastName,
+            Genres: Array.from(genres),
+            StreamingServices: Array.from(streamingServices)
+        }
+
+        const options = {
+            method: 'PATCH',
+            headers: {
+                accept: 'application/json',
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+            },
+            body: JSON.stringify(body)
+        };
+
+        const result = await fetch(url, options);
+
+        if (!result.ok) {
+            const text = await result.text();
+            console.error(`Error creating user ${result.status}: ${text}`);
+            return null;
+        }
+
+    } catch (err) {
+        console.error('Create user failed:', err);
+    }
+};
 
 export default {};

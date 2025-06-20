@@ -34,7 +34,10 @@ public class UserController : ControllerBase {
             return Unauthorized();
 
         var userDataDTO = await context.User
+            .Include(u => u.OwnedLists)
+            .Include(u => u.ListShares)
             .Include(u => u.Genres)
+            .Include(u => u.StreamingServices)
             .Where(u => u.UserID == uid)
             .Select(u => mapper.Map<User, UserDataDTO>(u))
             .FirstOrDefaultAsync();
@@ -48,10 +51,12 @@ public class UserController : ControllerBase {
 
         string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (string.IsNullOrEmpty(uid))
+        string? email = User.FindFirstValue(ClaimTypes.Email);
+
+        if (string.IsNullOrEmpty(uid) || string.IsNullOrEmpty(email))
             return Unauthorized();
 
-        User newUser = new User(uid);
+        User newUser = new User(uid, email);
 
         await context.User.AddAsync(newUser);
 
@@ -62,7 +67,7 @@ public class UserController : ControllerBase {
 
     // Patch: API/User/Update
     [HttpPatch("Update")]
-    public async Task<ActionResult> UpdateUser([FromBody] UserDataDTO data) {
+    public async Task<ActionResult> UpdateUser([FromBody] UserUpdateProfileDataDTO data) {
 
         string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -76,13 +81,17 @@ public class UserController : ControllerBase {
             return NotFound();
         }
 
-        if (data.Email != null) user.Email = data.Email;
         if (data.FirstName != null) user.FirstName = data.FirstName;
         if (data.LastName != null) user.LastName = data.LastName;
         if (data.Genres != null) {
-            List<string> genreNames = data.Genres.Select(g => g.Name.ToLower().Trim()).ToList();
+            List<string> genreNames = data.Genres.Select(g => g.ToLower().Trim()).ToList();
             List<Genre> genres = context.Genre.Where(g => genreNames.Contains(g.Name.ToLower().Trim())).ToList();
             user.Genres = genres;
+        }
+        if (data.StreamingServices != null) {
+            List<string> serviceNames = data.StreamingServices.Select(s => s.ToLower().Trim()).ToList();
+            List<StreamingService> services = context.StreamingService.Where(s => serviceNames.Contains(s.Name.ToLower().Trim())).ToList();
+            user.StreamingServices = services;
         }
 
         await context.SaveChangesAsync();

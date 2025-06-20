@@ -49,10 +49,14 @@ public class StreamTrackDbContext : DbContext {
         modelBuilder.Entity<ListShares>()
             .HasKey(ls => new { ls.ListID, ls.UserID });
 
+        // Used to compare two lists of strings
         var stringListComparer = new ValueComparer<List<string>>(
-            (c1, c2) => c1.SequenceEqual(c2),
-            c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
-            c => c.ToList()
+            (c1, c2) =>
+                    (c1 == null && c2 == null) ? true :
+                    (c1 == null || c2 == null) ? false :
+                    c1.SequenceEqual(c2),
+            c => c == null ? 0 : c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
+            c => c == null ? new List<string>() : c.ToList()
         );
 
         modelBuilder.Entity<Content>()
@@ -60,14 +64,14 @@ public class StreamTrackDbContext : DbContext {
             .HasConversion(
                 x => JsonSerializer.Serialize(x, null as JsonSerializerOptions),
                 x => JsonSerializer.Deserialize<List<string>>(x, null as JsonSerializerOptions) ?? new()
-            ).Metadata.SetValueComparer(stringListComparer);
+            ).Metadata.SetValueComparer(stringListComparer); // It needs to know how to compare the string arrays
 
         modelBuilder.Entity<Content>()
             .Property(e => e.Directors)
             .HasConversion(
                 x => JsonSerializer.Serialize(x, null as JsonSerializerOptions),
                 x => JsonSerializer.Deserialize<List<string>>(x, null as JsonSerializerOptions) ?? new()
-            ).Metadata.SetValueComparer(stringListComparer);
+            ).Metadata.SetValueComparer(stringListComparer); // It needs to know how to compare the string arrays
 
         modelBuilder.Entity<User>().HasQueryFilter(u => !u.IsDeleted);
         modelBuilder.Entity<List>().HasQueryFilter(l => !l.IsDeleted);
@@ -79,28 +83,28 @@ public class StreamTrackDbContext : DbContext {
 
         // ... seed data
 
-        modelBuilder.Entity<User>().HasData(new User {
-            UserID = "JMPOe14DyzcyxyVNBjqVjhssB5y2",
-            Email = "brodsky.alex22@gmail.com",
-            FirstName = "Alex",
-            LastName = "Brodsky",
-            IsDeleted = false
-        });
+        // modelBuilder.Entity<User>().HasData(new User {
+        //     UserID = "JMPOe14DyzcyxyVNBjqVjhssB5y2",
+        //     Email = "brodsky.alex22@gmail.com",
+        //     FirstName = "Alex",
+        //     LastName = "Brodsky",
+        //     IsDeleted = false
+        // });
 
-        modelBuilder.Entity<Genre>().HasData(
-            new Genre { GenreID = "1", Name = "Comedy", IsDeleted = false },
-            new Genre { GenreID = "2", Name = "Drama", IsDeleted = false }
-        );
+        // modelBuilder.Entity<Genre>().HasData(
+        //     new Genre { GenreID = "1", Name = "Comedy", IsDeleted = false },
+        //     new Genre { GenreID = "2", Name = "Drama", IsDeleted = false }
+        // );
 
-        modelBuilder.Entity<User>()
-            .HasMany(u => u.Genres)
-            .WithMany(g => g.Users)
-            .UsingEntity<Dictionary<string, object>>(
-                "UserGenre",
-                j => j.HasData(
-                    new { UsersUserID = "JMPOe14DyzcyxyVNBjqVjhssB5y2", GenresGenreID = "1" },
-                    new { UsersUserID = "JMPOe14DyzcyxyVNBjqVjhssB5y2", GenresGenreID = "2" }
-                )
-            );
+        // modelBuilder.Entity<User>()
+        //     .HasMany(u => u.Genres)
+        //     .WithMany(g => g.Users)
+        //     .UsingEntity<Dictionary<string, object>>(
+        //         "UserGenre",
+        //         j => j.HasData(
+        //             new { UsersUserID = "JMPOe14DyzcyxyVNBjqVjhssB5y2", GenresGenreID = "1" },
+        //             new { UsersUserID = "JMPOe14DyzcyxyVNBjqVjhssB5y2", GenresGenreID = "2" }
+        //         )
+        //     );
     }
 }

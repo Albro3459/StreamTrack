@@ -96,20 +96,6 @@ namespace StreamTrack.Migrations
                     b.HasKey("GenreID");
 
                     b.ToTable("Genre");
-
-                    b.HasData(
-                        new
-                        {
-                            GenreID = "1",
-                            IsDeleted = false,
-                            Name = "Comedy"
-                        },
-                        new
-                        {
-                            GenreID = "2",
-                            IsDeleted = false,
-                            Name = "Drama"
-                        });
                 });
 
             modelBuilder.Entity("API.Models.List", b =>
@@ -240,16 +226,6 @@ namespace StreamTrack.Migrations
                     b.HasKey("UserID");
 
                     b.ToTable("User");
-
-                    b.HasData(
-                        new
-                        {
-                            UserID = "JMPOe14DyzcyxyVNBjqVjhssB5y2",
-                            Email = "brodsky.alex22@gmail.com",
-                            FirstName = "Alex",
-                            IsDeleted = false,
-                            LastName = "Brodsky"
-                        });
                 });
 
             modelBuilder.Entity("ContentGenre", b =>
@@ -282,6 +258,21 @@ namespace StreamTrack.Migrations
                     b.ToTable("ListContent", (string)null);
                 });
 
+            modelBuilder.Entity("GenreUser", b =>
+                {
+                    b.Property<string>("GenresGenreID")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("UsersUserID")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("GenresGenreID", "UsersUserID");
+
+                    b.HasIndex("UsersUserID");
+
+                    b.ToTable("UserGenre", (string)null);
+                });
+
             modelBuilder.Entity("StreamingServiceUser", b =>
                 {
                     b.Property<string>("StreamingServicesServiceID")
@@ -295,33 +286,6 @@ namespace StreamTrack.Migrations
                     b.HasIndex("UsersUserID");
 
                     b.ToTable("UserService", (string)null);
-                });
-
-            modelBuilder.Entity("UserGenre", b =>
-                {
-                    b.Property<string>("GenresGenreID")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("UsersUserID")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("GenresGenreID", "UsersUserID");
-
-                    b.HasIndex("UsersUserID");
-
-                    b.ToTable("UserGenre");
-
-                    b.HasData(
-                        new
-                        {
-                            GenresGenreID = "1",
-                            UsersUserID = "JMPOe14DyzcyxyVNBjqVjhssB5y2"
-                        },
-                        new
-                        {
-                            GenresGenreID = "2",
-                            UsersUserID = "JMPOe14DyzcyxyVNBjqVjhssB5y2"
-                        });
                 });
 
             modelBuilder.Entity("API.Models.List", b =>
@@ -403,11 +367,11 @@ namespace StreamTrack.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("StreamingServiceUser", b =>
+            modelBuilder.Entity("GenreUser", b =>
                 {
-                    b.HasOne("API.Models.StreamingService", null)
+                    b.HasOne("API.Models.Genre", null)
                         .WithMany()
-                        .HasForeignKey("StreamingServicesServiceID")
+                        .HasForeignKey("GenresGenreID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -418,11 +382,11 @@ namespace StreamTrack.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("UserGenre", b =>
+            modelBuilder.Entity("StreamingServiceUser", b =>
                 {
-                    b.HasOne("API.Models.Genre", null)
+                    b.HasOne("API.Models.StreamingService", null)
                         .WithMany()
-                        .HasForeignKey("GenresGenreID")
+                        .HasForeignKey("StreamingServicesServiceID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

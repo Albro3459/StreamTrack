@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { UserData } from '../types/StreamTrackAPI/types';
+import { UserData } from '../types/dataTypes';
 import { getUserData } from '../helpers/StreamTrackAPIHelper';
 // import { APIHelper } from '../helpers/APIHelper';
 
@@ -7,7 +7,7 @@ interface UserDataStore {
   userData: UserData | null;
   loading: boolean;
   error: string | null;
-  fetchUserData: (token: string) => Promise<void>;
+  fetchUserData: (token: string, email: string) => Promise<void>;
   clearUserData: () => void;
 }
 
@@ -16,15 +16,16 @@ export const useUserDataStore = create<UserDataStore>((set) => ({
   loading: false,
   error: null,
 
-  fetchUserData: async (token) => {
+  fetchUserData: async (token: string, email: string) => {
     set({ loading: true, error: null });
 
     const result = await getUserData(token);
 
     if (result) {
-      set({ userData: result, loading: false });
+        if (!result.email) result.email = email;
+        set({ userData: result, loading: false });
     } else {
-      set({ error: 'Fetch failed', loading: false });
+        set({ error: 'Fetch failed', loading: false });
     }
   },
 

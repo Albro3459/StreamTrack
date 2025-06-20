@@ -25,8 +25,9 @@ public class User : SoftDeletableEntity {
     // Constructors
     public User() { }
 
-    public User(string UserID) {
+    public User(string UserID, string Email) {
         this.UserID = UserID;
+        this.Email = Email;
     }
 
     public User(string UserID, string Email, string FirstName, string LastName) {

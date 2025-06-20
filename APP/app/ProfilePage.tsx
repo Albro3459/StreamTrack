@@ -2,7 +2,7 @@ import { Text, TextInput, View, StyleSheet, ScrollView, Image, Pressable, Alert,
 import React, { useState } from 'react';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { PressableBubblesGroup,} from './components/formComponents';
-import { Stack, useRouter } from "expo-router"
+import { Stack, useLocalSearchParams, useRouter } from "expo-router"
 import { Colors } from "@/constants/Colors";
 import { dateToString, stringToDate } from "./helpers/dateHelper";
 import { Feather } from "@expo/vector-icons";
@@ -10,12 +10,19 @@ import { LogOut } from "./helpers/authHelper";
 import { auth } from "@/firebaseConfig";
 import { RalewayFont } from "@/styles/appStyles";
 import { useUserDataStore } from "./stores/userDataStore";
-import { GenreData } from "./types/StreamTrackAPI/types";
+import { GenreData } from "./types/dataTypes";
+import { updateUserProfile } from "./helpers/StreamTrackAPIHelper";
 
-const screenWidth = Dimensions.get("window").width;
+// const screenWidth = Dimensions.get("window").width;
+
+interface ProfilePageParams {
+    isSigningUp?: boolean;
+}
 
 export default function ProfilePage() {
     const router = useRouter();
+
+    const { isSigningUp } = useLocalSearchParams() as ProfilePageParams;
 
     //genre options
 
@@ -56,7 +63,11 @@ export default function ProfilePage() {
             [
                 {
                     text: 'OK',
-                    onPress: () => {
+                    onPress: async () => {
+                        const user = auth.currentUser;
+                        const token = await user.getIdToken();
+                        await updateUserProfile(token, firstName, lastName, genres, streamingServices);
+                        router.push('/LandingPage');
                         // if (Global.justSignedUp) {
                         //     // on sign up
                         //     router.push('/LandingPage');
@@ -74,7 +85,7 @@ export default function ProfilePage() {
 
     return (
         <>
-            <Stack.Screen
+            {/* <Stack.Screen
                 options={{
                     headerRight: () => (
                         <Pressable
@@ -85,7 +96,7 @@ export default function ProfilePage() {
                         </Pressable>
                     ),
                 }}
-            />
+            /> */}
             <ScrollView style={styles.background}>
                 {/* First container */}
                 <View style={[styles.container]}>
@@ -146,15 +157,15 @@ export default function ProfilePage() {
                 {/* Button container */}
                 <View style={styles.buttonContainer} >
                     {/* Button */}
-                    {/* { Global.justSignedUp ? (
+                    { isSigningUp ? (
                         <Pressable style={styles.button} onPress={() => saveProfile(firstNameText, lastNameText, selectedGenres, selectedStreamingServices)}>
-                            <Text style={{ color: "white", fontWeight: "bold", fontSize: 30 }}>Save</Text>
+                            <Text style={{ color: Colors.tabBarColor, fontWeight: "bold", fontSize: 30 }}>Save</Text>
                         </Pressable>
-                    ) : ( */}
+                    ) : (
                         <Pressable style={styles.button} onPress={async () => { await LogOut(auth); router.push('/');}}>
-                            <Text style={{ color: "black", fontWeight: "bold", fontSize: 30 }}>Logout</Text>
+                            <Text style={{ color: Colors.tabBarColor, fontWeight: "bold", fontSize: 30 }}>Logout</Text>
                         </Pressable>
-                    {/* )} */}
+                    )}
                 </View>
 
                 {/* <View style={{ padding: "8%" }}></View> */}
@@ -295,10 +306,10 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10,
         borderRadius: 10,
         marginTop: 10,
-        width: 150,
-        height: 75,
+        width: 120,
+        height: 60,
         justifyContent: "center",
-        alignItems: "center"
+        alignItems: "center",
     },
     dateContainer: {
         backgroundColor: Colors.unselectedColor,

@@ -1,6 +1,4 @@
 
-using API.Models;
-
 namespace API.DTOs;
 
 public class UserDataDTO {
@@ -10,12 +8,12 @@ public class UserDataDTO {
 
     public string LastName { get; set; } = string.Empty;
 
-    // public List<List> OwnedLists { get; set; } = new List<List>();
+    public List<ListDTO> OwnedLists { get; set; } = new();
 
-    // public List<ListShares> ListShares { get; set; } = new List<ListShares>();
+    public List<ListDTO> ListShares { get; set; } = new();
 
-    public List<GenreDTO> Genres { get; set; } = new List<GenreDTO>();
+    public List<GenreDTO> Genres { get; set; } = new();
 
-    // public List<StreamingService> StreamingServices { get; set; } = new List<StreamingService>();
+    public List<StreamingServiceDTO> StreamingServices { get; set; } = new();
 
 }

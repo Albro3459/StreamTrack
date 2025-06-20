@@ -1,3 +1,7 @@
 select * from User;
 
-delete from Users where UserID = "ZSc0uv9c7JM1AHBXPWFV3nRiOs72";
+select * from Genre;
+
+select * from StreamingService;
+
+-- delete from User where UserID = "XyDKcwoEPCMfSh7mV7hbrJV09SV2";

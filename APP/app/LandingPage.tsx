@@ -171,7 +171,7 @@ export default function LandingPage () {
         const fetchInitialUserData = async () => {
             if (user && !userData) {
                 const token = await user.getIdToken();
-                await fetchUserData(token);
+                await fetchUserData(token, user.email);
                                 
                 // // TEST
                 // const data = await getUserData(token);

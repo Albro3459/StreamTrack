@@ -2,8 +2,6 @@
 
 #nullable disable
 
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
-
 namespace StreamTrack.Migrations
 {
     /// <inheritdoc />
@@ -249,29 +247,6 @@ namespace StreamTrack.Migrations
                         principalTable: "User",
                         principalColumn: "UserID",
                         onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.InsertData(
-                table: "Genre",
-                columns: new[] { "GenreID", "IsDeleted", "Name" },
-                values: new object[,]
-                {
-                    { "1", false, "Comedy" },
-                    { "2", false, "Drama" }
-                });
-
-            migrationBuilder.InsertData(
-                table: "User",
-                columns: new[] { "UserID", "Email", "FirstName", "IsDeleted", "LastName" },
-                values: new object[] { "JMPOe14DyzcyxyVNBjqVjhssB5y2", "brodsky.alex22@gmail.com", "Alex", false, "Brodsky" });
-
-            migrationBuilder.InsertData(
-                table: "UserGenre",
-                columns: new[] { "GenresGenreID", "UsersUserID" },
-                values: new object[,]
-                {
-                    { "1", "JMPOe14DyzcyxyVNBjqVjhssB5y2" },
-                    { "2", "JMPOe14DyzcyxyVNBjqVjhssB5y2" }
                 });
 
             migrationBuilder.CreateIndex(
