@@ -13,4 +13,11 @@ public class Genre : SoftDeletableEntity {
     public ICollection<Content> Contents { get; set; } = new List<Content>();
     public ICollection<User> Users { get; set; } = new List<User>();
 
+    public Genre() { }
+
+    public Genre(string Name) {
+        this.GenreID = Guid.NewGuid().ToString();
+        this.Name = Name;
+    }
+
 }

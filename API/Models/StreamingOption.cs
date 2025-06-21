@@ -25,4 +25,15 @@ public class StreamingOption : SoftDeletableEntity {
 
     [Required]
     public string DeepLink { get; set; } = string.Empty;
+
+    public StreamingOption() { }
+    public StreamingOption(Content Content, StreamingService StreamingService, string Type, string? Price, string DeepLink) {
+        this.ContentID = Content.ContentID;
+        this.Content = Content;
+        this.ServiceID = StreamingService.ServiceID;
+        this.StreamingService = StreamingService;
+        this.Type = Type;
+        this.Price = Price;
+        this.DeepLink = DeepLink;
+    }
 }

@@ -4,6 +4,7 @@ using Microsoft.OpenApi.Models;
 // using AutoMapper;
 
 using API.Infrastructure;
+using API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -67,6 +68,8 @@ builder.Services.AddAuthorization(options => {
 
 
 builder.Services.AddAutoMapper(typeof(Program)); // All profiles in this project
+
+builder.Services.AddScoped<Service>();
 
 var app = builder.Build();
 

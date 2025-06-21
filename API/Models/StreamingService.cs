@@ -16,4 +16,11 @@ public class StreamingService : SoftDeletableEntity {
     public ICollection<User> Users { get; set; } = new List<User>();
 
     public ICollection<StreamingOption> StreamingOptions { get; set; } = new List<StreamingOption>();
+
+    public StreamingService() { }
+    public StreamingService(string Name, string Logo) {
+        this.ServiceID = Guid.NewGuid().ToString();
+        this.Name = Name;
+        this.Logo = Logo;
+    }
 }

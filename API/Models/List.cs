@@ -25,4 +25,13 @@ public class List : SoftDeletableEntity {
     [Timestamp] // Token for concurrency with EF Core
     public byte[] Version { get; set; } = null!;
 
+    public List() { }
+
+    public List(User Owner, string ListName) {
+        this.ListID = Guid.NewGuid().ToString();
+        this.OwnerUserID = Owner.UserID;
+        this.Owner = Owner;
+        this.ListName = ListName;
+    }
+
 }

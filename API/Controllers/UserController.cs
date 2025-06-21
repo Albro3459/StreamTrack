@@ -58,6 +58,9 @@ public class UserController : ControllerBase {
         User newUser = new User(uid, email);
 
         await context.User.AddAsync(newUser);
+        await context.SaveChangesAsync();
+
+        newUser.OwnedLists.Add(new List(newUser, "Favorites")); // Add default list
 
         await context.SaveChangesAsync();
 
