@@ -1,5 +1,5 @@
 import { Text, TextInput, View, StyleSheet, ScrollView, Image, Pressable, Alert, Dimensions } from "react-native";
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { PressableBubblesGroup,} from './components/formComponents';
 import { Stack, useLocalSearchParams, useRouter } from "expo-router"
@@ -51,6 +51,7 @@ export default function ProfilePage() {
         const token = await user?.getIdToken() ?? null;
         const userData: UserData = await updateUserProfile(token, firstName, lastName, genres, streamingServices);
         if (userData) setUserData(userData);
+        setIsEditing(false);
 
         if (Number(isSigningUp) === 1) {
             router.replace('/LandingPage');
@@ -59,18 +60,20 @@ export default function ProfilePage() {
 
     return (
         <>
-            {/* <Stack.Screen
+            <Stack.Screen
                 options={{
-                    headerRight: () => (
-                        <Pressable
-                            onPress={() => saveProfile(firstNameText, lastNameText, selectedGenres, selectedStreamingServices)}
-                            // style={{ marginRight: 16 }} // optional, for spacing
-                        >
-                            <Feather name="save" size={28} />
-                        </Pressable>
-                    ),
+                    // headerRight: () => (
+                    //     <Pressable
+                    //         onPress={() => saveProfile(firstNameText, lastNameText, selectedGenres, selectedStreamingServices)}
+                    //         // style={{ marginRight: 16 }} // optional, for spacing
+                    //     >
+                    //         <Feather name="save" size={28} />
+                    //     </Pressable>
+                    // ),
+                    headerLeft: Number(isSigningUp) === 1 ? () => null : undefined, // undefined means show the back button. I know its fucking stupid
+                    headerBackVisible:  Number(isSigningUp) === 1 ? false : true,
                 }}
-            /> */}
+            />
             <ScrollView style={styles.background}>
                 {/* First container */}
                 <View style={[styles.container]}>
