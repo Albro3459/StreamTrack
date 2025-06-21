@@ -1,6 +1,36 @@
 import { DataAPIURL } from "@/secrets/DataAPIUrl";
 import { UpdateUserProfileData, UserData } from "../../types/dataTypes";
 
+export const checkIfUserExists = async (token: string): Promise<boolean> => {
+    try {
+        const url = DataAPIURL + "API/User/Check";
+
+        const options = {
+            method: 'GET',
+            headers: {
+                accept: 'application/json',
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+            }
+        };
+
+        const result = await fetch(url, options);
+
+        if (!result.ok) {
+            const text = await result.text();
+            console.warn(`Error getting user data ${result.status}: ${text}`);
+            return false;
+        }
+        else {
+            return true;
+        }
+
+    } catch (err) {
+        console.error('Fetch user data failed:', err);
+        return false;
+    }
+};
+
 export const getUserData = async (token: string): Promise<UserData | null> => {
     try {
         const url = DataAPIURL + "API/User/Get";

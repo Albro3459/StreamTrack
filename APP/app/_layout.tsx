@@ -8,9 +8,7 @@ import { Colors } from "@/constants/Colors";
 import { useEffect } from "react";
 import { useFonts, Raleway_800ExtraBold } from '@expo-google-fonts/raleway';
 // import { Kurale_400Regular } from '@expo-google-fonts/kurale';
-import { onAuthStateChanged } from "firebase/auth";
-import { auth } from "@/firebaseConfig";
-import { LogOut } from "./helpers/authHelper";
+
 // import { ClearLoadState, Global } from "@/Global";
 
 // Prevent splash screen from hiding until fonts are loaded
@@ -87,19 +85,6 @@ export default function RootLayout() {
     //     // Go back to LibraryPage with back animation and state if needed
     //     navigation.goBack();
     // };
-
-    useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (user) => {
-            if (user) {
-                router.replace("/LandingPage");
-                return;
-            }
-            else {
-                router.replace("/LoginPage");
-            }
-        });
-        return unsubscribe;
-    }, []);
     
     // Show splash screen until fonts are loaded
     useEffect(() => {

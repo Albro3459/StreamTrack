@@ -22,6 +22,20 @@ public class UserController : ControllerBase {
         mapper = _mapper;
     }
 
+    // GET: API/User/Check
+    [HttpGet("Check")]
+    public async Task<ActionResult> CheckIfUserExists() {
+
+        string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(uid))
+            return Unauthorized();
+
+        User? user = await context.User.FirstOrDefaultAsync(u => u.UserID == uid);
+
+        return user != null ? Ok() : NotFound();
+    }
+
     // GET: API/User/Get
     [HttpGet("Get")]
     public async Task<ActionResult<UserDataDTO>> GetUserData() {

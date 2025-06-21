@@ -135,7 +135,7 @@ export default function ProfilePage() {
                             <Text style={{ color: Colors.tabBarColor, fontWeight: "bold", fontSize: 30 }}>Save</Text>
                         </Pressable>
                     ) : (
-                        <Pressable style={styles.button} onPress={async () => { await LogOut(auth); router.push('/');}}>
+                        <Pressable style={styles.button} onPress={async () => { await LogOut(auth); router.push('/LoginPage');}}>
                             <Text style={{ color: Colors.tabBarColor, fontWeight: "bold", fontSize: 30 }}>Logout</Text>
                         </Pressable>
                     )}

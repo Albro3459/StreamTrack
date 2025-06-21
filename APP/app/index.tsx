@@ -1,32 +1,28 @@
-import { auth } from "@/firebaseConfig";
-import { useRouter } from "expo-router";
-import { onAuthStateChanged, User } from "firebase/auth";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { View, Image, StyleSheet } from "react-native";
-import { LogOut } from "./helpers/authHelper";
+import { useRouter } from "expo-router";
+
+import { Colors } from "@/constants/Colors";
+import { onAuthStateChanged, User } from "firebase/auth";
+import { auth } from "@/firebaseConfig";
+import { checkIfUserExists } from "./helpers/StreamTrack/userHelper";
 import { FetchCache } from "./helpers/cacheHelper";
 
 export default function Index() {
     const router = useRouter();
 
-    // const [user, setUser] = useState<User | null>();
-
-    const fetchData = async (user: User) => {
-        const token = await user.getIdToken();
-        FetchCache(token);
-    };
-
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
-            if (user) {
-                // setUser(user);
-                fetchData(user);
-                router.replace("/LandingPage");
-                return;
+            const asyncCheck = async (user: User) => {
+                const token = await user.getIdToken();
+                const userExists: boolean = await checkIfUserExists(token);
+                if (userExists) {
+                    FetchCache(token);
+                    router.replace("/LandingPage");
+                }
             }
-            else {
-                router.replace("/LoginPage");
-            }
+
+            user ? asyncCheck(user) : router.replace("/LoginPage");   
         });
         return unsubscribe;
     }, []);
@@ -45,7 +41,7 @@ export default function Index() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: "#1c2237",
+        backgroundColor: Colors.backgroundColor,
         justifyContent: "center",
         alignItems: "center",
     },
