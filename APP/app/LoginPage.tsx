@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, ActivityIndicator } from "react-native";
 import { auth } from "@/firebaseConfig";
 import { useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { createUser } from "./helpers/StreamTrack/userHelper";
 import { SignIn, SignUp } from "./helpers/authHelper";
+import { appStyles } from "@/styles/appStyles";
 
 export default function LoginPage() {
     const router = useRouter();
+
+    const [signing, setSigning] = useState<boolean>(false);
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
@@ -34,7 +37,9 @@ export default function LoginPage() {
                 return;
             }
             try {
+                setSigning(true);
                 await SignUp(auth, email, password);
+                setSigning(false);
 
                 router.replace({
                     pathname: '/ProfilePage',
@@ -45,7 +50,9 @@ export default function LoginPage() {
             }
         } else {
             try {
+                setSigning(true);
                 await SignIn(auth, email, password);
+                setSigning(false);
                 
                 router.replace("/LandingPage");
             } catch (e: any) {
@@ -103,6 +110,13 @@ export default function LoginPage() {
                     {isSignUp ? "Back to Sign In" : "Sign Up Instead"}
                 </Text>
             </TouchableOpacity>
+
+            {/* Overlay */}
+            {signing && (
+                <View style={appStyles.overlay}>
+                    <ActivityIndicator size="large" color="#fff" />
+                </View>
+            )}
         </View>
     );
 }

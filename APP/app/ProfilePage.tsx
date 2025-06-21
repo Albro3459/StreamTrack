@@ -1,4 +1,4 @@
-import { Text, TextInput, View, StyleSheet, ScrollView, Image, Pressable, Alert, Dimensions } from "react-native";
+import { Text, TextInput, View, StyleSheet, ScrollView, Image, Pressable, Alert, Dimensions, ActivityIndicator } from "react-native";
 import React, { useState } from 'react';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { PressableBubblesGroup,} from './components/formComponents';
@@ -8,7 +8,7 @@ import { dateToString, stringToDate } from "./helpers/dateHelper";
 import { Feather } from "@expo/vector-icons";
 import { LogOut } from "./helpers/authHelper";
 import { auth } from "@/firebaseConfig";
-import { RalewayFont } from "@/styles/appStyles";
+import { appStyles, RalewayFont } from "@/styles/appStyles";
 import { setUserData, useUserDataStore } from "./stores/userDataStore";
 import { GenreData, UserData } from "./types/dataTypes";
 import { updateUserProfile } from "./helpers/StreamTrack/userHelper";
@@ -25,8 +25,8 @@ export default function ProfilePage() {
     const router = useRouter();
 
     const { isSigningUp } = useLocalSearchParams() as ProfilePageParams;
-
     const [isEditing, setIsEditing] = useState<boolean>(!isSigningUp ? false : Number(isSigningUp) === 1 ? true : false);
+    const [saving, setSaving] = useState<boolean>(false);
 
     const { userData, fetchUserData } = useUserDataStore();
     const { streamingServiceData, fetchStreamingServiceData } = useStreamingServiceDataStore();
@@ -47,11 +47,13 @@ export default function ProfilePage() {
     );
 
     const saveProfile = async (firstName: string | null, lastName: string | null, genres: Set<string>, streamingServices: Set<string>) => {
+        setSaving(true);
         const user = auth.currentUser;
         const token = await user?.getIdToken() ?? null;
         const userData: UserData = await updateUserProfile(token, firstName, lastName, genres, streamingServices);
         if (userData) setUserData(userData);
         setIsEditing(false);
+        setSaving(false);
 
         if (Number(isSigningUp) === 1) {
             router.replace('/LandingPage');
@@ -74,75 +76,84 @@ export default function ProfilePage() {
                     headerBackVisible:  Number(isSigningUp) === 1 ? false : true,
                 }}
             />
-            <ScrollView style={styles.background}>
-                {/* First container */}
-                <View style={[styles.container]}>
-                    <View style={[styles.labelContainer, {paddingTop: 10}]}>
-                        <Text style={styles.labelText}>First Name:</Text>
-                    </View>
-                    <TextInput
-                        style={[styles.textField, firstNameText && firstNameText.length > 0 ? styles.selectedTextBox : null]}
-                        value={firstNameText || ""}
-                        onChangeText={(newText) => {setFirstNameText(newText); setIsEditing(true);}}
-                    />
-                    <View style={styles.labelContainer}>
-                        <Text style={styles.labelText}>Last Name:</Text>
-                    </View>
-                    <TextInput
-                        style={[styles.textField, lastNameText && lastNameText.length > 0 ? styles.selectedTextBox : null]}
-                        value={lastNameText || ""}
-                        onChangeText={(newText) => {setLastNameText(newText); setIsEditing(true);}}
-                    />
+            <View style={{ flex: 1 }}>
+                <ScrollView style={styles.background}>
+                    {/* First container */}
+                    <View style={[styles.container]}>
+                        <View style={[styles.labelContainer, {paddingTop: 10}]}>
+                            <Text style={styles.labelText}>First Name:</Text>
+                        </View>
+                        <TextInput
+                            style={[styles.textField, firstNameText && firstNameText.length > 0 ? styles.selectedTextBox : null]}
+                            value={firstNameText || ""}
+                            onChangeText={(newText) => {setFirstNameText(newText); setIsEditing(true);}}
+                        />
+                        <View style={styles.labelContainer}>
+                            <Text style={styles.labelText}>Last Name:</Text>
+                        </View>
+                        <TextInput
+                            style={[styles.textField, lastNameText && lastNameText.length > 0 ? styles.selectedTextBox : null]}
+                            value={lastNameText || ""}
+                            onChangeText={(newText) => {setLastNameText(newText); setIsEditing(true);}}
+                        />
 
-                    <View style={styles.labelContainer}>
-                        <Text style={styles.labelText}>Favorite Genres:</Text>
-                        <View style={{ flex: 1, flexDirection: "row", justifyContent: "flex-end" }}>
+                        <View style={styles.labelContainer}>
+                            <Text style={styles.labelText}>Favorite Genres:</Text>
+                            <View style={{ flex: 1, flexDirection: "row", justifyContent: "flex-end" }}>
+                            </View>
+                        </View>
+                        <View style={styles.pressableContainer}>
+                            <PressableBubblesGroup
+                                labels={genreData?.map(g => g.name)}
+                                selectedLabels={selectedGenres}
+                                setLabelState={setSelectedGenres}
+                                styles={styles}
+                                onChange={setIsEditing}
+                            />
+                        </View>
+
+                        <View style={styles.labelContainer}>
+                            <Text style={styles.labelText}>Streaming Services:</Text>
+                            <View style={{ flex: 1, flexDirection: "row", justifyContent: "flex-end" }}>
+                            </View>
+                        </View>
+                        <View style={styles.pressableContainer}>
+                            <PressableBubblesGroup
+                                selectedLabels={selectedStreamingServices}
+                                setLabelState={setSelectedStreamingServices}
+                                styles={styles}
+                                onChange={setIsEditing}
+                                services={streamingServiceData}
+                            />
                         </View>
                     </View>
-                    <View style={styles.pressableContainer}>
-                        <PressableBubblesGroup
-                            labels={genreData?.map(g => g.name)}
-                            selectedLabels={selectedGenres}
-                            setLabelState={setSelectedGenres}
-                            styles={styles}
-                            onChange={setIsEditing}
-                        />
+
+                    {/* <View style={styles.separatorLine}></View> */}
+
+                    {/* Button container */}
+                    <View style={styles.buttonContainer} >
+                        {/* Button */}
+                        { isEditing ? (
+                            <Pressable style={styles.button} onPress={async () => await saveProfile(firstNameText, lastNameText, selectedGenres, selectedStreamingServices)}>
+                                <Text style={{ color: Colors.tabBarColor, fontWeight: "bold", fontSize: 30 }}>Save</Text>
+                            </Pressable>
+                        ) : (
+                            <Pressable style={styles.button} onPress={async () => { await LogOut(auth); router.push('/LoginPage');}}>
+                                <Text style={{ color: Colors.tabBarColor, fontWeight: "bold", fontSize: 30 }}>Logout</Text>
+                            </Pressable>
+                        )}
                     </View>
 
-                    <View style={styles.labelContainer}>
-                        <Text style={styles.labelText}>Streaming Services:</Text>
-                        <View style={{ flex: 1, flexDirection: "row", justifyContent: "flex-end" }}>
-                        </View>
+                    {/* <View style={{ padding: "8%" }}></View> */}
+                </ScrollView>
+
+                {/* Overlay */}
+                {saving && (
+                    <View style={appStyles.overlay}>
+                        <ActivityIndicator size="large" color="#fff" />
                     </View>
-                    <View style={styles.pressableContainer}>
-                        <PressableBubblesGroup
-                            selectedLabels={selectedStreamingServices}
-                            setLabelState={setSelectedStreamingServices}
-                            styles={styles}
-                            onChange={setIsEditing}
-                            services={streamingServiceData}
-                        />
-                    </View>
-                </View>
-
-                {/* <View style={styles.separatorLine}></View> */}
-
-                {/* Button container */}
-                <View style={styles.buttonContainer} >
-                    {/* Button */}
-                    { isEditing ? (
-                        <Pressable style={styles.button} onPress={async () => await saveProfile(firstNameText, lastNameText, selectedGenres, selectedStreamingServices)}>
-                            <Text style={{ color: Colors.tabBarColor, fontWeight: "bold", fontSize: 30 }}>Save</Text>
-                        </Pressable>
-                    ) : (
-                        <Pressable style={styles.button} onPress={async () => { await LogOut(auth); router.push('/LoginPage');}}>
-                            <Text style={{ color: Colors.tabBarColor, fontWeight: "bold", fontSize: 30 }}>Logout</Text>
-                        </Pressable>
-                    )}
-                </View>
-
-                {/* <View style={{ padding: "8%" }}></View> */}
-            </ScrollView>
+                )}
+            </View>
         </>
     );
 }

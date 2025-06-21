@@ -6,6 +6,13 @@ export const RalewayFont = 'Raleway_800ExtraBold';
 
 
 export const appStyles = StyleSheet.create({
+    overlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0,0,0,0.4)', // dark tint
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 100,
+    },
     movieCard: {
         width: 11*7,
         marginRight: 15,
