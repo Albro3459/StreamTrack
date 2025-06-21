@@ -2,6 +2,8 @@
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace StreamTrack.Migrations
 {
     /// <inheritdoc />
@@ -247,6 +249,37 @@ namespace StreamTrack.Migrations
                         principalTable: "User",
                         principalColumn: "UserID",
                         onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.InsertData(
+                table: "Genre",
+                columns: new[] { "GenreID", "IsDeleted", "Name" },
+                values: new object[,]
+                {
+                    { "1", false, "Action" },
+                    { "2", false, "Comedy" },
+                    { "3", false, "Drama" },
+                    { "4", false, "Horror" },
+                    { "5", false, "Romance" },
+                    { "6", false, "Rom-Com" },
+                    { "7", false, "Sci-Fi" },
+                    { "8", false, "Thriller" },
+                    { "9", false, "Western" }
+                });
+
+            migrationBuilder.InsertData(
+                table: "StreamingService",
+                columns: new[] { "ServiceID", "IsDeleted", "Logo", "Name" },
+                values: new object[,]
+                {
+                    { "1", false, "https://media.movieofthenight.com/services/netflix/logo-dark-theme.svg", "Netflix" },
+                    { "2", false, "https://media.movieofthenight.com/services/hulu/logo-dark-theme.svg", "Hulu" },
+                    { "3", false, "https://media.movieofthenight.com/services/max/logo-dark-theme.svg", "HBO Max" },
+                    { "4", false, "https://media.movieofthenight.com/services/prime/logo-dark-theme.svg", "Amazon Prime" },
+                    { "5", false, "https://media.movieofthenight.com/services/disney/logo-dark-theme.svg", "Disney+" },
+                    { "6", false, "https://media.movieofthenight.com/services/apple/logo-dark-theme.svg", "Apple TV" },
+                    { "7", false, "https://media.movieofthenight.com/services/paramount/logo-dark-theme.svg", "Paramount+" },
+                    { "8", false, "https://media.movieofthenight.com/services/peacock/logo-dark-theme.svg", "Peacock" }
                 });
 
             migrationBuilder.CreateIndex(

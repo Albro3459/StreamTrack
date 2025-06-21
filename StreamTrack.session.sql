@@ -4,4 +4,26 @@ select * from Genre;
 
 select * from StreamingService;
 
--- delete from User where UserID = "XyDKcwoEPCMfSh7mV7hbrJV09SV2";
+
+SELECT 
+    u.UserID,
+    u.FirstName,
+    u.LastName,
+    g.GenreID,
+    g.Name AS GenreName
+FROM User u
+JOIN UserGenre ug ON u.UserID = ug.UsersUserID
+JOIN Genre g ON ug.GenresGenreID = g.GenreID
+ORDER BY u.UserID, g.Name;
+
+
+SELECT 
+    u.UserID,
+    u.FirstName,
+    u.LastName,
+    s.ServiceID,
+    s.Name AS ServiceName
+FROM User u
+JOIN UserService us ON u.UserID = us.UsersUserID
+JOIN StreamingService s ON us.StreamingServicesServiceID = s.ServiceID
+ORDER BY u.UserID, s.Name;

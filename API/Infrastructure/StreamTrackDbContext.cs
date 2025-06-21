@@ -83,28 +83,27 @@ public class StreamTrackDbContext : DbContext {
 
         // ... seed data
 
-        // modelBuilder.Entity<User>().HasData(new User {
-        //     UserID = "JMPOe14DyzcyxyVNBjqVjhssB5y2",
-        //     Email = "brodsky.alex22@gmail.com",
-        //     FirstName = "Alex",
-        //     LastName = "Brodsky",
-        //     IsDeleted = false
-        // });
+        modelBuilder.Entity<Genre>().HasData(
+            new Genre { GenreID = "1", Name = "Action", IsDeleted = false },
+            new Genre { GenreID = "2", Name = "Comedy", IsDeleted = false },
+            new Genre { GenreID = "3", Name = "Drama", IsDeleted = false },
+            new Genre { GenreID = "4", Name = "Horror", IsDeleted = false },
+            new Genre { GenreID = "5", Name = "Romance", IsDeleted = false },
+            new Genre { GenreID = "6", Name = "Rom-Com", IsDeleted = false },
+            new Genre { GenreID = "7", Name = "Sci-Fi", IsDeleted = false },
+            new Genre { GenreID = "8", Name = "Thriller", IsDeleted = false },
+            new Genre { GenreID = "9", Name = "Western", IsDeleted = false }
+        );
 
-        // modelBuilder.Entity<Genre>().HasData(
-        //     new Genre { GenreID = "1", Name = "Comedy", IsDeleted = false },
-        //     new Genre { GenreID = "2", Name = "Drama", IsDeleted = false }
-        // );
-
-        // modelBuilder.Entity<User>()
-        //     .HasMany(u => u.Genres)
-        //     .WithMany(g => g.Users)
-        //     .UsingEntity<Dictionary<string, object>>(
-        //         "UserGenre",
-        //         j => j.HasData(
-        //             new { UsersUserID = "JMPOe14DyzcyxyVNBjqVjhssB5y2", GenresGenreID = "1" },
-        //             new { UsersUserID = "JMPOe14DyzcyxyVNBjqVjhssB5y2", GenresGenreID = "2" }
-        //         )
-        //     );
+        modelBuilder.Entity<StreamingService>().HasData(
+            new StreamingService { ServiceID = "1", Name = "Netflix", Logo = "https://media.movieofthenight.com/services/netflix/logo-dark-theme.svg" },
+            new StreamingService { ServiceID = "2", Name = "Hulu", Logo = "https://media.movieofthenight.com/services/hulu/logo-dark-theme.svg" },
+            new StreamingService { ServiceID = "3", Name = "HBO Max", Logo = "https://media.movieofthenight.com/services/max/logo-dark-theme.svg" },
+            new StreamingService { ServiceID = "4", Name = "Amazon Prime", Logo = "https://media.movieofthenight.com/services/prime/logo-dark-theme.svg" },
+            new StreamingService { ServiceID = "5", Name = "Disney+", Logo = "https://media.movieofthenight.com/services/disney/logo-dark-theme.svg" },
+            new StreamingService { ServiceID = "6", Name = "Apple TV", Logo = "https://media.movieofthenight.com/services/apple/logo-dark-theme.svg" },
+            new StreamingService { ServiceID = "7", Name = "Paramount+", Logo = "https://media.movieofthenight.com/services/paramount/logo-dark-theme.svg" },
+            new StreamingService { ServiceID = "8", Name = "Peacock", Logo = "https://media.movieofthenight.com/services/peacock/logo-dark-theme.svg" }
+        );
     }
 }

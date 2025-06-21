@@ -28,15 +28,16 @@ export default function ProfilePage() {
 
     const [genreOptions, setGenreOptions] = useState<string[]>(["Action", "Comedy", "Drama", "Horror", "Romance", "Rom-Com", "Sci-Fi", "Thriller", "Western"]);
     const streamingServices: { [key: string]: string } = {
-        "Amazon Prime": "https://media.movieofthenight.com/services/prime/logo-dark-theme.svg",
-        "Apple TV": "https://media.movieofthenight.com/services/apple/logo-dark-theme.svg",
-        "Disney+": "https://media.movieofthenight.com/services/disney/logo-dark-theme.svg",
+        "Netflix": "https://media.movieofthenight.com/services/netflix/logo-dark-theme.svg",
         "Hulu": "https://media.movieofthenight.com/services/hulu/logo-dark-theme.svg",
         "HBO Max": "https://media.movieofthenight.com/services/max/logo-dark-theme.svg",
-        "Netflix": "https://media.movieofthenight.com/services/netflix/logo-dark-theme.svg",
+        "Amazon Prime": "https://media.movieofthenight.com/services/prime/logo-dark-theme.svg",
+        "Disney+": "https://media.movieofthenight.com/services/disney/logo-dark-theme.svg",
+        "Apple TV": "https://media.movieofthenight.com/services/apple/logo-dark-theme.svg",
         "Paramount+": "https://media.movieofthenight.com/services/paramount/logo-dark-theme.svg",
         "Peacock": "https://media.movieofthenight.com/services/peacock/logo-dark-theme.svg",
     };
+
 
     const { userData, fetchUserData } = useUserDataStore();
 

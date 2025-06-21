@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace StreamTrack.Migrations
 {
     [DbContext(typeof(StreamTrackDbContext))]
-    [Migration("20250620041320_Initial")]
+    [Migration("20250621001207_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -99,6 +99,62 @@ namespace StreamTrack.Migrations
                     b.HasKey("GenreID");
 
                     b.ToTable("Genre");
+
+                    b.HasData(
+                        new
+                        {
+                            GenreID = "1",
+                            IsDeleted = false,
+                            Name = "Action"
+                        },
+                        new
+                        {
+                            GenreID = "2",
+                            IsDeleted = false,
+                            Name = "Comedy"
+                        },
+                        new
+                        {
+                            GenreID = "3",
+                            IsDeleted = false,
+                            Name = "Drama"
+                        },
+                        new
+                        {
+                            GenreID = "4",
+                            IsDeleted = false,
+                            Name = "Horror"
+                        },
+                        new
+                        {
+                            GenreID = "5",
+                            IsDeleted = false,
+                            Name = "Romance"
+                        },
+                        new
+                        {
+                            GenreID = "6",
+                            IsDeleted = false,
+                            Name = "Rom-Com"
+                        },
+                        new
+                        {
+                            GenreID = "7",
+                            IsDeleted = false,
+                            Name = "Sci-Fi"
+                        },
+                        new
+                        {
+                            GenreID = "8",
+                            IsDeleted = false,
+                            Name = "Thriller"
+                        },
+                        new
+                        {
+                            GenreID = "9",
+                            IsDeleted = false,
+                            Name = "Western"
+                        });
                 });
 
             modelBuilder.Entity("API.Models.List", b =>
@@ -204,6 +260,64 @@ namespace StreamTrack.Migrations
                     b.HasKey("ServiceID");
 
                     b.ToTable("StreamingService");
+
+                    b.HasData(
+                        new
+                        {
+                            ServiceID = "1",
+                            IsDeleted = false,
+                            Logo = "https://media.movieofthenight.com/services/netflix/logo-dark-theme.svg",
+                            Name = "Netflix"
+                        },
+                        new
+                        {
+                            ServiceID = "2",
+                            IsDeleted = false,
+                            Logo = "https://media.movieofthenight.com/services/hulu/logo-dark-theme.svg",
+                            Name = "Hulu"
+                        },
+                        new
+                        {
+                            ServiceID = "3",
+                            IsDeleted = false,
+                            Logo = "https://media.movieofthenight.com/services/max/logo-dark-theme.svg",
+                            Name = "HBO Max"
+                        },
+                        new
+                        {
+                            ServiceID = "4",
+                            IsDeleted = false,
+                            Logo = "https://media.movieofthenight.com/services/prime/logo-dark-theme.svg",
+                            Name = "Amazon Prime"
+                        },
+                        new
+                        {
+                            ServiceID = "5",
+                            IsDeleted = false,
+                            Logo = "https://media.movieofthenight.com/services/disney/logo-dark-theme.svg",
+                            Name = "Disney+"
+                        },
+                        new
+                        {
+                            ServiceID = "6",
+                            IsDeleted = false,
+                            Logo = "https://media.movieofthenight.com/services/apple/logo-dark-theme.svg",
+                            Name = "Apple TV"
+                        },
+                        new
+                        {
+                            ServiceID = "7",
+                            IsDeleted = false,
+                            Logo = "https://media.movieofthenight.com/services/paramount/logo-dark-theme.svg",
+                            Name = "Paramount+"
+                        },
+                        new
+                        {
+                            ServiceID = "8",
+                            IsDeleted = false,
+                            Logo = "https://media.movieofthenight.com/services/peacock/logo-dark-theme.svg",
+                            Name = "Peacock"
+                        });
                 });
 
             modelBuilder.Entity("API.Models.User", b =>
