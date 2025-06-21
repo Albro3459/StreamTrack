@@ -25,7 +25,7 @@ export const getUserData = async (token: string): Promise<UserData | null> => {
         }
 
         const data: UserData = await result.json();
-        // console.log(data);
+        console.log(data);
         
         return data;
     } catch (err) {
@@ -62,7 +62,7 @@ export const createUser = async (token: string | null) => {
     }
 };
 
-export const updateUserProfile = async (token: string | null, firstName: string | null, lastName: string | null, genres: Set<string>, streamingServices: Set<string>) => {
+export const updateUserProfile = async (token: string | null, firstName: string | null, lastName: string | null, genres: Set<string>, streamingServices: Set<string>) : Promise<UserData | null> => {
     try {
         if (!token) return null;
 
@@ -92,6 +92,11 @@ export const updateUserProfile = async (token: string | null, firstName: string 
             console.error(`Error creating user ${result.status}: ${text}`);
             return null;
         }
+
+        const data: UserData = await result.json();
+        console.log(data);
+        
+        return data;
 
     } catch (err) {
         console.error('Create user failed:', err);

@@ -139,7 +139,7 @@ namespace StreamTrack.Migrations
                     ListID = table.Column<string>(type: "TEXT", nullable: false),
                     OwnerUserID = table.Column<string>(type: "TEXT", nullable: false),
                     ListName = table.Column<string>(type: "TEXT", nullable: false),
-                    Version = table.Column<byte[]>(type: "BLOB", rowVersion: true, nullable: false),
+                    Version = table.Column<byte[]>(type: "BLOB", rowVersion: true, nullable: true),
                     IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>

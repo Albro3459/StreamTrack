@@ -9,6 +9,7 @@ interface UserDataStore {
   error: string | null;
   fetchUserData: (token: string) => Promise<void>;
   clearUserData: () => void;
+  setUserData: (data: UserData) => void;
 }
 
 export const fetchUserData = (token: string) => {
@@ -17,6 +18,13 @@ export const fetchUserData = (token: string) => {
     store.fetchUserData(token);
 };
 export const clearUserData = () => useUserDataStore.getState().clearUserData();
+
+export const setUserData = (data: UserData) => {
+    const store = useUserDataStore.getState();
+    if (store.loading) return;
+    store.clearUserData();
+    store.setUserData(data);
+}
 
 export const useUserDataStore = create<UserDataStore>((set) => ({
   userData: null,
@@ -38,6 +46,8 @@ export const useUserDataStore = create<UserDataStore>((set) => ({
   clearUserData: () => {
     set({ userData: null, error: null, loading: false });
   },
+
+  setUserData: (data: UserData) => set({ userData: data, loading: false })
 }));
 
 export default {};

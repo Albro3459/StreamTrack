@@ -37,20 +37,25 @@ interface PressableBubbleGroupProps {
     selectedLabels: Set<string>;
     setLabelState: Dispatch<SetStateAction<Set<string>>>;
     styles: any;
+    onChange: React.Dispatch<React.SetStateAction<boolean>>;
     services?: StreamingServiceData[] | null;
     serviceLogoSize?: number;
 }
 
-export const PressableBubblesGroup: React.FC<PressableBubbleGroupProps> = ({ labels, selectedLabels, setLabelState, styles, services, serviceLogoSize = 45 }) => (
+export const PressableBubblesGroup: React.FC<PressableBubbleGroupProps> = ({ labels, selectedLabels, setLabelState, styles, onChange, services, serviceLogoSize = 45 }) => (
     labels && labels.length > 0 ? labels.map((label) =>
-        <Pressable key={label} onPress={() => toggleSelection(label, setLabelState)} style={[styles.pressableBubble, selectedLabels.has(label) && styles.selectedBubble]}>
+        <Pressable 
+            key={label} 
+            onPress={() => {toggleSelection(label, setLabelState); onChange(true);}} 
+            style={[styles.pressableBubble, selectedLabels.has(label) && styles.selectedBubble]}
+        >
             <Text style={[styles.pressableText, selectedLabels.has(label) && styles.selectedBubbleText]}>{label}</Text>
         </Pressable>
     ) : 
     services && services.length > 0 ? services.map((service) =>
         <Pressable
             key={service.name}
-            onPress={() => toggleSelection(service, setLabelState)}
+            onPress={() => {toggleSelection(service.name, setLabelState); onChange(true);}}
             style={[
                 {height: serviceLogoSize},
                 styles.pressableBubble,

@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace StreamTrack.Migrations
 {
     [DbContext(typeof(StreamTrackDbContext))]
-    [Migration("20250621001207_Initial")]
+    [Migration("20250621063212_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -175,7 +175,6 @@ namespace StreamTrack.Migrations
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("BLOB");
 

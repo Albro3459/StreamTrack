@@ -6,6 +6,7 @@ using AutoMapper;
 using API.DTOs;
 using API.Infrastructure;
 using API.Models;
+using Microsoft.Extensions.DependencyModel.Resolution;
 
 namespace API.Controllers;
 
@@ -69,7 +70,7 @@ public class UserController : ControllerBase {
 
     // Patch: API/User/Update
     [HttpPatch("Update")]
-    public async Task<ActionResult> UpdateUser([FromBody] UserUpdateProfileDataDTO data) {
+    public async Task<ActionResult<UserDataDTO>> UpdateUser([FromBody] UserUpdateProfileDataDTO data) {
 
         string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -77,7 +78,12 @@ public class UserController : ControllerBase {
             return Unauthorized();
         }
 
-        User? user = await context.User.FirstOrDefaultAsync(u => u.UserID.Equals(uid));
+        User? user = await context.User
+                .Include(u => u.OwnedLists)
+                .Include(u => u.ListShares)
+                .Include(u => u.Genres)
+                .Include(u => u.StreamingServices)
+                .FirstOrDefaultAsync(u => u.UserID.Equals(uid));
 
         if (user == null) {
             return NotFound();
@@ -86,18 +92,24 @@ public class UserController : ControllerBase {
         if (data.FirstName != null) user.FirstName = data.FirstName;
         if (data.LastName != null) user.LastName = data.LastName;
         if (data.Genres != null) {
+            user.Genres.Clear();
             List<string> genreNames = data.Genres.Select(g => g.ToLower().Trim()).ToList();
             List<Genre> genres = context.Genre.Where(g => genreNames.Contains(g.Name.ToLower().Trim())).ToList();
-            user.Genres = genres;
+            foreach (var genre in genres) {
+                user.Genres.Add(genre);
+            }
         }
         if (data.StreamingServices != null) {
+            user.StreamingServices.Clear();
             List<string> serviceNames = data.StreamingServices.Select(s => s.ToLower().Trim()).ToList();
             List<StreamingService> services = context.StreamingService.Where(s => serviceNames.Contains(s.Name.ToLower().Trim())).ToList();
-            user.StreamingServices = services;
+            foreach (var service in services) {
+                user.StreamingServices.Add(service);
+            }
         }
 
         await context.SaveChangesAsync();
 
-        return Ok();
+        return mapper.Map<User, UserDataDTO>(user);
     }
 }

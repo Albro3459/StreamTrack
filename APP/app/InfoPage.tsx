@@ -16,7 +16,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // import { DEFAULT_TABS, FAVORITE_TAB, isItemInList, moveItemToTab, sortTabs, turnTabsIntoPosterTabs } from './helpers/listHelper';
 import { PosterList, WatchList } from './types/listsType';
 import { MEDIA_TYPE } from './types/tmdbType';
-import { RapidAPIGetByID } from './helpers/contentAPIHelper';
+import { RapidAPIGetByTMDBID } from './helpers/contentAPIHelper';
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -38,7 +38,7 @@ export default function InfoPage() {
   const { id, media_type, vertical, horizontal } = useLocalSearchParams() as InfoPageParams;
 //   const contentID = id ? id.toString() : null;
 
-  const [content, setContent] = useState<PosterContent>();
+  const [content, setContent] = useState<PosterContent>({} as PosterContent);
 
   type ServiceType = { serviceID: string, price: string, lightThemeImage: string, darkThemeImage: string, link: string };
   const streamingServices: () => { freeServices: ServiceType[]; paidServices: ServiceType[] } = () => {
@@ -103,7 +103,7 @@ export default function InfoPage() {
     return "0";
   };
 
-  const toHoursAndMinutes = (runtime) => {
+  const toHoursAndMinutes = (runtime: number) => {
     if (!runtime) { return "N/A" }
     const hours = Math.floor(runtime / 60);
     const minutes = runtime % 60;
@@ -112,7 +112,7 @@ export default function InfoPage() {
 
   useEffect(() => {
     const fetchContent = async () => {
-        const content: PosterContent = await RapidAPIGetByID(id, media_type, vertical, horizontal);
+        const content: PosterContent = await RapidAPIGetByTMDBID(id ?? "", media_type ?? MEDIA_TYPE.MOVIE, vertical ?? "", horizontal ?? "");
         setContent(content);
     }
 

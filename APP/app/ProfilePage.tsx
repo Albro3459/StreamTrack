@@ -1,5 +1,5 @@
 import { Text, TextInput, View, StyleSheet, ScrollView, Image, Pressable, Alert, Dimensions } from "react-native";
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { PressableBubblesGroup,} from './components/formComponents';
 import { Stack, useLocalSearchParams, useRouter } from "expo-router"
@@ -9,8 +9,8 @@ import { Feather } from "@expo/vector-icons";
 import { LogOut } from "./helpers/authHelper";
 import { auth } from "@/firebaseConfig";
 import { RalewayFont } from "@/styles/appStyles";
-import { useUserDataStore } from "./stores/userDataStore";
-import { GenreData } from "./types/dataTypes";
+import { setUserData, useUserDataStore } from "./stores/userDataStore";
+import { GenreData, UserData } from "./types/dataTypes";
 import { updateUserProfile } from "./helpers/StreamTrack/userHelper";
 import { useStreamingServiceDataStore } from "./stores/streamingServiceDataStore";
 import { useGenreDataStore } from "./stores/genreDataStore";
@@ -26,6 +26,8 @@ export default function ProfilePage() {
 
     const { isSigningUp } = useLocalSearchParams() as ProfilePageParams;
 
+    const [isEditing, setIsEditing] = useState<boolean>(!isSigningUp ? false : Number(isSigningUp) === 1 ? true : false);
+
     const { userData, fetchUserData } = useUserDataStore();
     const { streamingServiceData, fetchStreamingServiceData } = useStreamingServiceDataStore();
     const { genreData, fetchGenreData } = useGenreDataStore();
@@ -40,27 +42,19 @@ export default function ProfilePage() {
     );
 
     const [selectedStreamingServices, setSelectedStreamingServices] = useState<Set<string>>(
-        userData?.streamingServices ? new Set(userData.streamingServices.map(g => g.name)) // Objects work weird in sets. Use the strings
+        userData?.streamingServices ? new Set(userData.streamingServices.map(s => s.name)) // Objects work weird in sets. Use the strings
             : new Set()
     );
 
-    const saveProfile = (firstName: string | null, lastName: string | null, genres: Set<string>, streamingServices: Set<string>) => {
+    const saveProfile = async (firstName: string | null, lastName: string | null, genres: Set<string>, streamingServices: Set<string>) => {
+        const user = auth.currentUser;
+        const token = await user?.getIdToken() ?? null;
+        const userData: UserData = await updateUserProfile(token, firstName, lastName, genres, streamingServices);
+        if (userData) setUserData(userData);
 
-        Alert.alert(
-            'Success',
-            'Your profile has been updated!',
-            [
-                {
-                    text: 'OK',
-                    onPress: async () => {
-                        const user = auth.currentUser;
-                        const token = await user?.getIdToken() ?? null;
-                        await updateUserProfile(token, firstName, lastName, genres, streamingServices);
-                        router.replace('/LandingPage');
-                    },
-                },
-            ]
-        );
+        if (Number(isSigningUp) === 1) {
+            router.replace('/LandingPage');
+        }
     };
 
     return (
@@ -82,25 +76,19 @@ export default function ProfilePage() {
                 <View style={[styles.container]}>
                     <View style={[styles.labelContainer, {paddingTop: 10}]}>
                         <Text style={styles.labelText}>First Name:</Text>
-                        {/* <Text style={{ color: 'red', marginLeft: 2 }}>*</Text> */}
-                        <View style={{ flex: 1, flexDirection: "row", justifyContent: "flex-end" }}>
-                        </View>
                     </View>
                     <TextInput
                         style={[styles.textField, firstNameText && firstNameText.length > 0 ? styles.selectedTextBox : null]}
                         value={firstNameText || ""}
-                        onChangeText={(newText) => setFirstNameText(newText)}
+                        onChangeText={(newText) => {setFirstNameText(newText); setIsEditing(true);}}
                     />
                     <View style={styles.labelContainer}>
                         <Text style={styles.labelText}>Last Name:</Text>
-                        {/* <Text style={{ color: 'red', marginLeft: 2 }}>*</Text> */}
-                        <View style={{ flex: 1, flexDirection: "row", justifyContent: "flex-end" }}>
-                        </View>
                     </View>
                     <TextInput
                         style={[styles.textField, lastNameText && lastNameText.length > 0 ? styles.selectedTextBox : null]}
                         value={lastNameText || ""}
-                        onChangeText={(newText) => setLastNameText(newText)}
+                        onChangeText={(newText) => {setLastNameText(newText); setIsEditing(true);}}
                     />
 
                     <View style={styles.labelContainer}>
@@ -114,6 +102,7 @@ export default function ProfilePage() {
                             selectedLabels={selectedGenres}
                             setLabelState={setSelectedGenres}
                             styles={styles}
+                            onChange={setIsEditing}
                         />
                     </View>
 
@@ -127,6 +116,7 @@ export default function ProfilePage() {
                             selectedLabels={selectedStreamingServices}
                             setLabelState={setSelectedStreamingServices}
                             styles={styles}
+                            onChange={setIsEditing}
                             services={streamingServiceData}
                         />
                     </View>
@@ -137,8 +127,8 @@ export default function ProfilePage() {
                 {/* Button container */}
                 <View style={styles.buttonContainer} >
                     {/* Button */}
-                    { isSigningUp === 1 ? (
-                        <Pressable style={styles.button} onPress={() => saveProfile(firstNameText, lastNameText, selectedGenres, selectedStreamingServices)}>
+                    { isEditing ? (
+                        <Pressable style={styles.button} onPress={async () => await saveProfile(firstNameText, lastNameText, selectedGenres, selectedStreamingServices)}>
                             <Text style={{ color: Colors.tabBarColor, fontWeight: "bold", fontSize: 30 }}>Save</Text>
                         </Pressable>
                     ) : (

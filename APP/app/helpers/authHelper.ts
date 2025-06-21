@@ -33,7 +33,7 @@ export const SignUp = async (auth: Auth, email: string, password: string) => {
 
     const user = auth.currentUser;
     const token = await user?.getIdToken() ?? null;
-    createUser(token); // Fire-and-forget
+    await createUser(token);
     token && FetchCache(token);
 };
 

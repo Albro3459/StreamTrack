@@ -17,6 +17,7 @@ import { Review } from "./types/reviewType";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/firebaseConfig";
 import { getUserData } from "./helpers/StreamTrack/userHelper";
+import { testSendingContent } from "./helpers/StreamTrack/listHelper";
 
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
@@ -169,17 +170,17 @@ export default function LandingPage () {
 
     useEffect(() => {
         const fetchInitialUserData = async () => {
-            if (user && !userData) {
+            if (user) {
                 const token = await user.getIdToken();
-                await fetchUserData(token, user.email);
                                 
                 // // TEST
                 // const data = await getUserData(token);
                 // console.log(data);
+                // await testSendingContent(token);
             }
         };
         fetchInitialUserData();
-    }, [user, userData, fetchUserData]);
+    }, [user]);
 
   useEffect(() => {
       const unsubscribe = onAuthStateChanged(auth, (user) => {

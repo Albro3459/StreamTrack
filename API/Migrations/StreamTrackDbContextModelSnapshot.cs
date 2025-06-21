@@ -172,7 +172,6 @@ namespace StreamTrack.Migrations
 
                     b.Property<byte[]>("Version")
                         .IsConcurrencyToken()
-                        .IsRequired()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("BLOB");
 

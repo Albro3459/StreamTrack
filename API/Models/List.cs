@@ -23,7 +23,7 @@ public class List : SoftDeletableEntity {
     public ICollection<Content> Contents { get; set; } = new List<Content>();
 
     [Timestamp] // Token for concurrency with EF Core
-    public byte[] Version { get; set; } = null!;
+    public byte[]? Version { get; set; }
 
     public List() { }
 

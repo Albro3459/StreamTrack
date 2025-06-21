@@ -16,7 +16,7 @@ const RapidAPI_Headers = {
     'x-rapidapi-host': 'streaming-availability.p.rapidapi.com'
 };
 
-export const TMDBSearch = async (keyword): Promise<TMDB> => {
+export const TMDBSearch = async (keyword: string): Promise<TMDB> => {
 
     // Content IDs will have integer values like "11"
         // Take that to use for details in RapidAPIGetByID and prepend the media_type so "movie/11" or "tv/xxx"
@@ -44,9 +44,11 @@ export const TMDBSearch = async (keyword): Promise<TMDB> => {
     return data;
 }
 
-export const RapidAPIGetByID = async (id: string, media_type: MEDIA_TYPE, vertical: string, horizontal: string): Promise<PosterContent> => {
+export const RapidAPIGetByTMDBID = async (id: string, media_type: MEDIA_TYPE, vertical: string, horizontal: string): Promise<PosterContent> => {
 
     const url = RapidAPI_Base_Url + media_type + "/" + id + RapidAPI_Ending;
+    console.log(url);
+
     const options = {
         method: 'GET',
         url,
@@ -55,6 +57,36 @@ export const RapidAPIGetByID = async (id: string, media_type: MEDIA_TYPE, vertic
     const result = await axios.request(options);
     
     const data: Content = await result.data;
+
+    console.log(data);
+
+    const posters: Posters = {
+        vertical: vertical, horizontal: horizontal
+    }
+
+    const content: PosterContent = {
+        ...data,
+        posters: posters
+    };
+
+    return content;
+}
+
+export const RapidAPIGetByRapidID = async (id: string, vertical: string, horizontal: string): Promise<PosterContent> => {
+
+    const url = RapidAPI_Base_Url + id + RapidAPI_Ending;
+    console.log(url);
+
+    const options = {
+        method: 'GET',
+        url,
+        headers: RapidAPI_Headers
+    };
+    const result = await axios.request(options);
+    
+    const data: Content = await result.data;
+
+    console.log(data);
 
     const posters: Posters = {
         vertical: vertical, horizontal: horizontal

@@ -55,7 +55,7 @@ export type StreamingServiceData = {
 };
 
 export type StreamingOptionData = {
-    content: ContentData;
+    content?: ContentData; // Nullable so when sending content we don't have circular references
     streamingService: StreamingServiceData;
     type: string;
     price?: string | null;
