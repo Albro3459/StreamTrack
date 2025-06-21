@@ -16,7 +16,7 @@ import { useUserDataStore } from "./stores/userDataStore";
 import { Review } from "./types/reviewType";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/firebaseConfig";
-import { getUserData } from "./helpers/StreamTrackAPIHelper";
+import { getUserData } from "./helpers/StreamTrack/userHelper";
 
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");

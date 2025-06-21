@@ -2,6 +2,7 @@ import React, { Dispatch, SetStateAction } from "react";
 import { View, Text, Pressable } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { SvgUri } from "react-native-svg";
+import { StreamingServiceData } from "../types/dataTypes";
 
 interface EyeToggleProps {
     icon: React.ComponentProps<typeof Feather>['name'];
@@ -36,8 +37,8 @@ interface PressableBubbleGroupProps {
     selectedLabels: Set<string>;
     setLabelState: Dispatch<SetStateAction<Set<string>>>;
     styles: any;
-    services?: { [key: string]: string } | null;
-    serviceLogoSize?: number | null;
+    services?: StreamingServiceData[] | null;
+    serviceLogoSize?: number;
 }
 
 export const PressableBubblesGroup: React.FC<PressableBubbleGroupProps> = ({ labels, selectedLabels, setLabelState, styles, services, serviceLogoSize = 45 }) => (
@@ -46,18 +47,18 @@ export const PressableBubblesGroup: React.FC<PressableBubbleGroupProps> = ({ lab
             <Text style={[styles.pressableText, selectedLabels.has(label) && styles.selectedBubbleText]}>{label}</Text>
         </Pressable>
     ) : 
-    services ? Object.keys(services).map((service) =>
+    services && services.length > 0 ? services.map((service) =>
         <Pressable
-            key={service}
+            key={service.name}
             onPress={() => toggleSelection(service, setLabelState)}
             style={[
                 {height: serviceLogoSize},
                 styles.pressableBubble,
-                selectedLabels.has(service) && styles.selectedBubble
+                selectedLabels.has(service.name) && styles.selectedBubble
             ]}
         >
             <SvgUri
-                uri={services[service]}
+                uri={service.logo}
                 width={serviceLogoSize}
                 height={serviceLogoSize}
                 style={{marginBottom: 5}}

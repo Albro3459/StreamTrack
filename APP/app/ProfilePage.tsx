@@ -11,12 +11,14 @@ import { auth } from "@/firebaseConfig";
 import { RalewayFont } from "@/styles/appStyles";
 import { useUserDataStore } from "./stores/userDataStore";
 import { GenreData } from "./types/dataTypes";
-import { updateUserProfile } from "./helpers/StreamTrackAPIHelper";
+import { updateUserProfile } from "./helpers/StreamTrack/userHelper";
+import { useStreamingServiceDataStore } from "./stores/streamingServiceDataStore";
+import { useGenreDataStore } from "./stores/genreDataStore";
 
 // const screenWidth = Dimensions.get("window").width;
 
 interface ProfilePageParams {
-    isSigningUp?: boolean;
+    isSigningUp?: number;
 }
 
 export default function ProfilePage() {
@@ -24,26 +26,13 @@ export default function ProfilePage() {
 
     const { isSigningUp } = useLocalSearchParams() as ProfilePageParams;
 
-    //genre options
-
-    const [genreOptions, setGenreOptions] = useState<string[]>(["Action", "Comedy", "Drama", "Horror", "Romance", "Rom-Com", "Sci-Fi", "Thriller", "Western"]);
-    const streamingServices: { [key: string]: string } = {
-        "Netflix": "https://media.movieofthenight.com/services/netflix/logo-dark-theme.svg",
-        "Hulu": "https://media.movieofthenight.com/services/hulu/logo-dark-theme.svg",
-        "HBO Max": "https://media.movieofthenight.com/services/max/logo-dark-theme.svg",
-        "Amazon Prime": "https://media.movieofthenight.com/services/prime/logo-dark-theme.svg",
-        "Disney+": "https://media.movieofthenight.com/services/disney/logo-dark-theme.svg",
-        "Apple TV": "https://media.movieofthenight.com/services/apple/logo-dark-theme.svg",
-        "Paramount+": "https://media.movieofthenight.com/services/paramount/logo-dark-theme.svg",
-        "Peacock": "https://media.movieofthenight.com/services/peacock/logo-dark-theme.svg",
-    };
-
-
     const { userData, fetchUserData } = useUserDataStore();
+    const { streamingServiceData, fetchStreamingServiceData } = useStreamingServiceDataStore();
+    const { genreData, fetchGenreData } = useGenreDataStore();
 
     // State for text inputs
-    const [firstNameText, setFirstNameText] = useState<string | null>(userData?.firstName);
-    const [lastNameText, setLastNameText] = useState<string | null>(userData?.lastName);
+    const [firstNameText, setFirstNameText] = useState<string | null>(userData?.firstName ?? null);
+    const [lastNameText, setLastNameText] = useState<string | null>(userData?.lastName ?? null);
     
     const [selectedGenres, setSelectedGenres] = useState<Set<string>>(
         userData?.genres ? new Set(userData.genres.map(g => g.name)) // Objects work weird in sets. Use the strings
@@ -51,12 +40,11 @@ export default function ProfilePage() {
     );
 
     const [selectedStreamingServices, setSelectedStreamingServices] = useState<Set<string>>(
-        // userData?.streamingServices ? new Set(userData.streamingServices.map(g => g.name)) // Objects work weird in sets. Use the strings
-        //     : 
-            new Set()
+        userData?.streamingServices ? new Set(userData.streamingServices.map(g => g.name)) // Objects work weird in sets. Use the strings
+            : new Set()
     );
 
-    const saveProfile = (firstName: string, lastName: string, genres: Set<string>, streamingServices: Set<string>) => {
+    const saveProfile = (firstName: string | null, lastName: string | null, genres: Set<string>, streamingServices: Set<string>) => {
 
         Alert.alert(
             'Success',
@@ -66,18 +54,9 @@ export default function ProfilePage() {
                     text: 'OK',
                     onPress: async () => {
                         const user = auth.currentUser;
-                        const token = await user.getIdToken();
+                        const token = await user?.getIdToken() ?? null;
                         await updateUserProfile(token, firstName, lastName, genres, streamingServices);
-                        router.push('/LandingPage');
-                        // if (Global.justSignedUp) {
-                        //     // on sign up
-                        //     router.push('/LandingPage');
-                        //     Global.justSignedUp = false;
-                        //     Global.justSignedIn = true;
-                        // } else {
-                        //     // regular save
-                        //     Global.justSignedUp = false;
-                        // }
+                        router.replace('/LandingPage');
                     },
                 },
             ]
@@ -131,7 +110,7 @@ export default function ProfilePage() {
                     </View>
                     <View style={styles.pressableContainer}>
                         <PressableBubblesGroup
-                            labels={genreOptions}
+                            labels={genreData?.map(g => g.name)}
                             selectedLabels={selectedGenres}
                             setLabelState={setSelectedGenres}
                             styles={styles}
@@ -148,7 +127,7 @@ export default function ProfilePage() {
                             selectedLabels={selectedStreamingServices}
                             setLabelState={setSelectedStreamingServices}
                             styles={styles}
-                            services={streamingServices}
+                            services={streamingServiceData}
                         />
                     </View>
                 </View>
@@ -158,7 +137,7 @@ export default function ProfilePage() {
                 {/* Button container */}
                 <View style={styles.buttonContainer} >
                     {/* Button */}
-                    { isSigningUp ? (
+                    { isSigningUp === 1 ? (
                         <Pressable style={styles.button} onPress={() => saveProfile(firstNameText, lastNameText, selectedGenres, selectedStreamingServices)}>
                             <Text style={{ color: Colors.tabBarColor, fontWeight: "bold", fontSize: 30 }}>Save</Text>
                         </Pressable>

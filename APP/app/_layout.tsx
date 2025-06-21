@@ -165,7 +165,10 @@ export default function RootLayout() {
                         </Pressable>
                     ),
                     headerRight: () => (
-                        <TouchableOpacity onPress={() => router.push('/ProfilePage')}>
+                        <TouchableOpacity onPress={() => router.push({
+                                    pathname: '/ProfilePage',
+                                    params: { isSigningUp: 0 }, // Have to pass as number or string
+                                })}>
                             <Feather name="user" size={28} color="white" />
                         </TouchableOpacity>
                     ),

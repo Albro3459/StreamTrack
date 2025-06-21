@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from "react-native";
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/firebaseConfig";
 import { useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
-import { createUser } from "./helpers/StreamTrackAPIHelper";
+import { createUser } from "./helpers/StreamTrack/userHelper";
+import { SignIn, SignUp } from "./helpers/authHelper";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -34,26 +34,21 @@ export default function LoginPage() {
                 return;
             }
             try {
-                await createUserWithEmailAndPassword(auth, email, password);
+                await SignUp(auth, email, password);
 
-                const user = auth.currentUser;
-                const token = await user.getIdToken();
-
-                createUser(token); // Fire-and-forget
-
-                // router.replace("/ProfilePage");
                 router.replace({
                     pathname: '/ProfilePage',
                     params: { isSigningUp: 1 }, // Have to pass as number or string
                 });
-            } catch (e) {
+            } catch (e: any) {
                 Alert.alert("Sign Up Failed", e.message);
             }
         } else {
             try {
-                await signInWithEmailAndPassword(auth, email, password);
+                await SignIn(auth, email, password);
+                
                 router.replace("/LandingPage");
-            } catch (e) {
+            } catch (e: any) {
                 Alert.alert("Sign In Failed", e.message);
             }
         }

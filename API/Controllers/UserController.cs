@@ -6,7 +6,6 @@ using AutoMapper;
 using API.DTOs;
 using API.Infrastructure;
 using API.Models;
-using System.Net.WebSockets;
 
 namespace API.Controllers;
 

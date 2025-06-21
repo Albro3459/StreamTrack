@@ -4,29 +4,23 @@ import { onAuthStateChanged, User } from "firebase/auth";
 import React, { useEffect, useState } from "react";
 import { View, Image, StyleSheet } from "react-native";
 import { LogOut } from "./helpers/authHelper";
-import { useUserDataStore } from "./stores/userDataStore";
+import { FetchCache } from "./helpers/cacheHelper";
 
 export default function Index() {
     const router = useRouter();
 
-    const { userData, fetchUserData } = useUserDataStore();
+    // const [user, setUser] = useState<User | null>();
 
-    const [user, setUser] = useState<User | null>();
-
-    useEffect(() => {
-        const fetchInitialKeys = async () => {
-            if (user && !userData) {
-                const token = await user.getIdToken();
-                await fetchUserData(token, user.email);
-            }
-        };
-        fetchInitialKeys();
-    }, [user, userData, fetchUserData]);
+    const fetchData = async (user: User) => {
+        const token = await user.getIdToken();
+        FetchCache(token);
+    };
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             if (user) {
-                setUser(user);
+                // setUser(user);
+                fetchData(user);
                 router.replace("/LandingPage");
                 return;
             }

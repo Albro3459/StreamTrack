@@ -1,4 +1,5 @@
 export type UpdateUserProfileData = {
+    Email?: string;
     FirstName?: string;
     LastName?: string;
     Genres?: string[];

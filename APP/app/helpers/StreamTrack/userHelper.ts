@@ -1,5 +1,5 @@
 import { DataAPIURL } from "@/secrets/DataAPIUrl";
-import { UpdateUserProfileData, UserData } from "../types/dataTypes";
+import { UpdateUserProfileData, UserData } from "../../types/dataTypes";
 
 export const getUserData = async (token: string): Promise<UserData | null> => {
     try {
@@ -9,6 +9,7 @@ export const getUserData = async (token: string): Promise<UserData | null> => {
             method: 'GET',
             headers: {
                 accept: 'application/json',
+                'Content-Type': 'application/json',
                 Authorization: `Bearer ${token}`
             }
         };
@@ -31,14 +32,17 @@ export const getUserData = async (token: string): Promise<UserData | null> => {
     }
 };
 
-export const createUser = async (token: string) => {
+export const createUser = async (token: string | null) => {
     try {
+        if (!token) return null;
+
         const url = DataAPIURL + "API/User/Create";
 
         const options = {
             method: 'POST',
             headers: {
                 accept: 'application/json',
+                'Content-Type': 'application/json',
                 Authorization: `Bearer ${token}`
             }
         };
@@ -56,13 +60,15 @@ export const createUser = async (token: string) => {
     }
 };
 
-export const updateUserProfile = async (token: string, firstName: string, lastName: string, genres: Set<string>, streamingServices: Set<string>) => {
+export const updateUserProfile = async (token: string | null, firstName: string | null, lastName: string | null, genres: Set<string>, streamingServices: Set<string>) => {
     try {
+        if (!token) return null;
+
         const url = DataAPIURL + "API/User/Update";
 
         const body: UpdateUserProfileData = {
-            FirstName: firstName,
-            LastName: lastName,
+            ...(firstName && { FirstName: firstName }),
+            ...(lastName && { LastName: lastName }),
             Genres: Array.from(genres),
             StreamingServices: Array.from(streamingServices)
         }
