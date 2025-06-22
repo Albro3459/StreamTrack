@@ -17,15 +17,13 @@ export const addContentToUserList = async (token: string | null, listName: strin
         if (!token) return null;
 
         const url = DataAPIURL + `API/List/${listName}/Add`;
-        // console.log(url);
 
-        // console.log(posterContent);
+        console.log(JSON.stringify(posterContent, null, 4));
 
         const body: ContentData = convertPosterContentToContentData(posterContent);
-
-        // console.log(body);
+        
         console.log(JSON.stringify(body, null, 4));
-
+        
         const options = {
             method: 'POST',
             headers: {
@@ -36,18 +34,17 @@ export const addContentToUserList = async (token: string | null, listName: strin
             body: JSON.stringify(body)
         };
 
-        const result = await fetch(url, options);
+        // const result = await fetch(url, options);
 
-        if (!result.ok) {
-            const text = await result.text();
-            console.error(`Error adding content to list ${result.status}: ${text}`);
-            return null;
-        }
+        // if (!result.ok) {
+        //     const text = await result.text();
+        //     console.error(`Error adding content to list ${result.status}: ${text}`);
+        //     return null;
+        // }
 
-        const data: ListData = await result.json();
-        console.log(data);
+        // const data: ListData = await result.json();
         
-        return data;
+        // return data;
 
     } catch (err) {
         console.error('Adding content to list failed:', err);
@@ -59,7 +56,6 @@ export const removeContentFromUserList = async (token: string | null, listName: 
         if (!token) return null;
 
         const url = DataAPIURL + `API/List/${listName}/Remove/${contentID}`;
-        // console.log(url);
 
         const options = {
             method: 'DELETE',
@@ -79,7 +75,6 @@ export const removeContentFromUserList = async (token: string | null, listName: 
         }
 
         const data: ListData = await result.json();
-        console.log(data);
         
         return data;
 

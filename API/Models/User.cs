@@ -14,7 +14,7 @@ public class User : SoftDeletableEntity {
 
     public string LastName { get; set; } = string.Empty;
 
-    public ICollection<List> OwnedLists { get; set; } = new List<List>();
+    public ICollection<List> ListsOwned { get; set; } = new List<List>();
 
     public ICollection<ListShares> ListShares { get; set; } = new List<ListShares>();
 

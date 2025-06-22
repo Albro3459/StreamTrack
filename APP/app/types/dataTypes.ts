@@ -1,3 +1,5 @@
+import { MEDIA_TYPE } from "./tmdbType";
+
 export type UpdateUserProfileData = {
     Email?: string;
     FirstName?: string;
@@ -10,8 +12,9 @@ export type UserData = {
     email: string;
     firstName: string;
     lastName: string;
-    ownedLists: ListData[];
-    listShares: ListData[];
+    listsOwned: ListData[];
+    listsSharedWithMe: ListData[];
+    listsSharedWithOthers: ListData[];
     genres: GenreData[];
     streamingServices: StreamingServiceData[];
 };
@@ -21,6 +24,7 @@ export type ListData = {
     isOwner: boolean;
     listName: string;
     contents: ContentData[];
+    // permission: string;
 };
 
 
@@ -31,7 +35,7 @@ export type ContentData = {
     releaseYear: number;
     imdb_ID: string;
     tmdb_ID: string;
-    showType: string;
+    showType: MEDIA_TYPE;
     genres: GenreData[];
     cast: string[];
     directors: string[];

@@ -8,9 +8,11 @@ public class UserDataDTO {
 
     public string LastName { get; set; } = string.Empty;
 
-    public List<ListDTO> OwnedLists { get; set; } = new();
+    public List<ListDTO> ListsOwned { get; set; } = new();
 
-    public List<ListDTO> ListShares { get; set; } = new();
+    public List<ListDTO> ListsSharedWithMe { get; set; } = new();
+
+    public List<ListDTO> ListsSharedWithOthers { get; set; } = new();
 
     public List<GenreDTO> Genres { get; set; } = new();
 

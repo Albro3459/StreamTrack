@@ -1,5 +1,6 @@
 import { PosterContent } from "@/app/types/contentType";
 import { ContentData } from "@/app/types/dataTypes";
+import { MEDIA_TYPE } from "@/app/types/tmdbType";
 
 export const convertPosterContentToContentData = (posterContent: PosterContent): ContentData => {
     return {
@@ -9,7 +10,7 @@ export const convertPosterContentToContentData = (posterContent: PosterContent):
         releaseYear: posterContent.releaseYear,
         imdb_ID: posterContent.imdbId,
         tmdb_ID: posterContent.tmdbId,
-        showType: posterContent.showType,
+        showType: posterContent.showType as MEDIA_TYPE,
         genres: posterContent.genres.map(g => ({ name: g.name })),
         cast: posterContent.cast,
         directors: posterContent.directors,

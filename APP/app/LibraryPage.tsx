@@ -21,10 +21,14 @@ import { Content, PosterContent } from './types/contentType';
 import { appStyles } from '@/styles/appStyles';
 // import { Global, STORAGE_KEY } from '@/Global';
 import { Colors } from '@/constants/Colors';
-import { PosterList, WatchList } from './types/listsType';
+// import { PosterList, WatchList } from './types/listsType';
 // import { createNewList, DEFAULT_TABS, FAVORITE_TAB, isItemInList, moveItemToTab, sortTabs, turnTabsIntoPosterTabs } from './helpers/listHelper';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { Ionicons } from '@expo/vector-icons';
+import { useUserDataStore } from './stores/userDataStore';
+import { ContentData, ListData } from './types/dataTypes';
+
+const FAVORITE_TAB = "Favorites";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -35,21 +39,18 @@ export default function LibraryPage() {
   const pathname = usePathname();
   const pagerViewRef = useRef(null);
 
-  // const [selectedList, setSelectedList] = useState<string[]>([]);
-  // const [dropDownOpen, setDropDownOpen] = useState(false);
-  // const [libraryModal, setLibraryModal] = useState(false);
+  const { userData } = useUserDataStore();
 
-  const [activeTab, setActiveTab] = useState(0);
+  const [lists, setLists] = useState<ListData[] | null>([...userData.listsOwned, ...userData.listsSharedWithMe]);
+  const [activeTab, setActiveTab] = useState<string | null>(lists[0].listName);
 
-//   const [tabs, setTabs] = useState<WatchList>(DEFAULT_TABS);
-//   const [posterTabs, setPosterTabs] = useState<PosterList>(DEFAULT_TABS as PosterList);
   const [newListName, setNewListName] = useState<string>("");
   const [createNewListModal, setCreateNewListModal] = useState(false);
 
   const [heartColors, setHeartColors] = useState<{ [key: string]: string }>({});  
 
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedItem, setSelectedItem] = useState<PosterContent>(null);
+  const [selectedItem, setSelectedItem] = useState<ContentData>(null);
   const [moveModalVisible, setMoveModalVisible] = useState(false);
 
 //   useEffect(() => {
@@ -143,23 +144,29 @@ export default function LibraryPage() {
 //   };
 
 
-//   const handleTabPress = async (index) => {
-//     setActiveTab(index);
-//     pagerViewRef.current?.setPage(index);
+  const handleTabPress = async (listName: string) => {
+    setActiveTab(listName);
+    pagerViewRef.current?.setPage(lists.map(l => l.listName).indexOf(listName));
 
-//     const savedTabs = await AsyncStorage.getItem(STORAGE_KEY);
-//     if (savedTabs) {
-//       const parsedTabs: WatchList = savedTabs
-//                         ? sortTabs({ ...DEFAULT_TABS, ...JSON.parse(savedTabs) }) // Ensure tabs are sorted
-//                         : DEFAULT_TABS;
-//       setTabs(parsedTabs);
-//       const newPosterLists = await turnTabsIntoPosterTabs(parsedTabs);
-//       setPosterTabs(newPosterLists);
-//     }
-//   };
+    // const savedTabs = await AsyncStorage.getItem(STORAGE_KEY);
+    // if (savedTabs) {
+    //   const parsedTabs: WatchList = savedTabs
+    //                     ? sortTabs({ ...DEFAULT_TABS, ...JSON.parse(savedTabs) }) // Ensure tabs are sorted
+    //                     : DEFAULT_TABS;
+    //   setTabs(parsedTabs);
+    //   const newPosterLists = await turnTabsIntoPosterTabs(parsedTabs);
+    //   setPosterTabs(newPosterLists);
+    // }
+  };
 
-  const renderTabContent = (tabData: PosterContent[], tab) => {
-    if (!tabData || tabData.length === 0) {
+  useEffect(() => {
+    if (lists && isLoading) {
+        setIsLoading(false);
+    }
+  }, [lists, isLoading]);
+
+  const renderTabContent = (contents: ContentData[], list: string) => {
+    if (!contents || contents.length === 0) {
       return (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <Text style={{ fontSize: 16, color: 'gray', textAlign: 'center' }}>
@@ -170,36 +177,44 @@ export default function LibraryPage() {
     }
   
     return (
-      <FlatList
-        data={tabData}
+      <FlatList<ContentData>
+        data={lists.find(l => l.listName === activeTab).contents}
         numColumns={2}
-        keyExtractor={(item, index) => `${item.id}-${index}-${tab}`}
-        renderItem={({ item }) => (
+        keyExtractor={(content, index) => `${content.contentID}-${index}-${list}`}
+        renderItem={({ item: content }) => (
           <TouchableOpacity
             style={styles.movieCard}
             onPress={() => {
                 // Global.backPressLoadLibrary = true;
+                // router.push({
+                //     pathname: '/InfoPage',
+                //     params: { id: item.id },
+                // });
+                // router.push({
+                //     pathname: '/InfoPage',
+                //     params: { id: content.tmdb_ID, media_type: content.showType, vertical: content.verticalPoster, horizontal: content.horizontalPoster },
+                // });
                 router.push({
                     pathname: '/InfoPage',
-                    params: { id: item.id },
+                    params: { listName: activeTab, contentID: content.contentID },
                 });
               // console.log(`Library clicked on: title ${item.title} | id ${item.id} `);
             }}
             onLongPress={() => {
-              setSelectedItem(item);
+              setSelectedItem(content);
               setMoveModalVisible(true);
             }}
           >
             <Image
               source={{
-                  uri: item.posters?.vertical || 
-                      (console.log(`Library poster missing for: ${item.title} | poster: ${item.posters?.vertical}`), 
+                  uri: content.verticalPoster || 
+                      (console.log(`Library poster missing for: ${content.title} | poster: ${content.verticalPoster}`), 
                         // reloadMissingImages(item), 
                         "https://example.com/default-image.jpg")
                 }}
               style={styles.movieImage}
             />
-            <Text style={styles.movieTitle}>{item.title}</Text>
+            <Text style={styles.movieTitle}>{content.title}</Text>
           </TouchableOpacity>
         )}
       />
@@ -213,42 +228,27 @@ export default function LibraryPage() {
   return (
     <View style={{ flex: 1, backgroundColor: Colors.backgroundColor }}>
       {/* Tab Bar */}
-      {/* <View style={[styles.tabBar, {flexDirection: 'row'}, (Object.keys(tabs).length <= 4) && {paddingLeft: 24}]}> */}
-        {/* {Object.keys(tabs).map((tab, index) => (
-          <TouchableOpacity
-            key={index}
-            style={[styles.tabItem, activeTab === index && styles.activeTabItem]}
-            onPress={async () => await handleTabPress(index)}
-          >
-            <Text
-              style={[styles.tabText, activeTab === index && styles.activeTabText]}
-            >
-              {tab}
-            </Text>
-          </TouchableOpacity>
-        ))} */}
-
-        {/* <FlatList
-          data={Object.keys(tabs)}
+      <View style={[styles.tabBar, {flexDirection: 'row'}, (lists && lists.length <= 4) && {paddingLeft: 24}]}>
+        <FlatList<string>
+          data={lists.map(l => l.listName)}
           horizontal
           showsHorizontalScrollIndicator={false}
           nestedScrollEnabled
-          keyExtractor={(tab, index) => index.toString()}
-          renderItem={({ item, index }) => (
+          keyExtractor={(listName, index) => listName}
+          renderItem={({ item: listName }) => (
             <TouchableOpacity
-              style={[styles.tabItem, activeTab === index && styles.activeTabItem, {paddingHorizontal:8}, (Object.keys(tabs).length <= 4) && {paddingHorizontal: 12}]}
-            //   onPress={async () => await handleTabPress(index)}
+              style={[styles.tabItem, activeTab === listName && styles.activeTabItem, {paddingHorizontal:8}, (lists && lists.length <= 4) && {paddingHorizontal: 12}]}
+              onPress={async () => await handleTabPress(listName)}
             >
-              { item === FAVORITE_TAB ? (
+              { listName === FAVORITE_TAB ? (
                 <Heart 
-                  heartColor={ Colors.selectedHeartColor}
                   size={25}
                 />
               ) : (
                 <Text
-                  style={[styles.tabText, activeTab === index && styles.activeTabText]}
+                  style={[styles.tabText, activeTab === listName && styles.activeTabText]}
                 >
-                  {item}
+                  {listName}
                 </Text>
               )}
             </TouchableOpacity>
@@ -259,7 +259,7 @@ export default function LibraryPage() {
               <Ionicons name="add-circle-outline" size={35} color="white" />
           </View> 
         </Pressable>
-      </View> */}
+      </View>
         
       {/* Create List Modal */}
       <Modal
@@ -299,20 +299,20 @@ export default function LibraryPage() {
       </Modal>
 
       {/* Pager View */}
-      {/* <PagerView
+      <PagerView
         style={{ flex: 1, marginTop: 20, marginBottom: 50 }}
         initialPage={0}
-        key={Object.keys(posterTabs).join('-')}
+        key={lists.map(l => l.listName).join('-')}
         ref={pagerViewRef}
-        onPageSelected={(e) => setActiveTab(e.nativeEvent.position)}
+        onPageSelected={(e) => setActiveTab(lists[e.nativeEvent.position].listName)}
       >
-        {Object.keys(posterTabs).map((tab) => (
-          <View key={tab}>{renderTabContent(posterTabs[tab], tab)}</View>
+        {lists.map((list) => (
+          <View key={list.listName}>{renderTabContent(list.contents, list.listName)}</View>
         ))}
-      </PagerView> */}
+      </PagerView>
 
       {/* Move Modal */}
-      {selectedItem && (
+      {/* {selectedItem && (
         <Modal
           transparent={true}
           visible={moveModalVisible}
@@ -327,7 +327,7 @@ export default function LibraryPage() {
               <Text style={appStyles.modalTitle}>
                 Move "{selectedItem?.title}" to:
               </Text>
-              {/* {selectedItem && (
+              {selectedItem && (
                 <>
                   Render all tabs except FAVORITE_TAB
                   {Object.keys(tabs)
@@ -363,11 +363,11 @@ export default function LibraryPage() {
                     </View>
                   )}
                 </>
-              )} */}
+              )}
             </View>
           </Pressable>
         </Modal>
-      )}
+      )} */}
     </View>
   );
 };
@@ -392,6 +392,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
   },
   tabItem: {
+    minWidth: 10,
+    minHeight: 10,
     paddingVertical: 8,
     paddingHorizontal: 15,
     borderRadius: 5,

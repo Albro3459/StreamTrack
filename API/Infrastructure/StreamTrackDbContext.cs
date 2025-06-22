@@ -24,14 +24,14 @@ public class StreamTrackDbContext : DbContext {
         // ... define relationships
 
         modelBuilder.Entity<User>()
-            .HasMany(u => u.OwnedLists)
+            .HasMany(u => u.ListsOwned)
             .WithOne(l => l.Owner)
                 .HasForeignKey(l => l.OwnerUserID);
 
         modelBuilder.Entity<User>()
             .HasMany(u => u.ListShares)
-            .WithOne(l => l.User)
-                .HasForeignKey(l => l.UserID);
+            .WithOne(ls => ls.User)
+                .HasForeignKey(ls => ls.UserID);
 
         modelBuilder.Entity<User>()
             .HasMany(u => u.Genres)

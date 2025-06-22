@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace StreamTrack.Migrations
 {
     [DbContext(typeof(StreamTrackDbContext))]
-    [Migration("20250622021818_Initial")]
+    [Migration("20250622034555_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -407,7 +407,7 @@ namespace StreamTrack.Migrations
             modelBuilder.Entity("API.Models.List", b =>
                 {
                     b.HasOne("API.Models.User", "Owner")
-                        .WithMany("OwnedLists")
+                        .WithMany("ListsOwned")
                         .HasForeignKey("OwnerUserID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -532,7 +532,7 @@ namespace StreamTrack.Migrations
                 {
                     b.Navigation("ListShares");
 
-                    b.Navigation("OwnedLists");
+                    b.Navigation("ListsOwned");
                 });
 #pragma warning restore 612, 618
         }

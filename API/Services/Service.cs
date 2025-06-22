@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using API.DTOs;
 using API.Infrastructure;
 using API.Models;
+using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
 namespace API.Services;
@@ -10,9 +11,73 @@ namespace API.Services;
 public class Service {
 
     private readonly StreamTrackDbContext context;
-    public Service(StreamTrackDbContext _context) {
+    private readonly IMapper mapper;
+
+    public Service(StreamTrackDbContext _context, IMapper _mapper) {
         context = _context;
+        mapper = _mapper;
     }
+
+    public async Task<User?> GetFullUserByID(string userID) {
+        return await context.User
+                .Include(u => u.ListsOwned)
+                    .ThenInclude(l => l.Contents)
+                        .ThenInclude(c => c.Genres)
+                    .ThenInclude(l => l.Contents)
+                        .ThenInclude(c => c.StreamingOptions)
+                            .ThenInclude(s => s.StreamingService)
+                .Include(u => u.ListShares)
+                    .ThenInclude(ls => ls.List)
+                        .ThenInclude(l => l.Contents)
+                            .ThenInclude(c => c.Genres)
+                        .ThenInclude(l => l.Contents)
+                            .ThenInclude(c => c.StreamingOptions)
+                                .ThenInclude(s => s.StreamingService)
+                .Include(u => u.Genres)
+                .Include(u => u.StreamingServices)
+                .FirstOrDefaultAsync(u => u.UserID.Equals(userID));
+    }
+
+    public async Task<UserDataDTO> MapUserToUserDTO(User user) {
+        UserDataDTO userDataDTO = mapper.Map<User, UserDataDTO>(user);
+
+        userDataDTO.ListsOwned.ForEach(l => l.IsOwner = true);
+
+        List<List> listsSharedWithMe = await GetListsSharedToUser(user.UserID);
+        userDataDTO.ListsSharedWithMe = mapper.Map<List<List>, List<ListDTO>>(listsSharedWithMe);
+
+        List<List> listSharedWithOthers = await GetListsSharedByAndOwnedByUser(user.UserID);
+        userDataDTO.ListsSharedWithOthers = mapper.Map<List<List>, List<ListDTO>>(listSharedWithOthers);
+        userDataDTO.ListsSharedWithOthers.ForEach(l => l.IsOwner = true);
+
+        return userDataDTO;
+    }
+
+    public async Task<List<List>> GetListsSharedToUser(string userID) {
+        List<List> lists = await context.ListShares
+                            .Include(ls => ls.List)
+                                .ThenInclude(l => l.Contents)
+                            .Where(ls => ls.UserID == userID)
+                            .Select(ls => ls.List)
+                            .Distinct()
+                            .ToListAsync();
+
+        return lists;
+
+    }
+
+    public async Task<List<List>> GetListsSharedByAndOwnedByUser(string userID) {
+        List<List> lists = await context.ListShares
+                            .Include(ls => ls.List)
+                                .ThenInclude(l => l.Contents)
+                            .Where(ls => ls.List.OwnerUserID == userID)
+                            .Select(ls => ls.List)
+                            .Distinct()
+                            .ToListAsync();
+
+        return lists;
+    }
+
     public async Task<Content?> ContentDTOToContent(ContentDTO dto) {
 
         var content = new Content { // leaving out Genres, StreamingOptions, and Lists

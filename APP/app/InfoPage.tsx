@@ -1,6 +1,6 @@
 import { Colors } from '@/constants/Colors';
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, Button, TouchableOpacity, Dimensions, Pressable, Modal, FlatList, Alert, TextInput, Linking } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, Button, TouchableOpacity, Dimensions, Pressable, Modal, FlatList, Alert, TextInput, Linking, ActivityIndicator } from 'react-native';
 import * as SplashScreen from "expo-splash-screen";
 import StarRating from 'react-native-star-rating-widget';
 import Heart from './components/heartComponent';
@@ -14,9 +14,12 @@ import { SvgUri } from 'react-native-svg';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 // import { Global, STORAGE_KEY } from '@/Global';
 // import { DEFAULT_TABS, FAVORITE_TAB, isItemInList, moveItemToTab, sortTabs, turnTabsIntoPosterTabs } from './helpers/listHelper';
-import { PosterList, WatchList } from './types/listsType';
+// import { PosterList, WatchList } from './types/listsType';
 import { MEDIA_TYPE } from './types/tmdbType';
 import { RapidAPIGetByTMDBID } from './helpers/contentAPIHelper';
+import { ContentData, ListData, StreamingOptionData, StreamingServiceData } from './types/dataTypes';
+import { convertPosterContentToContentData } from './helpers/StreamTrack/contentHelper';
+import { useUserDataStore } from './stores/userDataStore';
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -27,56 +30,25 @@ interface InfoPageParams {
   media_type?: MEDIA_TYPE;
   vertical?: string;
   horizontal?: string;
+
+  listName?: string;
+  contentID?: string;
 }
 
 // Prevent splash screen from hiding until everything is loaded
-SplashScreen.preventAutoHideAsync();
+// SplashScreen.preventAutoHideAsync();
 
 export default function InfoPage() {
 //   const pathname = usePathname();
 
-  const { id, media_type, vertical, horizontal } = useLocalSearchParams() as InfoPageParams;
-//   const contentID = id ? id.toString() : null;
+  const { id, media_type, vertical, horizontal, listName, contentID } = useLocalSearchParams() as InfoPageParams;
 
-  const [content, setContent] = useState<PosterContent | null>();
+  const { userData } = useUserDataStore();
 
-  type ServiceType = { serviceID: string, price: string, lightThemeImage: string, darkThemeImage: string, link: string };
-  const streamingServices: () => { freeServices: ServiceType[]; paidServices: ServiceType[] } = () => {
-    const set = new Set<string>(); // Use a Set to track unique service names
-  
-    const serviceObjects: ServiceType[] = Object.values(content.streamingOptions || {}).flatMap((options: StreamingOption[]) => 
-      options.map((option: StreamingOption) => {
-        const service = option.service;
-        const images = service?.imageSet; // Check if ImageSet exists
-        const uniqueKey = service?.id || ''; // Use serviceID as unique identifier
-  
-        if (!set.has(uniqueKey)) {
-          set.add(uniqueKey); // Add to Set to ensure uniqueness
-          return {
-            serviceID: uniqueKey,
-            price: getServicePrice(option),
-            lightThemeImage: images?.lightThemeImage || '',
-            darkThemeImage: images?.darkThemeImage || '', // Safely access darkThemeImage
-            link: option.link || '',
-          };
-        }
-        return null; // Exclude duplicates
-      }).filter((item): item is ServiceType => item !== null) // Remove null entries
-    );
-
-    const freeServices: ServiceType[] = serviceObjects.filter((service) => service.price === '0');
-    const paidServices: ServiceType[] = serviceObjects.filter((service) => service.price !== '0');
-
-    return { freeServices, paidServices} ;
-  };
+  const [content, setContent] = useState<ContentData | null>();
 
   const [isLoading, setIsLoading] = useState(true);
   
-  const [rating, setRating] = useState(2.5); // this is the default rating
-
-//   const [lists, setLists] = useState<WatchList>(DEFAULT_TABS);
-//   const [posterLists, setPosterLists] = useState<PosterList>(DEFAULT_TABS as PosterList);
-
   const [addToListModal, setAddToListModal] = useState(false);
 
   const [heartColors, setHeartColors] = useState<{[key: string]: string}>();
@@ -93,15 +65,16 @@ export default function InfoPage() {
    const [selectedRecommendation, setSelectedRecommendation] = useState<PosterContent | null>(null);
    const [infoModalVisible, setInfoModalVisible] = useState(false);
 
-  const getServicePrice = (option: StreamingOption) : string => {
-    if (option && option.service && option.price && option.price.amount && option.price.currency === "USD") {
-        const priceAmount = parseFloat(option.price.amount);
-        if (!isNaN(priceAmount)) {
-            return priceAmount === 0 ? "0" : `From $${priceAmount.toFixed(2)}`
+    const getServicePrice = (option: StreamingOptionData) : string => {
+        console.log(JSON.stringify(option, null));
+        if (option && option.streamingService && option.price) {
+            const priceAmount = parseFloat(option.price);
+            if (!isNaN(priceAmount)) {
+                return priceAmount === 0 ? "0" : `From $${priceAmount.toFixed(2)}`
+            }
         }
-    }
-    return "0";
-  };
+        return "0";
+    };
 
   const toHoursAndMinutes = (runtime: number) => {
     if (!runtime) { return "N/A" }
@@ -112,8 +85,19 @@ export default function InfoPage() {
 
   useEffect(() => {
     const fetchContent = async () => {
-        const content: PosterContent = await RapidAPIGetByTMDBID(id ?? "", media_type ?? MEDIA_TYPE.MOVIE, vertical ?? "", horizontal ?? "");
-        setContent(content);
+        if (!listName || !contentID) {
+            const posterContent: PosterContent = await RapidAPIGetByTMDBID(id ?? "", media_type ?? MEDIA_TYPE.MOVIE, vertical ?? "", horizontal ?? "");
+            // setPosterContent(posterContent);
+            const contentData: ContentData = convertPosterContentToContentData(posterContent); 
+            setContent(contentData);
+            setIsLoading(false);
+        } else {
+            const lists: ListData[] = [...userData.listsOwned, ...userData.listsSharedWithMe];
+            const content: ContentData = lists.find(l => l.listName === listName).contents.find(c => c.contentID === contentID);
+            setContent(content);
+            setIsLoading(false);
+        }
+        
     }
 
     fetchContent();
@@ -216,26 +200,26 @@ export default function InfoPage() {
             return (
             <View style={styles.content}>
                 <View style={{flexDirection: "row", justifyContent: "flex-start", alignItems: "center"}}>
-                <Text style={styles.sectionTitle}>Rating:  </Text>
-                {Array.from({ length: 5 }).map((_, index) => {
-                    const rating = !content ? 0 : parseFloat((content.rating / 20).toFixed(2)); // Calculate the rating on a 5-star scale
-                    const isFullStar = index < Math.floor(rating); // Full star if index is less than integer part of rating
-                    const isHalfStar = index >= Math.floor(rating) && index < rating; // Half star if index is fractional
+                    <Text style={styles.sectionTitle}>Rating  </Text>
+                    {Array.from({ length: 5 }).map((_, index) => {
+                        const rating = !content ? 0 : parseFloat((content.rating / 20).toFixed(2)); // Calculate the rating on a 5-star scale
+                        const isFullStar = index < Math.floor(rating); // Full star if index is less than integer part of rating
+                        const isHalfStar = index >= Math.floor(rating) && index < rating; // Half star if index is fractional
 
-                    return (
-                    <MaterialIcons
-                        key={index}
-                        name={isFullStar ? 'star' : isHalfStar ? 'star-half' : 'star-border'}
-                        size={16}
-                        color="#FFD700"
-                    />
-                    );
-                })}
+                        return (
+                        <MaterialIcons
+                            key={index}
+                            name={isFullStar ? 'star' : isHalfStar ? 'star-half' : 'star-border'}
+                            size={16}
+                            color="#FFD700"
+                        />
+                        );
+                    })}
                 </View>
 
                 <View style={{flexDirection: "row", justifyContent: "flex-start", alignItems: "center"}}>
-                <Text style={styles.sectionTitle}>{!content ? media_type === MEDIA_TYPE.MOVIE ? "Movie:" : "Series:" : (
-                    `${content.showType.charAt(0).toUpperCase() + content.showType.slice(1).toLowerCase()}:`
+                <Text style={styles.sectionTitle}>{!content ? media_type === MEDIA_TYPE.MOVIE ? "Movie" : "Series" : (
+                    `${content.showType.charAt(0).toUpperCase() + content.showType.slice(1).toLowerCase()}`
                     )}</Text>
                 <Text style={[styles.text, {fontSize: 18, paddingLeft: 15, paddingTop: 10, textAlign: 'left', textAlignVertical: "center"}]}>
                     {!content ? (
@@ -254,10 +238,10 @@ export default function InfoPage() {
                 <Text style={styles.text}>{content && content.overview}</Text>
 
                 <Text style={[styles.sectionTitle, {marginBottom: 0} ]}>Where to Watch</Text>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', columnGap: 10, padding: 10, paddingTop: 0 }}>
-                    {content && streamingServices().freeServices.map((service, index) => (
+                <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', columnGap: 10, paddingBottom: 10}}>
+                    {content && content.streamingOptions.filter(s => !s.price).map(streamingOption => (
                         <Pressable
-                            key={index}
+                            key={JSON.stringify(streamingOption)}
                             style={{
                                 maxWidth: screenWidth / 5,
                                 maxHeight: 50,
@@ -266,23 +250,23 @@ export default function InfoPage() {
                                 justifyContent: 'center',
                             }}
                             onPress={() => {
-                                if (service.link) {
-                                    Linking.openURL(service.link).catch(err => console.error("Failed to open URL:", err));
+                                if (streamingOption.deepLink) {
+                                    Linking.openURL(streamingOption.deepLink).catch(err => console.error("Failed to open URL:", err));
                                 } else {
                                     console.log("No link available");
                                 }
                             }}
                         >
                             <SvgUri
-                                uri={service.darkThemeImage}
+                                uri={streamingOption.streamingService.logo}
                                 width={screenWidth / 5}
                                 height={screenWidth / 5}
                             />
                         </Pressable>
                     ))}
-                    {content && streamingServices().paidServices.map((service, index) => (
+                     {content && content.streamingOptions.filter(s => s.price).map(streamingOption => (
                         <Pressable
-                            key={index}
+                            key={JSON.stringify(streamingOption)}
                             style={{
                                 maxWidth: screenWidth / 5,
                                 maxHeight: 50,
@@ -291,24 +275,24 @@ export default function InfoPage() {
                                 justifyContent: 'center',
                             }}
                             onPress={() => {
-                                if (service.link) {
-                                    Linking.openURL(service.link).catch(err => console.error("Failed to open URL:", err));
+                                if (streamingOption.deepLink) {
+                                    Linking.openURL(streamingOption.deepLink).catch(err => console.error("Failed to open URL:", err));
                                 } else {
                                     console.log("No link available");
                                 }
                             }}
                         >
-                        <SvgUri
-                            uri={service.darkThemeImage}
-                            width={screenWidth / 5}
-                            height={screenWidth / 5}
-                        />
-                        <Text style={{color: Colors.reviewTextColor, fontSize: 12, marginTop: -10, paddingBottom: 10}}>{service.price}</Text>
+                            <SvgUri
+                                uri={streamingOption.streamingService.logo}
+                                width={screenWidth / 5}
+                                height={screenWidth / 5}
+                            />
+                            <Text style={{color: Colors.reviewTextColor, fontSize: 12, marginTop: -10, paddingBottom: 10}}>{getServicePrice(streamingOption)}</Text>
                         </Pressable>
                     ))}
                 </View>
 
-                <Text style={styles.sectionTitle}>Genre</Text>
+                <Text style={styles.sectionTitle}>Genres</Text>
                 <Text style={styles.text}>{
                     content && content.genres.map((genre) => (
                         genre.name
@@ -485,16 +469,25 @@ export default function InfoPage() {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.movieContainer}>
           {/* Movie Poster */}
-          <Image source={{ uri: content && content.posters.vertical }} style={styles.posterImage} />
+          <Image source={{ uri: content && content.verticalPoster }} style={styles.posterImage} />
           {/* Movie Info */}
           <View style={styles.infoSection}>
             <Text style={styles.title}>{content && content.title}</Text>
             <View style={styles.attributeContainer} >
-              {/* <Text style={styles.rating}>⭐ 4.7/5</Text> */}
-              <StarRating
-                rating={rating}
-                onChange={setRating}
-              />
+                {/* <StarRating
+                    rating={rating}
+                    onChange={setRating}
+                /> */}
+                <Text style={[styles.text, {fontSize: 18, margin: 0, textAlignVertical: "center"}]}>
+                    {(content ? content.releaseYear : "1999") + "    " +(!content ? (media_type === MEDIA_TYPE.MOVIE ? "0h 0m" : "Seasons: 5  |  Episodes: 10") 
+                    : (
+                        content.showType === 'movie' ? (
+                        content.runtime ? toHoursAndMinutes(content.runtime) : ""
+                        ) : (
+                        content.seasonCount && content.episodeCount ? `Seasons: ${content.seasonCount}  |  Episodes: ${content.episodeCount}` : ""
+                        )
+                    ))}
+                </Text>
             </View>
             <View style={styles.attributeContainer} >
               <TouchableOpacity
@@ -531,7 +524,7 @@ export default function InfoPage() {
                 </Pressable>
               </Modal>
               <Heart 
-                  heartColor={(heartColors && heartColors[content.id]) || Colors.unselectedHeartColor}
+                  heartColor={(heartColors && heartColors[content.contentID]) || Colors.unselectedHeartColor}
                   size={45}
                 //   onPress={async () => await moveItemToTab(content, FAVORITE_TAB, setLists, setPosterLists, [setAddToListModal], setHeartColors)}
               />
@@ -616,6 +609,13 @@ export default function InfoPage() {
           </Pressable>
         </Modal>
       )} */}
+
+        {/* Overlay */}
+        {isLoading && (
+            <View style={appStyles.overlay}>
+                <ActivityIndicator size="large" color="#fff" />
+            </View>
+        )}
     </View>
   );
 }
@@ -641,7 +641,6 @@ const styles = StyleSheet.create({
     attributeContainer: {
       flexDirection: 'row', 
       columnGap: 15, 
-      paddingTop: 10,
       alignContent: "center",
       alignItems: "center"
     },
@@ -655,11 +654,12 @@ const styles = StyleSheet.create({
       alignItems: "center", // Centers text under the poster
     },
     title: {
-      fontSize: 32,
-      fontWeight: "bold",
-      textAlign: "center",
-      color: "white",
-      fontFamily: RalewayFont
+        fontSize: 32,
+        fontWeight: "bold",
+        textAlign: "center",
+        color: "white",
+        fontFamily: RalewayFont,
+        paddingBottom: 10,
     },
     rating: {
       fontSize: 16,

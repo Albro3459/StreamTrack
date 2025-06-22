@@ -9,4 +9,6 @@ public class ListDTO {
 
     public List<ContentDTO> Contents { get; set; } = new();
 
+    // public string Permission { get; set; } = string.Empty;
+
 }

@@ -11,7 +11,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import Heart from "./components/heartComponent";
 // import { Global, STORAGE_KEY } from "@/Global";
 // import { DEFAULT_TABS, FAVORITE_TAB, isItemInList, moveItemToTab, sortTabs } from "./helpers/listHelper";
-import { WatchList } from "./types/listsType";
+// import { WatchList } from "./types/listsType";
 import { useUserDataStore } from "./stores/userDataStore";
 import { Review } from "./types/reviewType";
 import { onAuthStateChanged, User } from "firebase/auth";
@@ -179,7 +179,7 @@ export default function LandingPage () {
                 // const data = await getUserData(token);
                 // console.log(data);
 
-                await testSendingContent(token);
+                // await testSendingContent(token);
             }
         };
         fetchInitialUserData();
@@ -361,14 +361,14 @@ export default function LandingPage () {
         </Modal>
       )} */}
 
-      <View style={styles.libraryOverlay}>
-          <TouchableOpacity
-            style={styles.libraryButton}
-            onPress={() => router.push('/LibraryPage')} // Navigate to the Library page
+        <View style={styles.libraryOverlay}>
+            <TouchableOpacity
+                style={styles.libraryButton}
+                onPress={() => router.push('/LibraryPage')} // Navigate to the Library page
             >
-              <Text style={styles.libraryButtonText}>Library</Text>
-          </TouchableOpacity>
-      </View>
+                <Text style={styles.libraryButtonText}>Library</Text>
+            </TouchableOpacity>
+        </View>
     </View>
   );
 }

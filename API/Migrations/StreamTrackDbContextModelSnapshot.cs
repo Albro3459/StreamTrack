@@ -404,7 +404,7 @@ namespace StreamTrack.Migrations
             modelBuilder.Entity("API.Models.List", b =>
                 {
                     b.HasOne("API.Models.User", "Owner")
-                        .WithMany("OwnedLists")
+                        .WithMany("ListsOwned")
                         .HasForeignKey("OwnerUserID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -529,7 +529,7 @@ namespace StreamTrack.Migrations
                 {
                     b.Navigation("ListShares");
 
-                    b.Navigation("OwnedLists");
+                    b.Navigation("ListsOwned");
                 });
 #pragma warning restore 612, 618
         }

@@ -47,7 +47,6 @@ export const TMDBSearch = async (keyword: string): Promise<TMDB> => {
 export const RapidAPIGetByTMDBID = async (id: string, media_type: MEDIA_TYPE, vertical: string, horizontal: string): Promise<PosterContent> => {
 
     const url = RapidAPI_Base_Url + media_type + "/" + id + RapidAPI_Ending;
-    console.log(url);
 
     const options = {
         method: 'GET',
@@ -57,8 +56,6 @@ export const RapidAPIGetByTMDBID = async (id: string, media_type: MEDIA_TYPE, ve
     const result = await axios.request(options);
     
     const data: Content = await result.data;
-
-    console.log(data);
 
     const posters: Posters = {
         vertical: vertical, horizontal: horizontal

@@ -8,7 +8,7 @@ import { router, usePathname } from 'expo-router';
 import { appStyles } from '@/styles/appStyles';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 // import { Global, STORAGE_KEY } from '@/Global';
-import { PosterList, WatchList } from './types/listsType';
+// import { PosterList, WatchList } from './types/listsType';
 // import { DEFAULT_TABS, FAVORITE_TAB, isItemInList, moveItemToTab, sortTabs, turnTabsIntoPosterTabs } from './helpers/listHelper';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import FilterModal from './components/filterModalComponent';

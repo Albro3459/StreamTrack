@@ -6,7 +6,7 @@ using AutoMapper;
 using API.DTOs;
 using API.Infrastructure;
 using API.Models;
-using Microsoft.Extensions.DependencyModel.Resolution;
+using API.Services;
 
 namespace API.Controllers;
 
@@ -15,10 +15,12 @@ namespace API.Controllers;
 public class UserController : ControllerBase {
 
     private readonly StreamTrackDbContext context;
+    private readonly Service service;
     private readonly IMapper mapper;
 
-    public UserController(StreamTrackDbContext _context, IMapper _mapper) {
+    public UserController(StreamTrackDbContext _context, Service _service, IMapper _mapper) {
         context = _context;
+        service = _service;
         mapper = _mapper;
     }
 
@@ -47,25 +49,12 @@ public class UserController : ControllerBase {
         if (string.IsNullOrEmpty(uid))
             return Unauthorized();
 
-        var userDataDTO = await context.User
-            .Include(u => u.OwnedLists)
-                .ThenInclude(l => l.Contents)
-                    .ThenInclude(c => c.Genres)
-                .ThenInclude(l => l.Contents)
-                    .ThenInclude(c => c.StreamingOptions)
-                        .ThenInclude(s => s.StreamingService)
-            .Include(u => u.ListShares)
-            .Include(u => u.Genres)
-            .Include(u => u.StreamingServices)
-            .Where(u => u.UserID == uid)
-            .Select(u => mapper.Map<User, UserDataDTO>(u))
-            .FirstOrDefaultAsync();
+        User? user = await service.GetFullUserByID(uid);
+        if (user == null) {
+            return NotFound();
+        }
 
-        if (userDataDTO == null) return NotFound();
-
-        userDataDTO.OwnedLists.ForEach(l => l.IsOwner = true);
-
-        return userDataDTO;
+        return await service.MapUserToUserDTO(user);
     }
 
     // POST: API/User/Create
@@ -80,7 +69,7 @@ public class UserController : ControllerBase {
             return Unauthorized();
 
         User? user = await context.User
-                .Include(u => u.OwnedLists)
+                .Include(u => u.ListsOwned)
                 .Include(u => u.ListShares)
                 .Include(u => u.Genres)
                 .Include(u => u.StreamingServices)
@@ -88,7 +77,7 @@ public class UserController : ControllerBase {
 
         if (user != null) {
             user.IsDeleted = true;
-            foreach (var list in user.OwnedLists) {
+            foreach (var list in user.ListsOwned) {
                 list.IsDeleted = true;
             }
             foreach (var list in user.ListShares) {
@@ -105,7 +94,7 @@ public class UserController : ControllerBase {
         await context.User.AddAsync(user);
         await context.SaveChangesAsync();
 
-        user.OwnedLists.Add(new List(user, "Favorites")); // Add default list
+        user.ListsOwned.Add(new List(user, "Favorites")); // Add default list
 
         await context.SaveChangesAsync();
 
@@ -122,13 +111,7 @@ public class UserController : ControllerBase {
             return Unauthorized();
         }
 
-        User? user = await context.User
-                .Include(u => u.OwnedLists)
-                .Include(u => u.ListShares)
-                .Include(u => u.Genres)
-                .Include(u => u.StreamingServices)
-                .FirstOrDefaultAsync(u => u.UserID.Equals(uid));
-
+        User? user = await service.GetFullUserByID(uid);
         if (user == null) {
             return NotFound();
         }
@@ -154,6 +137,6 @@ public class UserController : ControllerBase {
 
         await context.SaveChangesAsync();
 
-        return mapper.Map<User, UserDataDTO>(user);
+        return await service.MapUserToUserDTO(user);
     }
 }
