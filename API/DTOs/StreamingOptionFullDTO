@@ -1,7 +1,10 @@
 
 namespace API.DTOs;
 
-public class StreamingOptionDTO {
+public class StreamingOptionFullDTO
+{
+
+    public ContentDTO Content { get; set; } = null!;
 
     public StreamingServiceDTO StreamingService { get; set; } = null!;
 

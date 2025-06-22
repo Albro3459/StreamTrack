@@ -49,6 +49,11 @@ public class UserController : ControllerBase {
 
         var userDataDTO = await context.User
             .Include(u => u.OwnedLists)
+                .ThenInclude(l => l.Contents)
+                    .ThenInclude(c => c.Genres)
+                .ThenInclude(l => l.Contents)
+                    .ThenInclude(c => c.StreamingOptions)
+                        .ThenInclude(s => s.StreamingService)
             .Include(u => u.ListShares)
             .Include(u => u.Genres)
             .Include(u => u.StreamingServices)
@@ -56,7 +61,11 @@ public class UserController : ControllerBase {
             .Select(u => mapper.Map<User, UserDataDTO>(u))
             .FirstOrDefaultAsync();
 
-        return userDataDTO != null ? userDataDTO : NotFound();
+        if (userDataDTO == null) return NotFound();
+
+        userDataDTO.OwnedLists.ForEach(l => l.IsOwner = true);
+
+        return userDataDTO;
     }
 
     // POST: API/User/Create

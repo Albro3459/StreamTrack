@@ -57,7 +57,7 @@ export const PressableBubblesGroup: React.FC<PressableBubbleGroupProps> = ({ lab
             key={service.name}
             onPress={() => {toggleSelection(service.name, setLabelState); onChange(true);}}
             style={[
-                {height: serviceLogoSize},
+                {height: serviceLogoSize, minHeight: serviceLogoSize},
                 styles.pressableBubble,
                 selectedLabels.has(service.name) && styles.selectedBubble
             ]}

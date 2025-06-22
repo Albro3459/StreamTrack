@@ -6,7 +6,6 @@ using AutoMapper;
 using API.DTOs;
 using API.Infrastructure;
 using API.Models;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using API.Services;
 
 namespace API.Controllers;
@@ -36,12 +35,24 @@ public class ListController : ControllerBase {
         if (string.IsNullOrEmpty(uid))
             return Unauthorized();
 
-        List<ListDTO> lists = await context.List
+        List<List> lists = await context.List
+                    .Include(l => l.Owner)
+                    .Include(l => l.Contents)
+                        .ThenInclude(c => c.Genres)
+                    .Include(l => l.Contents)
+                        .ThenInclude(c => c.StreamingOptions)
+                            .ThenInclude(s => s.StreamingService)
+                    .Include(l => l.ListShares)
                     .Where(l => l.OwnerUserID == uid)
-                    .Select(l => mapper.Map<List, ListDTO>(l))
                     .ToListAsync();
 
-        return lists;
+        List<ListDTO> dtos = lists.Select(l => {
+            var dto = mapper.Map<List, ListDTO>(l);
+            dto.IsOwner = l.OwnerUserID == uid;
+            return dto;
+        }).ToList();
+
+        return dtos;
     }
 
     // POST: API/List/{listName}/Create
@@ -68,16 +79,24 @@ public class ListController : ControllerBase {
         return Ok();
     }
 
-    // PATCH: API/List/{listName}/Add
-    [HttpPatch("{listName}/Add")]
-    public async Task<ActionResult> AddToUserList(string listName, [FromBody] ContentDTO contentDTO) {
+    // POST: API/List/{listName}/Add
+    [HttpPost("{listName}/Add")]
+    public async Task<ActionResult<ListDTO>> AddToUserList(string listName, [FromBody] ContentDTO contentDTO) {
 
         string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (string.IsNullOrEmpty(uid))
             return Unauthorized();
 
-        List? list = await context.List.Where(l => l.OwnerUserID == uid && l.ListName.ToLower().Trim().Equals(listName.ToLower().Trim())).FirstOrDefaultAsync();
+        List? list = await context.List
+                    .Include(l => l.Owner)
+                    .Include(l => l.Contents)
+                        .ThenInclude(c => c.Genres)
+                    .Include(l => l.Contents)
+                        .ThenInclude(c => c.StreamingOptions)
+                            .ThenInclude(s => s.StreamingService)
+                    .Include(l => l.ListShares)
+                    .Where(l => l.OwnerUserID == uid && l.ListName.ToLower().Trim().Equals(listName.ToLower().Trim())).FirstOrDefaultAsync();
         if (list == null) return NotFound();
 
         Content? content = await context.Content.Where(c => c.ContentID == contentDTO.ContentID).FirstOrDefaultAsync();
@@ -94,6 +113,50 @@ public class ListController : ControllerBase {
 
         await context.SaveChangesAsync();
 
-        return Ok();
+        ListDTO dto = mapper.Map<List, ListDTO>(list);
+        if (list.OwnerUserID == uid) {
+            dto.IsOwner = true;
+        }
+
+        return dto;
+    }
+
+    // DELETE: API/List/{listName}/Remove/{contentID}
+    [HttpDelete("{listName}/Remove/{contentID}")]
+    public async Task<ActionResult<ListDTO>> RemoveFromUserList(string listName, string contentID) {
+
+        string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(uid))
+            return Unauthorized();
+
+        List? list = await context.List
+                    .Include(l => l.Owner)
+                    .Include(l => l.Contents)
+                        .ThenInclude(c => c.Genres)
+                    .Include(l => l.Contents)
+                        .ThenInclude(c => c.StreamingOptions)
+                            .ThenInclude(s => s.StreamingService)
+                    .Include(l => l.ListShares)
+                    .Where(l => l.OwnerUserID == uid && l.ListName.ToLower().Trim().Equals(listName.ToLower().Trim())).FirstOrDefaultAsync();
+        if (list == null) return NotFound();
+
+        Content? content = await context.Content.Where(c => c.ContentID == contentID).FirstOrDefaultAsync();
+        if (content == null) {
+            return BadRequest();
+        }
+
+        if (list.Contents.Any(c => c.ContentID == content.ContentID)) {
+            list.Contents.Remove(content);
+        }
+
+        await context.SaveChangesAsync();
+
+        ListDTO dto = mapper.Map<List, ListDTO>(list);
+        if (list.OwnerUserID == uid) {
+            dto.IsOwner = true;
+        }
+
+        return dto;
     }
 }

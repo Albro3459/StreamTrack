@@ -24,14 +24,24 @@ public class StreamTrackDbContext : DbContext {
         // ... define relationships
 
         modelBuilder.Entity<User>()
-            .HasMany(u => u.StreamingServices)
-            .WithMany(s => s.Users)
-            .UsingEntity(j => j.ToTable("UserService"));
+            .HasMany(u => u.OwnedLists)
+            .WithOne(l => l.Owner)
+                .HasForeignKey(l => l.OwnerUserID);
+
+        modelBuilder.Entity<User>()
+            .HasMany(u => u.ListShares)
+            .WithOne(l => l.User)
+                .HasForeignKey(l => l.UserID);
 
         modelBuilder.Entity<User>()
             .HasMany(u => u.Genres)
             .WithMany(g => g.Users)
             .UsingEntity(j => j.ToTable("UserGenre"));
+
+        modelBuilder.Entity<User>()
+            .HasMany(u => u.StreamingServices)
+            .WithMany(s => s.Users)
+            .UsingEntity(j => j.ToTable("UserService"));
 
         modelBuilder.Entity<Content>()
             .HasMany(c => c.Lists)
@@ -42,6 +52,11 @@ public class StreamTrackDbContext : DbContext {
             .HasMany(c => c.Genres)
             .WithMany(g => g.Contents)
             .UsingEntity(j => j.ToTable("ContentGenre"));
+
+        modelBuilder.Entity<List>()
+            .HasMany(l => l.ListShares)
+            .WithOne(ls => ls.List)
+                .HasForeignKey(ls => ls.ListID);
 
         modelBuilder.Entity<StreamingOption>()
             .HasKey(so => new { so.ContentID, so.ServiceID });

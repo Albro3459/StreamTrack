@@ -2,7 +2,7 @@ select * from User;
 
 select * from List;
 
-select * from ListContent where ListsListID = "188c9ee0-88a2-4116-a1bd-8fc3a43f0adc";
+select * from ListContent;
 
 select * from Content;
 

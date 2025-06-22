@@ -18,6 +18,7 @@ export const convertPosterContentToContentData = (posterContent: PosterContent):
         seasonCount: posterContent.seasonCount ?? null,
         episodeCount: posterContent.episodeCount ?? null,
         streamingOptions: (posterContent.streamingOptions['us'] || []).map(option => ({
+            // NO CONTENT because we need to avoid a CYCLE
             streamingService: {
                 name: option.service.name,
                 logo: option.service.imageSet.darkThemeImage,

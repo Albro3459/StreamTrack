@@ -70,13 +70,6 @@ public class Service {
     }
 
     public async Task<StreamingOption?> StreamingOptionDTOToStreamingOption(StreamingOptionDTO dto, string? contentID) {
-        if (dto.Content == null && string.IsNullOrWhiteSpace(contentID)) {
-            return null;
-        }
-        else {
-            contentID = dto.Content != null ? dto.Content.ContentID : contentID;
-        }
-
         StreamingOption? streamingOption = await context.StreamingOption.Where(s => (
             s.ContentID == contentID &&
             s.StreamingService.Name == dto.StreamingService.Name

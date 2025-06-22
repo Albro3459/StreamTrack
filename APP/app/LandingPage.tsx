@@ -174,6 +174,8 @@ export default function LandingPage () {
                 const token = await user.getIdToken();
                                 
                 // // TEST
+                // console.log(token);
+
                 // const data = await getUserData(token);
                 // console.log(data);
 
