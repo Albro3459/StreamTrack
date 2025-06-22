@@ -55,7 +55,7 @@ export const getUserData = async (token: string): Promise<UserData | null> => {
         }
 
         const data: UserData = await result.json();
-        console.log(data);
+        // console.log(data);
         
         return data;
     } catch (err) {
@@ -124,7 +124,7 @@ export const updateUserProfile = async (token: string | null, firstName: string 
         }
 
         const data: UserData = await result.json();
-        console.log(data);
+        // console.log(data);
         
         return data;
 

@@ -1,3 +1,4 @@
+using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 using API.DTOs;
 using API.Infrastructure;
@@ -38,7 +39,7 @@ public class Service {
         await context.Content.AddAsync(content);
         await context.SaveChangesAsync();
 
-        var streamingOptionTasks = dto.StreamingOptions.Select(s => StreamingOptionDTOToStreamingOption(s)).ToList();
+        var streamingOptionTasks = dto.StreamingOptions.Select(s => StreamingOptionDTOToStreamingOption(s, dto.ContentID)).ToList();
         var streamingOptions = await Task.WhenAll(streamingOptionTasks);
         if (streamingOptions.Any(s => s == null)) {
             return null;
@@ -68,14 +69,21 @@ public class Service {
         return genre;
     }
 
-    public async Task<StreamingOption?> StreamingOptionDTOToStreamingOption(StreamingOptionDTO dto) {
+    public async Task<StreamingOption?> StreamingOptionDTOToStreamingOption(StreamingOptionDTO dto, string? contentID) {
+        if (dto.Content == null && string.IsNullOrWhiteSpace(contentID)) {
+            return null;
+        }
+        else {
+            contentID = dto.Content != null ? dto.Content.ContentID : contentID;
+        }
+
         StreamingOption? streamingOption = await context.StreamingOption.Where(s => (
-            s.ContentID == dto.Content.ContentID &&
+            s.ContentID == contentID &&
             s.StreamingService.Name == dto.StreamingService.Name
         )).FirstOrDefaultAsync();
         if (streamingOption != null) return streamingOption;
 
-        Content? content = await context.Content.Where(c => c.ContentID == dto.Content.ContentID).FirstOrDefaultAsync();
+        Content? content = await context.Content.Where(c => c.ContentID == contentID).FirstOrDefaultAsync();
         if (content == null) return null;
 
         StreamingService service = await StreamingServiceDTOToStreamingService(dto.StreamingService);

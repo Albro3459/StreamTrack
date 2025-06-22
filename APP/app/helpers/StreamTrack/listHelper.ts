@@ -6,7 +6,7 @@ import { DataAPIURL } from "@/secrets/DataAPIUrl";
 import { convertPosterContentToContentData } from "./contentHelper";
 
 export const testSendingContent = async (token: string) => {
-    const posterContent: PosterContent = await RapidAPIGetByRapidID("1544", "ninja", "ninjers");
+    const posterContent: PosterContent = await RapidAPIGetByRapidID("1544", "https://image.tmdb.org/t/p/w500/uZ9ytt3sPTx62XTfN56ILSuYWRe.jpg", "https://image.tmdb.org/t/p/w1280/irpJXGiVr539uuspcQcNdkhS2lq.jpg");
 
     await addContentToUserList(token, "Favorites", posterContent);
 };
@@ -16,12 +16,14 @@ export const addContentToUserList = async (token: string | null, listName: strin
         if (!token) return null;
 
         const url = DataAPIURL + `API/List/${listName}/Add`;
+        // console.log(url);
 
-        console.log(posterContent);
+        // console.log(posterContent);
 
         const body: ContentData = convertPosterContentToContentData(posterContent);
 
-        console.log(body);
+        // console.log(body);
+        console.log(JSON.stringify(body, null, 4));
 
         const options = {
             method: 'PATCH',
@@ -33,16 +35,16 @@ export const addContentToUserList = async (token: string | null, listName: strin
             body: JSON.stringify(body)
         };
 
-        // const result = await fetch(url, options);
+        const result = await fetch(url, options);
 
-        // if (!result.ok) {
-        //     const text = await result.text();
-        //     console.error(`Error creating user ${result.status}: ${text}`);
-        //     return null;
-        // }
+        if (!result.ok) {
+            const text = await result.text();
+            console.error(`Error adding content to list ${result.status}: ${text}`);
+            return null;
+        }
 
     } catch (err) {
-        console.error('Create user failed:', err);
+        console.error('Adding content to list failed:', err);
     }
 };
 

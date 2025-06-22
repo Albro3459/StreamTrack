@@ -38,7 +38,7 @@ export default function InfoPage() {
   const { id, media_type, vertical, horizontal } = useLocalSearchParams() as InfoPageParams;
 //   const contentID = id ? id.toString() : null;
 
-  const [content, setContent] = useState<PosterContent>({} as PosterContent);
+  const [content, setContent] = useState<PosterContent | null>();
 
   type ServiceType = { serviceID: string, price: string, lightThemeImage: string, darkThemeImage: string, link: string };
   const streamingServices: () => { freeServices: ServiceType[]; paidServices: ServiceType[] } = () => {

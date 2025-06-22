@@ -3,7 +3,7 @@ namespace API.DTOs;
 
 public class StreamingOptionDTO {
 
-    public ContentDTO Content { get; set; } = null!;
+    public ContentDTO? Content { get; set; }
 
     public StreamingServiceDTO StreamingService { get; set; } = null!;
 

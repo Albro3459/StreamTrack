@@ -37,8 +37,8 @@ export const TMDBSearch = async (keyword: string): Promise<TMDB> => {
     data.results = data.results.filter(x => x.media_type === "tv" || x.media_type === "movie");
     data.results = data.results.map(x => ({
         ...x,
-        backdrop_path: x.backdrop_path ? "https://image.tmdb.org/t/p/w1280/" + x.backdrop_path : null,
-        poster_path: x.poster_path ? "https://image.tmdb.org/t/p/w500/" + x.poster_path : null,
+        backdrop_path: x.backdrop_path ? "https://image.tmdb.org/t/p/w1280" + x.backdrop_path : null,
+        poster_path: x.poster_path ? "https://image.tmdb.org/t/p/w500" + x.poster_path : null,
     }));
 
     return data;
@@ -75,7 +75,6 @@ export const RapidAPIGetByTMDBID = async (id: string, media_type: MEDIA_TYPE, ve
 export const RapidAPIGetByRapidID = async (id: string, vertical: string, horizontal: string): Promise<PosterContent> => {
 
     const url = RapidAPI_Base_Url + id + RapidAPI_Ending;
-    console.log(url);
 
     const options = {
         method: 'GET',
@@ -85,8 +84,6 @@ export const RapidAPIGetByRapidID = async (id: string, vertical: string, horizon
     const result = await axios.request(options);
     
     const data: Content = await result.data;
-
-    console.log(data);
 
     const posters: Posters = {
         vertical: vertical, horizontal: horizontal

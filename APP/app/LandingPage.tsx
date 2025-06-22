@@ -176,7 +176,8 @@ export default function LandingPage () {
                 // // TEST
                 // const data = await getUserData(token);
                 // console.log(data);
-                // await testSendingContent(token);
+
+                await testSendingContent(token);
             }
         };
         fetchInitialUserData();
