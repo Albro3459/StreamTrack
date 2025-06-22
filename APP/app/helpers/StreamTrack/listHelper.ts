@@ -152,4 +152,36 @@ export const removeContentFromUserList = async (token: string | null, listName: 
     }
 };
 
+export const createNewUserList = async (token: string | null, listName: string) => {
+    try {
+        if (!token) return null;
+
+        const url = DataAPIURL + `API/List/${listName}/Create`;
+                
+        const options = {
+            method: 'POST',
+            headers: {
+                accept: 'application/json',
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+            },
+        };
+
+        const result = await fetch(url, options);
+
+        if (!result.ok) {
+            const text = await result.text();
+            console.error(`Error creating new list ${result.status}: ${text}`);
+            return null;
+        }
+
+        const data: ListData = await result.json();
+        
+        return data;
+
+    } catch (err) {
+        console.error('Creating new list failed:', err);
+    }
+};
+
 export default {};

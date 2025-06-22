@@ -7,29 +7,21 @@ import {
   StyleSheet,
   Image,
   Modal,
-  Alert,
   Pressable,
   Dimensions,
   TextInput,
   ActivityIndicator,
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as SplashScreen from "expo-splash-screen";
 import { router, usePathname } from 'expo-router';
 import Heart from './components/heartComponent';
-import { Content, PosterContent } from './types/contentType';
 import { appStyles } from '@/styles/appStyles';
-// import { Global, STORAGE_KEY } from '@/Global';
 import { Colors } from '@/constants/Colors';
-// import { PosterList, WatchList } from './types/listsType';
-// import { createNewList, DEFAULT_TABS, FAVORITE_TAB, isItemInList, moveItemToTab, sortTabs, turnTabsIntoPosterTabs } from './helpers/listHelper';
-import DropDownPicker from 'react-native-dropdown-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { setUserData, useUserDataStore } from './stores/userDataStore';
-import { ContentData, ListData, UserData } from './types/dataTypes';
-import { addContentToUserList, isItemInList, removeContentFromUserList } from './helpers/StreamTrack/listHelper';
-import { FetchCache } from './helpers/cacheHelper';
+import { ContentData, ListData } from './types/dataTypes';
+import { addContentToUserList, createNewUserList, isItemInList, removeContentFromUserList } from './helpers/StreamTrack/listHelper';
 import { User } from 'firebase/auth';
 import { auth } from '@/firebaseConfig';
 
@@ -41,7 +33,6 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 SplashScreen.preventAutoHideAsync();
 
 export default function LibraryPage() {
-    const pathname = usePathname();
     const pagerViewRef = useRef(null);
 
     const { userData } = useUserDataStore();
@@ -65,16 +56,25 @@ export default function LibraryPage() {
     const [selectedContent, setSelectedContent] = useState<ContentData | null>(null);
     const [moveModalVisible, setMoveModalVisible] = useState(false);
 
-//   const handelCreateNewTab = async (newTabName: string) => {
-//     if (newTabName.trim()) {
-//       const newTabIndex: number = Object.keys(tabs).length;
-//       await createNewList(newListName, setTabs, setPosterTabs);
-//       setNewListName("");
-//       setCreateNewListModal(false);
-//       setActiveTab(newTabIndex);
-//       pagerViewRef.current?.setPage(newTabIndex);
-//     }
-//   };
+  const handelCreateNewTab = async (listName: string) => {
+    if (listName.trim()) {
+        const user: User | null = auth.currentUser;
+        if (!user) {
+            setIsLoading(false);
+            setMoveModalVisible(false);
+            return;
+        }
+        const token = await user.getIdToken();
+        const newList: ListData = await createNewUserList(token, listName);
+        setNewListName("");
+        setCreateNewListModal(false);
+        setLists(prev => sortLists([...prev, newList]));
+        userData.listsOwned.push(newList);
+        setUserData(userData);
+        setActiveTab(listName);
+        pagerViewRef.current?.setPage(lists.map(l => l.listName).indexOf(listName));
+    }
+  };
 
     const moveItemToTab = async (content: ContentData, listName: string, lists: ListData[]) => {
         // Only works for user owned lists for now
@@ -181,6 +181,7 @@ export default function LibraryPage() {
               { listName === FAVORITE_TAB ? (
                 <Heart 
                   size={25}
+                  onPress={async () => handleTabPress(listName)}
                 />
               ) : (
                 <Text
@@ -227,7 +228,7 @@ export default function LibraryPage() {
               </Pressable>
               <Pressable
                 style={styles.addButton}
-                // onPress={async () => await handelCreateNewTab(newListName) }
+                onPress={async () => await handelCreateNewTab(newListName) }
               >
                 <Text style={styles.addButtonText}>Add</Text>
               </Pressable>

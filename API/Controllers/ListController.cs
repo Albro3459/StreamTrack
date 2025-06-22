@@ -54,7 +54,7 @@ public class ListController : ControllerBase {
 
     // POST: API/List/{listName}/Create
     [HttpPost("{listName}/Create")]
-    public async Task<ActionResult> CreateUserList(string listName) {
+    public async Task<ActionResult<ListDTO>> CreateUserList(string listName) {
 
         string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -69,11 +69,16 @@ public class ListController : ControllerBase {
         List? list = await context.List.Where(l => l.OwnerUserID == uid && l.ListName.ToLower().Trim().Equals(listName.ToLower().Trim())).FirstOrDefaultAsync();
         if (list != null) return Conflict();
 
-        await context.List.AddAsync(new List(owner, listName));
+        list = new List(owner, listName);
+
+        await context.List.AddAsync(list);
 
         await context.SaveChangesAsync();
 
-        return Ok();
+        ListDTO dto = mapper.Map<List, ListDTO>(list);
+        dto.IsOwner = true;
+
+        return dto;
     }
 
     // POST: API/List/Update
