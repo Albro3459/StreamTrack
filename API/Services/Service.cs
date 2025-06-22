@@ -38,6 +38,19 @@ public class Service {
                 .FirstOrDefaultAsync(u => u.UserID.Equals(userID));
     }
 
+    public async Task<List<List>> GetFullListsOwnedByUserID(string userID) {
+        return await context.List
+                    .Include(l => l.Owner)
+                    .Include(l => l.Contents)
+                        .ThenInclude(c => c.Genres)
+                    .Include(l => l.Contents)
+                        .ThenInclude(c => c.StreamingOptions)
+                            .ThenInclude(s => s.StreamingService)
+                    .Include(l => l.ListShares)
+                    .Where(l => l.OwnerUserID.Equals(userID))
+                    .ToListAsync();
+    }
+
     public async Task<UserDataDTO> MapUserToUserDTO(User user) {
         UserDataDTO userDataDTO = mapper.Map<User, UserDataDTO>(user);
 

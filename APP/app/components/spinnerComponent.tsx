@@ -164,7 +164,7 @@ export const Spinner: React.FC<{list: Content[], onFinish: (winnder: Content) =>
                       transform={`rotate(${(segmentMap.length <= 2 ? 0 : -segment.textAngle -3)}, ${textX}, ${textY})`}
                     >
                       {/*splitting long titles that have a colon and also if the title doesnt exist then put an empty string*/}
-                      {(segment ? segment.content.title.split(":").length == 0 ? segment.content.title : segment.content.title.split(":")[0] : "")}
+                      {(segment ? segment.content.title.split(":").length === 0 ? segment.content.title : segment.content.title.split(":")[0] : "")}
                     </SvgText>
                   </React.Fragment>
                 );

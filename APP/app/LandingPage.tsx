@@ -17,8 +17,6 @@ import { Review } from "./types/reviewType";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/firebaseConfig";
 import { getUserData } from "./helpers/StreamTrack/userHelper";
-import { testSendingContent } from "./helpers/StreamTrack/listHelper";
-
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -142,7 +140,7 @@ export default function LandingPage () {
     // useEffect(() => {
     //   const fetchRecommendedContent  = async () => {
     //     if (pathname === "/LandingPage") {
-    //       if (!moviesAndShows || moviesAndShows.length == 0) {
+    //       if (!moviesAndShows || moviesAndShows.length === 0) {
 
     //           const randomContent: PosterContent[] = await getRandomContent(10);
     //           if (randomContent) {
@@ -168,22 +166,22 @@ export default function LandingPage () {
     //   fetchRecommendedContent();
     // }, []);     
 
-    useEffect(() => {
-        const fetchInitialUserData = async () => {
-            if (user) {
-                const token = await user.getIdToken();
+    // useEffect(() => {
+    //     const fetchInitialUserData = async () => {
+    //         if (user) {
+    //             const token = await user.getIdToken();
                                 
-                // // TEST
-                // console.log(token);
+    //             // // TEST
+    //             console.log(token);
 
-                // const data = await getUserData(token);
-                // console.log(data);
+    //             // const data = await getUserData(token);
+    //             // console.log(data);
 
-                // await testSendingContent(token);
-            }
-        };
-        fetchInitialUserData();
-    }, [user]);
+    //             // await testSendingContent(token);
+    //         }
+    //     };
+    //     fetchInitialUserData();
+    // }, [user]);
 
   useEffect(() => {
       const unsubscribe = onAuthStateChanged(auth, (user) => {

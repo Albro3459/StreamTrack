@@ -1,5 +1,12 @@
 import { MEDIA_TYPE } from "./tmdbType";
 
+// Send
+export type ListsUpdateData = {
+    ContentID: string;
+    AddToLists: string[];
+    RemoveFromLists: string[];
+};
+
 export type UpdateUserProfileData = {
     Email?: string;
     FirstName?: string;
@@ -8,6 +15,7 @@ export type UpdateUserProfileData = {
     StreamingServices?: string[];
 };
 
+// Receive
 export type UserData = {
     email: string;
     firstName: string;

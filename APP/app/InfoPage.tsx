@@ -66,7 +66,6 @@ export default function InfoPage() {
    const [infoModalVisible, setInfoModalVisible] = useState(false);
 
     const getServicePrice = (option: StreamingOptionData) : string => {
-        console.log(JSON.stringify(option, null));
         if (option && option.streamingService && option.price) {
             const priceAmount = parseFloat(option.price);
             if (!isNaN(priceAmount)) {

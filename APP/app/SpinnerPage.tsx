@@ -10,7 +10,7 @@ import { Colors } from '@/constants/Colors';
 import { appStyles, RalewayFont } from '@/styles/appStyles';
 import Heart from './components/heartComponent';
 import { Entypo, Feather } from '@expo/vector-icons';
-import { PosterList, WatchList } from './types/listsType';
+// import { PosterList, WatchList } from './types/listsType';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 // import { ClearLoadState, Global, STORAGE_KEY } from '@/Global';
 // import { DEFAULT_TABS, FAVORITE_TAB, isItemInList, moveItemToTab, sortTabs, turnTabsIntoPosterTabs } from './helpers/listHelper';
@@ -336,7 +336,7 @@ export default function SpinnerPage() {
                             <View style={[appStyles.cardContainer, {width: screenWidth*0.7, alignSelf: "center"}]}>
                                 <Image source={{ uri: winner.posters && winner.posters.vertical }} style={appStyles.cardPoster} />
                                 <View style={[appStyles.cardContent]}>
-                                    <Text style={[appStyles.cardTitle, {paddingBottom: 5}]}>{winner.title.split(":").length == 0 ? winner.title : winner.title.split(":")[0]}</Text>
+                                    <Text style={[appStyles.cardTitle, {paddingBottom: 5}]}>{winner.title.split(":").length === 0 ? winner.title : winner.title.split(":")[0]}</Text>
                                     <Text style={appStyles.cardRating}>⭐ 4.2</Text>
                                 </View>
                                 <Heart 

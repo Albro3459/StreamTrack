@@ -11,6 +11,7 @@ import {
   Pressable,
   Dimensions,
   TextInput,
+  ActivityIndicator,
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -25,8 +26,12 @@ import { Colors } from '@/constants/Colors';
 // import { createNewList, DEFAULT_TABS, FAVORITE_TAB, isItemInList, moveItemToTab, sortTabs, turnTabsIntoPosterTabs } from './helpers/listHelper';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { Ionicons } from '@expo/vector-icons';
-import { useUserDataStore } from './stores/userDataStore';
-import { ContentData, ListData } from './types/dataTypes';
+import { setUserData, useUserDataStore } from './stores/userDataStore';
+import { ContentData, ListData, UserData } from './types/dataTypes';
+import { addContentToUserList, isItemInList, removeContentFromUserList } from './helpers/StreamTrack/listHelper';
+import { FetchCache } from './helpers/cacheHelper';
+import { User } from 'firebase/auth';
+import { auth } from '@/firebaseConfig';
 
 const FAVORITE_TAB = "Favorites";
 
@@ -36,101 +41,29 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 SplashScreen.preventAutoHideAsync();
 
 export default function LibraryPage() {
-  const pathname = usePathname();
-  const pagerViewRef = useRef(null);
+    const pathname = usePathname();
+    const pagerViewRef = useRef(null);
 
-  const { userData } = useUserDataStore();
+    const { userData } = useUserDataStore();
 
-  const [lists, setLists] = useState<ListData[] | null>([...userData.listsOwned, ...userData.listsSharedWithMe]);
-  const [activeTab, setActiveTab] = useState<string | null>(lists[0].listName);
+    const sortLists = (lists: ListData[]) => {
+        return [...lists].sort((a, b) => {
+            if (a.listName === FAVORITE_TAB) return -1;
+            if (b.listName === FAVORITE_TAB) return 1;
+            return 0;
+        });
+    };
 
-  const [newListName, setNewListName] = useState<string>("");
-  const [createNewListModal, setCreateNewListModal] = useState(false);
+    const [lists, setLists] = useState<ListData[] | null>(sortLists([...userData.listsOwned, ...userData.listsSharedWithMe]));
 
-  const [heartColors, setHeartColors] = useState<{ [key: string]: string }>({});  
+    const [activeTab, setActiveTab] = useState<string | null>(lists[0].listName);
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [selectedItem, setSelectedItem] = useState<ContentData>(null);
-  const [moveModalVisible, setMoveModalVisible] = useState(false);
+    const [newListName, setNewListName] = useState<string>("");
+    const [createNewListModal, setCreateNewListModal] = useState(false);
 
-//   useEffect(() => {
-//     setMoveModalVisible(false);
-//     const loadContent = async () => {
-//       if (pathname === "/LibraryPage") {
-//         try {
-//           // Load saved tabs from AsyncStorage
-//           const savedTabs = await AsyncStorage.getItem(STORAGE_KEY);
-//           if (savedTabs) {
-//             const parsedTabs: WatchList = savedTabs
-//                         ? sortTabs({ ...DEFAULT_TABS, ...JSON.parse(savedTabs) }) // Ensure tabs are sorted
-//                         : DEFAULT_TABS;
-//             setTabs(parsedTabs);
-
-//             const newPosterLists = await turnTabsIntoPosterTabs(parsedTabs);
-//             setPosterTabs(newPosterLists);            
-
-//             // Initialize heartColors based on the Favorite tab
-//             const savedHeartColors = Object.values(parsedTabs).flat().reduce<{ [key: string]: string }>((acc, content: Content) => {
-//               acc[content.id] = parsedTabs.Favorite.some((fav) => fav.id === content.id)
-//                 ? Colors.selectedHeartColor
-//                 : Colors.unselectedHeartColor;
-//               return acc;
-//             }, {});
-//             setHeartColors(savedHeartColors);
-//           }
-//         } catch (error) {
-//           console.error('Error loading library content:', error);
-//         } finally {
-//           setIsLoading(false);
-//           await SplashScreen.hideAsync();
-//         }
-//       }
-//     };
-
-//     loadContent();
-//   }, []);  
-
-//   useEffect(() => {
-//     const reFetch = async () => {
-//       if (pathname === "/LibraryPage") {
-//         if (Global.backPressLoadLibrary) {
-//           // console.log("LIBRARY back press load begin");
-//           // Re-initialize tabs
-
-//           try {
-//             // console.log("starting to pull lists");
-//             // Load saved tabs from AsyncStorage
-//             const savedTabs = await AsyncStorage.getItem(STORAGE_KEY);
-//             if (savedTabs) {
-//               const parsedTabs: WatchList = savedTabs
-//                           ? sortTabs({ ...DEFAULT_TABS, ...JSON.parse(savedTabs) }) // Ensure tabs are sorted
-//                           : DEFAULT_TABS;
-//               setTabs(parsedTabs);
-//               const newPosterLists = await turnTabsIntoPosterTabs(parsedTabs);
-//               setPosterTabs(newPosterLists);   
-
-//               // Initialize heartColors based on the Favorite tab
-//               const savedHeartColors = Object.values(parsedTabs).flat().reduce<{ [key: string]: string }>((acc, content: Content) => {
-//                 acc[content.id] = parsedTabs.Favorite.some((fav) => fav.id === content.id)
-//                   ? Colors.selectedHeartColor
-//                   : Colors.unselectedHeartColor;
-//                 return acc;
-//               }, {});
-//               setHeartColors(savedHeartColors);
-//               // console.log("SAVED lists");
-//             }
-//           } catch (error) {
-//             console.error('Error loading library content:', error);
-//           }
-//         }
-
-//         Global.backPressLoadLibrary = false;
-//       }
-//     }
-
-//     reFetch();
-//   }, [pathname]); // need this for this one
-
+    const [isLoading, setIsLoading] = useState(true);
+    const [selectedContent, setSelectedContent] = useState<ContentData | null>(null);
+    const [moveModalVisible, setMoveModalVisible] = useState(false);
 
 //   const handelCreateNewTab = async (newTabName: string) => {
 //     if (newTabName.trim()) {
@@ -143,89 +76,94 @@ export default function LibraryPage() {
 //     }
 //   };
 
-
-  const handleTabPress = async (listName: string) => {
-    setActiveTab(listName);
-    pagerViewRef.current?.setPage(lists.map(l => l.listName).indexOf(listName));
-
-    // const savedTabs = await AsyncStorage.getItem(STORAGE_KEY);
-    // if (savedTabs) {
-    //   const parsedTabs: WatchList = savedTabs
-    //                     ? sortTabs({ ...DEFAULT_TABS, ...JSON.parse(savedTabs) }) // Ensure tabs are sorted
-    //                     : DEFAULT_TABS;
-    //   setTabs(parsedTabs);
-    //   const newPosterLists = await turnTabsIntoPosterTabs(parsedTabs);
-    //   setPosterTabs(newPosterLists);
-    // }
-  };
-
-  useEffect(() => {
-    if (lists && isLoading) {
+    const moveItemToTab = async (content: ContentData, listName: string, lists: ListData[]) => {
+        // Only works for user owned lists for now
+        setIsLoading(true);
+        let list: ListData = lists.find(l => l.listName === listName);
+        if (!list) {
+            setIsLoading(false);
+            setMoveModalVisible(false);
+            return;
+        }
+        const user: User | null = auth.currentUser;
+        if (!user) {
+            setIsLoading(false);
+            setMoveModalVisible(false);
+            return;
+        }
+        const token = await user.getIdToken();
+        list = list.contents.some(c => c.contentID === content.contentID) ? 
+                await removeContentFromUserList(token, list.listName, content.contentID)
+                :
+                await addContentToUserList(token, list.listName, content);
+        if (list) {
+            userData.listsOwned = userData.listsOwned.filter(l => l.listName !== list.listName);
+            userData.listsOwned.push(list);
+            setLists(sortLists([...userData.listsOwned, ...userData.listsSharedWithMe]));
+            setUserData(userData);
+        }
         setIsLoading(false);
+        setMoveModalVisible(false);
     }
-  }, [lists, isLoading]);
 
-  const renderTabContent = (contents: ContentData[], list: string) => {
-    if (!contents || contents.length === 0) {
-      return (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={{ fontSize: 16, color: 'gray', textAlign: 'center' }}>
-            Your list is empty. Start adding items!
-          </Text>
-        </View>
-      );
-    }
+    const handleTabPress = (listName: string) => {
+        setActiveTab(listName);
+        pagerViewRef.current?.setPage(lists.map(l => l.listName).indexOf(listName));
+
+        setLists(sortLists(lists));
+    };
+
+    useEffect(() => {
+        if (lists && isLoading) {
+            setIsLoading(false);
+        }
+    }, [lists, isLoading]);
+
+    const renderTabContent = (contents: ContentData[], list: string) => {
+        if (!contents || contents.length === 0) {
+        return (
+            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <Text style={{ fontSize: 16, color: 'gray', textAlign: 'center' }}>
+                Your list is empty. Start adding items!
+            </Text>
+            </View>
+        );
+        }
   
-    return (
-      <FlatList<ContentData>
-        data={lists.find(l => l.listName === activeTab).contents}
-        numColumns={2}
-        keyExtractor={(content, index) => `${content.contentID}-${index}-${list}`}
-        renderItem={({ item: content }) => (
-          <TouchableOpacity
-            style={styles.movieCard}
-            onPress={() => {
-                // Global.backPressLoadLibrary = true;
-                // router.push({
-                //     pathname: '/InfoPage',
-                //     params: { id: item.id },
-                // });
-                // router.push({
-                //     pathname: '/InfoPage',
-                //     params: { id: content.tmdb_ID, media_type: content.showType, vertical: content.verticalPoster, horizontal: content.horizontalPoster },
-                // });
-                router.push({
-                    pathname: '/InfoPage',
-                    params: { listName: activeTab, contentID: content.contentID },
-                });
-              // console.log(`Library clicked on: title ${item.title} | id ${item.id} `);
-            }}
-            onLongPress={() => {
-              setSelectedItem(content);
-              setMoveModalVisible(true);
-            }}
-          >
-            <Image
-              source={{
-                  uri: content.verticalPoster || 
-                      (console.log(`Library poster missing for: ${content.title} | poster: ${content.verticalPoster}`), 
-                        // reloadMissingImages(item), 
-                        "https://example.com/default-image.jpg")
+        return (
+        <FlatList<ContentData>
+            data={lists.find(l => l.listName === activeTab).contents}
+            numColumns={2}
+            keyExtractor={(content, index) => `${content.contentID}-${index}-${list}`}
+            renderItem={({ item: content }) => (
+            <TouchableOpacity
+                style={styles.movieCard}
+                onPress={() => {
+                    router.push({
+                        pathname: '/InfoPage',
+                        params: { listName: activeTab, contentID: content.contentID },
+                    });
                 }}
-              style={styles.movieImage}
-            />
-            <Text style={styles.movieTitle}>{content.title}</Text>
-          </TouchableOpacity>
-        )}
-      />
-    );
-  };
+                onLongPress={() => {
+                setSelectedContent(content);
+                setMoveModalVisible(true);
+                }}
+            >
+                <Image
+                source={{
+                    uri: content.verticalPoster || 
+                        (console.log(`Library poster missing for: ${content.title} | poster: ${content.verticalPoster}`), "")
+                    }}
+                style={styles.movieImage}
+                />
+                <Text style={styles.movieTitle}>{content.title}</Text>
+            </TouchableOpacity>
+            )}
+        />
+        );
+    };
 
-  if (isLoading) {
-    return null; // Show splashcreen until loaded
-  }
-
-  return (
+    return (
     <View style={{ flex: 1, backgroundColor: Colors.backgroundColor }}>
       {/* Tab Bar */}
       <View style={[styles.tabBar, {flexDirection: 'row'}, (lists && lists.length <= 4) && {paddingLeft: 24}]}>
@@ -238,7 +176,7 @@ export default function LibraryPage() {
           renderItem={({ item: listName }) => (
             <TouchableOpacity
               style={[styles.tabItem, activeTab === listName && styles.activeTabItem, {paddingHorizontal:8}, (lists && lists.length <= 4) && {paddingHorizontal: 12}]}
-              onPress={async () => await handleTabPress(listName)}
+              onPress={async () => handleTabPress(listName)}
             >
               { listName === FAVORITE_TAB ? (
                 <Heart 
@@ -312,7 +250,7 @@ export default function LibraryPage() {
       </PagerView>
 
       {/* Move Modal */}
-      {/* {selectedItem && (
+      {selectedContent && (
         <Modal
           transparent={true}
           visible={moveModalVisible}
@@ -325,40 +263,40 @@ export default function LibraryPage() {
           >
             <View style={appStyles.modalContent}>
               <Text style={appStyles.modalTitle}>
-                Move "{selectedItem?.title}" to:
+                Move "{selectedContent?.title}" to:
               </Text>
-              {selectedItem && (
+              {selectedContent && (
                 <>
-                  Render all tabs except FAVORITE_TAB
-                  {Object.keys(tabs)
-                    .filter((tab) => tab !== FAVORITE_TAB)
-                    .map((tab, index) => (
+                  {/* Render all tabs except FAVORITE_TAB */}
+                  {lists
+                    .filter((list) => list.listName !== FAVORITE_TAB)
+                    .map((list, index) => (
                       <TouchableOpacity
-                        key={`LandingPage-${selectedItem.id}-${tab}-${index}`}
+                        key={`LandingPage-${selectedContent.contentID}-${list.listName}-${index}`}
                         style={[
                           appStyles.modalButton,
-                          isItemInList(selectedItem, tab, tabs) && appStyles.selectedModalButton,
+                          isItemInList(lists, list.listName, selectedContent.contentID) && appStyles.selectedModalButton,
                         ]}
-                        onPress={async () => await moveItemToTab(selectedItem, tab, setTabs, setPosterTabs, [setMoveModalVisible], null)}
+                        onPress={async () => await moveItemToTab(selectedContent, list.listName, lists)}
                       >
                         <Text style={appStyles.modalButtonText}>
-                          {tab} {isItemInList(selectedItem, tab, tabs) ? "✓" : ""}
+                          {list.listName} {isItemInList(lists, list.listName, selectedContent.contentID) ? "✓" : ""}
                         </Text>
                       </TouchableOpacity>
                     ))}
 
-                  Render FAVORITE_TAB at the bottom
-                  {tabs[FAVORITE_TAB] && (
+                  {/* Render FAVORITE_TAB at the bottom */}
+                  {lists.find(l => l.listName === FAVORITE_TAB) && (
                     <View
-                      key={`LandingPage-${selectedItem.id}-heart`}
+                      key={`LandingPage-${selectedContent.contentID}-heart`}
                       style={{ paddingTop: 10 }}
                     >
                       <Heart
                         heartColor={
-                          heartColors[selectedItem?.id] || Colors.unselectedHeartColor
+                          isItemInList(lists, FAVORITE_TAB, selectedContent.contentID) ? Colors.selectedHeartColor : Colors.unselectedHeartColor
                         }
                         size={35}
-                        onPress={async () => await moveItemToTab(selectedItem, FAVORITE_TAB, setTabs, setPosterTabs, [setMoveModalVisible], setHeartColors)}
+                        onPress={async () => await moveItemToTab(selectedContent, FAVORITE_TAB, lists)}
                       />
                     </View>
                   )}
@@ -367,7 +305,14 @@ export default function LibraryPage() {
             </View>
           </Pressable>
         </Modal>
-      )} */}
+      )}
+
+      {/* Overlay */}
+        {isLoading && (
+            <View style={appStyles.overlay}>
+                <ActivityIndicator size="large" color="#fff" />
+            </View>
+        )}
     </View>
   );
 };

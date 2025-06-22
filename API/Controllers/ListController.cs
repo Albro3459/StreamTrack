@@ -7,6 +7,7 @@ using API.DTOs;
 using API.Infrastructure;
 using API.Models;
 using API.Services;
+using System.Runtime.ExceptionServices;
 
 namespace API.Controllers;
 
@@ -26,7 +27,7 @@ public class ListController : ControllerBase {
 
     // GET: API/List/Get
     [HttpGet("Get")]
-    public async Task<ActionResult<List<ListDTO>>> GetUserLists() {
+    public async Task<ActionResult<ListsAllDTO>> GetUserLists() {
         // Get the user's auth token to get the firebase uuid to get the correct user's data
         // User's can only get their own data
 
@@ -35,24 +36,20 @@ public class ListController : ControllerBase {
         if (string.IsNullOrEmpty(uid))
             return Unauthorized();
 
-        List<List> lists = await context.List
-                    .Include(l => l.Owner)
-                    .Include(l => l.Contents)
-                        .ThenInclude(c => c.Genres)
-                    .Include(l => l.Contents)
-                        .ThenInclude(c => c.StreamingOptions)
-                            .ThenInclude(s => s.StreamingService)
-                    .Include(l => l.ListShares)
-                    .Where(l => l.OwnerUserID == uid)
-                    .ToListAsync();
+        User? user = await service.GetFullUserByID(uid);
+        if (user == null) {
+            return NotFound();
+        }
 
-        List<ListDTO> dtos = lists.Select(l => {
-            var dto = mapper.Map<List, ListDTO>(l);
-            dto.IsOwner = l.OwnerUserID == uid;
-            return dto;
-        }).ToList();
+        UserDataDTO userDTO = await service.MapUserToUserDTO(user);
 
-        return dtos;
+        ListsAllDTO allLists = new ListsAllDTO {
+            ListsOwned = userDTO.ListsOwned,
+            ListsSharedWithMe = userDTO.ListsSharedWithMe,
+            ListsSharedWithOthers = userDTO.ListsSharedWithOthers,
+        };
+
+        return allLists;
     }
 
     // POST: API/List/{listName}/Create
@@ -79,24 +76,70 @@ public class ListController : ControllerBase {
         return Ok();
     }
 
-    // POST: API/List/{listName}/Add
-    [HttpPost("{listName}/Add")]
-    public async Task<ActionResult<ListDTO>> AddToUserList(string listName, [FromBody] ContentDTO contentDTO) {
+    // POST: API/List/Update
+    [HttpPost("Update")]
+    public async Task<ActionResult<UserDataDTO>> UpdateListsWithContent(ListsUpdateDTO dto) {
+        // Not really tested tbh
 
         string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (string.IsNullOrEmpty(uid))
             return Unauthorized();
 
-        List? list = await context.List
-                    .Include(l => l.Owner)
-                    .Include(l => l.Contents)
-                        .ThenInclude(c => c.Genres)
-                    .Include(l => l.Contents)
-                        .ThenInclude(c => c.StreamingOptions)
-                            .ThenInclude(s => s.StreamingService)
-                    .Include(l => l.ListShares)
-                    .Where(l => l.OwnerUserID == uid && l.ListName.ToLower().Trim().Equals(listName.ToLower().Trim())).FirstOrDefaultAsync();
+        // Find the content
+        Content? content = await context.Content.FirstOrDefaultAsync(c => c.ContentID.Equals(dto.ContentID));
+        if (content == null) return BadRequest();
+
+        // Get all the lists
+        List<string> allListNames = dto.AddToLists.Concat(dto.RemoveFromLists).Distinct().ToList();
+        List<List> userLists = await context.List
+                                    .Include(l => l.Contents)
+                                    .Where(l => l.OwnerUserID == uid && allListNames.Contains(l.ListName))
+                                    .ToListAsync();
+        List<List> listsToAddTo = userLists.Where(l => dto.AddToLists.Contains(l.ListName)).ToList();
+        List<List> listsToRemoveFrom = userLists.Where(l => dto.RemoveFromLists.Contains(l.ListName)).ToList();
+
+        // For each List to Add to, add if not there
+        foreach (List list in listsToAddTo) {
+            if (!list.Contents.Any(c => c.ContentID.Equals(dto.ContentID))) {
+                list.Contents.Add(content);
+            }
+        }
+
+        // For each list to remove from, remove it
+        foreach (List list in listsToRemoveFrom) {
+            if (list.Contents.Any(c => c.ContentID.Equals(dto.ContentID))) {
+                list.Contents.Remove(content);
+            }
+        }
+
+        // Save changes async
+        await context.SaveChangesAsync();
+
+        // Fetch the user's data
+
+        User? user = await service.GetFullUserByID(uid);
+        if (user == null) {
+            return NotFound();
+        }
+
+        UserDataDTO userDTO = await service.MapUserToUserDTO(user);
+
+        return userDTO;
+    }
+
+    // POST: API/List/{listName}/Add
+    [HttpPost("{listName}/Add")]
+    public async Task<ActionResult<ListDTO>> AddToUserList(string listName, [FromBody] ContentDTO contentDTO) {
+        // Right now only works for user owned lists
+        string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(uid))
+            return Unauthorized();
+
+        List<List> lists = await service.GetFullListsOwnedByUserID(uid);
+
+        List? list = lists.Where(l => l.ListName.ToLower().Trim().Equals(listName.ToLower().Trim())).FirstOrDefault();
         if (list == null) return NotFound();
 
         Content? content = await context.Content.Where(c => c.ContentID == contentDTO.ContentID).FirstOrDefaultAsync();
@@ -124,21 +167,15 @@ public class ListController : ControllerBase {
     // DELETE: API/List/{listName}/Remove/{contentID}
     [HttpDelete("{listName}/Remove/{contentID}")]
     public async Task<ActionResult<ListDTO>> RemoveFromUserList(string listName, string contentID) {
-
+        // Right now only works for user owned lists
         string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (string.IsNullOrEmpty(uid))
             return Unauthorized();
 
-        List? list = await context.List
-                    .Include(l => l.Owner)
-                    .Include(l => l.Contents)
-                        .ThenInclude(c => c.Genres)
-                    .Include(l => l.Contents)
-                        .ThenInclude(c => c.StreamingOptions)
-                            .ThenInclude(s => s.StreamingService)
-                    .Include(l => l.ListShares)
-                    .Where(l => l.OwnerUserID == uid && l.ListName.ToLower().Trim().Equals(listName.ToLower().Trim())).FirstOrDefaultAsync();
+        List<List> lists = await service.GetFullListsOwnedByUserID(uid);
+
+        List? list = lists.Where(l => l.ListName.ToLower().Trim().Equals(listName.ToLower().Trim())).FirstOrDefault();
         if (list == null) return NotFound();
 
         Content? content = await context.Content.Where(c => c.ContentID == contentID).FirstOrDefaultAsync();
