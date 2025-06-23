@@ -44,9 +44,9 @@ export const TMDBSearch = async (keyword: string): Promise<TMDB> => {
     return data;
 }
 
-export const RapidAPIGetByTMDBID = async (id: string, media_type: MEDIA_TYPE, vertical: string, horizontal: string): Promise<PosterContent> => {
+export const RapidAPIGetByTMDBID = async (tmdbID: string, media_type: MEDIA_TYPE, vertical: string, horizontal: string): Promise<PosterContent> => {
 
-    const url = RapidAPI_Base_Url + media_type + "/" + id + RapidAPI_Ending;
+    const url = RapidAPI_Base_Url + media_type + "/" + tmdbID + RapidAPI_Ending;
 
     const options = {
         method: 'GET',

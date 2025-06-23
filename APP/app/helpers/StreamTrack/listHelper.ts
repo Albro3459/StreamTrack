@@ -1,11 +1,15 @@
 import { PosterContent } from "@/app/types/contentType";
-import { ContentData, ListData, ListsUpdateData, UserData } from "@/app/types/dataTypes";
-import { RapidAPIGetByRapidID, RapidAPIGetByTMDBID } from "../contentAPIHelper";
-import { MEDIA_TYPE } from "@/app/types/tmdbType";
+import { ContentData, ListData, UserData } from "@/app/types/dataTypes";
 import { DataAPIURL } from "@/secrets/DataAPIUrl";
 import { convertPosterContentToContentData } from "./contentHelper";
-import { auth } from "@/firebaseConfig";
 import { User } from "firebase/auth";
+import { auth } from "@/firebaseConfig";
+import { setUserData, useUserDataStore } from "@/app/stores/userDataStore";
+import { MEDIA_TYPE } from "@/app/types/tmdbType";
+import { RapidAPIGetByTMDBID } from "../contentAPIHelper";
+import { Movie } from "@/app/SearchPage";
+
+export const FAVORITE_TAB = "Favorites";
 
 export const isItemInList = (lists: ListData[], listName: string, contentID: string) => {
     const list: ListData = lists.find(l => l.listName === listName);
@@ -14,72 +18,67 @@ export const isItemInList = (lists: ListData[], listName: string, contentID: str
     return list.contents.some(c => c.contentID === contentID);
 };
 
-// export const updateListsWithContent = async (lists: ListData[], wantedLists: Set<string>, contentID: string) : Promise<UserData | null> => {
-//     console.log(wantedLists);
-//     const addToLists: string[] = [];
-//     const removeFromLists: string[] = [];
+export const isTMDBItemInList = (lists: ListData[], listName: string, fullTMDBID: string) => {
+    const list: ListData = lists.find(l => l.listName === listName);
+    if (!list) return false;
 
-//     for (const list of lists) {
-//         const hasContent = list.contents.some(c => c.contentID === contentID);
-//         const shouldHave = wantedLists.has(list.listName);
+    return list.contents.some(c => c.tmdb_ID === fullTMDBID);
+};
 
-//         if (shouldHave && !hasContent) {
-//             addToLists.push(list.listName);
-//         } else if (!shouldHave && hasContent) {
-//             removeFromLists.push(list.listName);
-//         }
-//     }
+// Sorts the lists so just favorite tab is first. That's literally it. Used on the library page to keep the heart on the left
+export const sortLists = (lists: ListData[]) => {
+    return [...lists].sort((a, b) => {
+        if (a.listName === FAVORITE_TAB) return -1;
+        if (b.listName === FAVORITE_TAB) return 1;
+        return 0;
+    });
+};
 
-//     const user: User | null = await auth.currentUser;
-//     if (!user) return;
-//     const token = await user.getIdToken();
+export const findAndMoveTMDBItemToList = async (movie: Movie, listName: string, lists: ListData[], 
+                                setLists: React.Dispatch<React.SetStateAction<ListData[]>>,
+                                setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
+                                setMoveModalVisible: React.Dispatch<React.SetStateAction<boolean>>        
+) => {
+    const posterContent: PosterContent = await RapidAPIGetByTMDBID(movie.tmdbID, movie.mediaType, movie.verticalPoster, movie.horizontalPoster);
+    if (!posterContent) return;
+    const content: ContentData = convertPosterContentToContentData(posterContent);
+    await moveItemToList(content, listName, lists, setLists, setIsLoading, setMoveModalVisible);
+};
 
-//     return await updateListsForContent(token, contentID, addToLists, removeFromLists);
-
-// };
-
-// export const updateListsForContent = async (token: string, contentID: string, addToLists: string[], removeFromLists: string[]) : Promise<UserData | null> => {
-//     try {
-//         if (!token) return null;
-
-//         const url = DataAPIURL + `API/List/Update`;
-
-//         console.log(url);
-
-//         const body: ListsUpdateData = {
-//             ContentID: contentID,
-//             AddToLists: addToLists,
-//             RemoveFromLists: removeFromLists,
-//         };
-
-//         console.log(body);
-        
-//         const options = {
-//             method: 'POST',
-//             headers: {
-//                 accept: 'application/json',
-//                 'Content-Type': 'application/json',
-//                 Authorization: `Bearer ${token}`
-//             },
-//             body: JSON.stringify(body)
-//         };
-
-//         // const result = await fetch(url, options);
-
-//         // if (!result.ok) {
-//         //     const text = await result.text();
-//         //     console.error(`Error updating lists ${result.status}: ${text}`);
-//         //     return null;
-//         // }
-
-//         // const data: UserData = await result.json();
-        
-//         // return data;
-
-//     } catch (err) {
-//         console.error('Updating lists failed:', err);
-//     }
-// }
+export const moveItemToList = async (content: ContentData, listName: string, lists: ListData[], 
+                                setLists: React.Dispatch<React.SetStateAction<ListData[]>>,
+                                setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
+                                setMoveModalVisible: React.Dispatch<React.SetStateAction<boolean>>        
+) => {
+    // Only works for user owned lists for now
+    setIsLoading(true);
+    let list: ListData = lists.find(l => l.listName === listName);
+    if (!list) {
+        setIsLoading(false);
+        setMoveModalVisible(false);
+        return;
+    }
+    const user: User | null = auth.currentUser;
+    if (!user) {
+        setIsLoading(false);
+        setMoveModalVisible(false);
+        return;
+    }
+    const token = await user.getIdToken();
+    list = list.contents.some(c => c.contentID === content.contentID) ? 
+            await removeContentFromUserList(token, list.listName, content.contentID)
+            :
+            await addContentToUserList(token, list.listName, content);
+    if (list) {
+        const userData: UserData = useUserDataStore.getState().userData;
+        userData.listsOwned = userData.listsOwned.filter(l => l.listName !== list.listName);
+        userData.listsOwned.push(list);
+        setLists(sortLists([...userData.listsOwned, ...userData.listsSharedWithMe]));
+        setUserData(userData);
+    }
+    setIsLoading(false);
+    setMoveModalVisible(false);
+};
 
 export const addPosterContentToUserList = async (token: string | null, listName: string, posterContent: PosterContent) => {
     return await addContentToUserList(token, listName, convertPosterContentToContentData(posterContent));
@@ -183,5 +182,72 @@ export const createNewUserList = async (token: string | null, listName: string) 
         console.error('Creating new list failed:', err);
     }
 };
+
+// export const updateListsWithContent = async (lists: ListData[], wantedLists: Set<string>, contentID: string) : Promise<UserData | null> => {
+//     console.log(wantedLists);
+//     const addToLists: string[] = [];
+//     const removeFromLists: string[] = [];
+
+//     for (const list of lists) {
+//         const hasContent = list.contents.some(c => c.contentID === contentID);
+//         const shouldHave = wantedLists.has(list.listName);
+
+//         if (shouldHave && !hasContent) {
+//             addToLists.push(list.listName);
+//         } else if (!shouldHave && hasContent) {
+//             removeFromLists.push(list.listName);
+//         }
+//     }
+
+//     const user: User | null = await auth.currentUser;
+//     if (!user) return;
+//     const token = await user.getIdToken();
+
+//     return await updateListsForContent(token, contentID, addToLists, removeFromLists);
+
+// };
+
+// export const updateListsForContent = async (token: string, contentID: string, addToLists: string[], removeFromLists: string[]) : Promise<UserData | null> => {
+//     try {
+//         if (!token) return null;
+
+//         const url = DataAPIURL + `API/List/Update`;
+
+//         console.log(url);
+
+//         const body: ListsUpdateData = {
+//             ContentID: contentID,
+//             AddToLists: addToLists,
+//             RemoveFromLists: removeFromLists,
+//         };
+
+//         console.log(body);
+        
+//         const options = {
+//             method: 'POST',
+//             headers: {
+//                 accept: 'application/json',
+//                 'Content-Type': 'application/json',
+//                 Authorization: `Bearer ${token}`
+//             },
+//             body: JSON.stringify(body)
+//         };
+
+//         // const result = await fetch(url, options);
+
+//         // if (!result.ok) {
+//         //     const text = await result.text();
+//         //     console.error(`Error updating lists ${result.status}: ${text}`);
+//         //     return null;
+//         // }
+
+//         // const data: UserData = await result.json();
+        
+//         // return data;
+
+//     } catch (err) {
+//         console.error('Updating lists failed:', err);
+//     }
+// }
 
 export default {};

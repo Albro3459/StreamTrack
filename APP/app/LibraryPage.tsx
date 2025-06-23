@@ -21,11 +21,10 @@ import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { setUserData, useUserDataStore } from './stores/userDataStore';
 import { ContentData, ListData } from './types/dataTypes';
-import { addContentToUserList, createNewUserList, isItemInList, removeContentFromUserList } from './helpers/StreamTrack/listHelper';
+import { addContentToUserList, createNewUserList, FAVORITE_TAB, isItemInList, moveItemToList, removeContentFromUserList, sortLists } from './helpers/StreamTrack/listHelper';
 import { User } from 'firebase/auth';
 import { auth } from '@/firebaseConfig';
-
-const FAVORITE_TAB = "Favorites";
+import { MoveModal } from './components/moveModalComponent';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -37,14 +36,6 @@ export default function LibraryPage() {
 
     const { userData } = useUserDataStore();
 
-    const sortLists = (lists: ListData[]) => {
-        return [...lists].sort((a, b) => {
-            if (a.listName === FAVORITE_TAB) return -1;
-            if (b.listName === FAVORITE_TAB) return 1;
-            return 0;
-        });
-    };
-
     const [lists, setLists] = useState<ListData[] | null>(sortLists([...userData.listsOwned, ...userData.listsSharedWithMe]));
 
     const [activeTab, setActiveTab] = useState<string | null>(lists[0].listName);
@@ -53,58 +44,28 @@ export default function LibraryPage() {
     const [createNewListModal, setCreateNewListModal] = useState(false);
 
     const [isLoading, setIsLoading] = useState(true);
-    const [selectedContent, setSelectedContent] = useState<ContentData | null>(null);
+    const [selectedContentData, setSelectedContentData] = useState<ContentData | null>(null);
     const [moveModalVisible, setMoveModalVisible] = useState(false);
 
-  const handelCreateNewTab = async (listName: string) => {
-    if (listName.trim()) {
-        const user: User | null = auth.currentUser;
-        if (!user) {
-            setIsLoading(false);
-            setMoveModalVisible(false);
-            return;
-        }
-        const token = await user.getIdToken();
-        const newList: ListData = await createNewUserList(token, listName);
-        setNewListName("");
-        setCreateNewListModal(false);
-        setLists(prev => sortLists([...prev, newList]));
-        userData.listsOwned.push(newList);
-        setUserData(userData);
-        setActiveTab(listName);
-        pagerViewRef.current?.setPage(lists.map(l => l.listName).indexOf(listName));
-    }
-  };
-
-    const moveItemToTab = async (content: ContentData, listName: string, lists: ListData[]) => {
-        // Only works for user owned lists for now
-        setIsLoading(true);
-        let list: ListData = lists.find(l => l.listName === listName);
-        if (!list) {
-            setIsLoading(false);
-            setMoveModalVisible(false);
-            return;
-        }
-        const user: User | null = auth.currentUser;
-        if (!user) {
-            setIsLoading(false);
-            setMoveModalVisible(false);
-            return;
-        }
-        const token = await user.getIdToken();
-        list = list.contents.some(c => c.contentID === content.contentID) ? 
-                await removeContentFromUserList(token, list.listName, content.contentID)
-                :
-                await addContentToUserList(token, list.listName, content);
-        if (list) {
-            userData.listsOwned = userData.listsOwned.filter(l => l.listName !== list.listName);
-            userData.listsOwned.push(list);
-            setLists(sortLists([...userData.listsOwned, ...userData.listsSharedWithMe]));
+    const handelCreateNewTab = async (listName: string) => {
+        if (listName.trim()) {
+            const user: User | null = auth.currentUser;
+            if (!user) {
+                setIsLoading(false);
+                setMoveModalVisible(false);
+                return;
+            }
+            const token = await user.getIdToken();
+            const newList: ListData = await createNewUserList(token, listName);
+            setNewListName("");
+            setCreateNewListModal(false);
+            setLists(prev => sortLists([...prev, newList]));
+            userData.listsOwned.push(newList);
             setUserData(userData);
+            setActiveTab(listName);
+            pagerViewRef.current?.setPage(lists.map(l => l.listName).indexOf(listName));
         }
-        setIsLoading(false);
-        setMoveModalVisible(false);
-    }
+    };
 
     const handleTabPress = (listName: string) => {
         setActiveTab(listName);
@@ -124,7 +85,7 @@ export default function LibraryPage() {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
             <Text style={{ fontSize: 16, color: 'gray', textAlign: 'center' }}>
-                Your list is empty. Start adding items!
+                Your list is empty. Start adding content!
             </Text>
             </View>
         );
@@ -145,8 +106,8 @@ export default function LibraryPage() {
                     });
                 }}
                 onLongPress={() => {
-                setSelectedContent(content);
-                setMoveModalVisible(true);
+                    setSelectedContentData(content);
+                    setMoveModalVisible(true);
                 }}
             >
                 <Image
@@ -164,250 +125,267 @@ export default function LibraryPage() {
     };
 
     return (
-    <View style={{ flex: 1, backgroundColor: Colors.backgroundColor }}>
-      {/* Tab Bar */}
-      <View style={[styles.tabBar, {flexDirection: 'row'}, (lists && lists.length <= 4) && {paddingLeft: 24}]}>
-        <FlatList<string>
-          data={lists.map(l => l.listName)}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          nestedScrollEnabled
-          keyExtractor={(listName, index) => listName}
-          renderItem={({ item: listName }) => (
-            <TouchableOpacity
-              style={[styles.tabItem, activeTab === listName && styles.activeTabItem, {paddingHorizontal:8}, (lists && lists.length <= 4) && {paddingHorizontal: 12}]}
-              onPress={async () => handleTabPress(listName)}
-            >
-              { listName === FAVORITE_TAB ? (
-                <Heart 
-                  size={25}
-                  onPress={async () => handleTabPress(listName)}
+        <View style={{ flex: 1, backgroundColor: Colors.backgroundColor }}>
+            {/* Tab Bar */}
+            <View style={[styles.tabBar, {flexDirection: 'row'}, (lists && lists.length <= 4) && {paddingLeft: 24}]}>
+                <FlatList<string>
+                    data={lists.map(l => l.listName)}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    nestedScrollEnabled
+                    keyExtractor={(listName, index) => listName}
+                    renderItem={({ item: listName }) => (
+                        <TouchableOpacity
+                        style={[styles.tabItem, activeTab === listName && styles.activeTabItem, {paddingHorizontal:8}, (lists && lists.length <= 4) && {paddingHorizontal: 12}]}
+                        onPress={async () => handleTabPress(listName)}
+                        >
+                        { listName === FAVORITE_TAB ? (
+                            <Heart 
+                                size={25}
+                                onPress={async () => handleTabPress(listName)}
+                            />
+                        ) : (
+                            <Text
+                            style={[styles.tabText, activeTab === listName && styles.activeTabText]}
+                            >
+                            {listName}
+                            </Text>
+                        )}
+                        </TouchableOpacity>
+                    )}
                 />
-              ) : (
-                <Text
-                  style={[styles.tabText, activeTab === listName && styles.activeTabText]}
+                <Pressable onPress={() => setCreateNewListModal(true)} >
+                    <View style={{ paddingLeft: 10}}>
+                        <Ionicons name="add-circle-outline" size={35} color="white" />
+                    </View> 
+                </Pressable>
+            </View>
+                
+            {/* Create List Modal */}
+            <Modal
+                transparent={true}
+                visible={createNewListModal}
+                animationType="fade"
+                onRequestClose={() => setCreateNewListModal(false)}
+            >
+                <Pressable
+                    style={styles.modalOverlay}
+                    onPress={() => setCreateNewListModal(false)}
                 >
-                  {listName}
-                </Text>
-              )}
-            </TouchableOpacity>
-          )}
-        />
-        <Pressable onPress={() => setCreateNewListModal(true)} >
-          <View style={{ paddingLeft: 10}}>
-              <Ionicons name="add-circle-outline" size={35} color="white" />
-          </View> 
-        </Pressable>
-      </View>
-        
-      {/* Create List Modal */}
-      <Modal
-        transparent={true}
-        visible={createNewListModal}
-        animationType="fade"
-        onRequestClose={() => setCreateNewListModal(false)}
-      >
-        <Pressable
-          style={styles.modalOverlay}
-          onPress={() => setCreateNewListModal(false)}
-        >
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Add New List</Text>
-            <TextInput
-              style={styles.textInput}
-              placeholder="Enter list name"
-              value={newListName}
-              onChangeText={setNewListName}
-            />
-            <View style={styles.buttonRow}>
-              <Pressable
-                style={styles.cancelButton}
-                onPress={() => setCreateNewListModal(false)}
-              >
-                <Text style={styles.cancelButtonText}>Cancel</Text>
-              </Pressable>
-              <Pressable
-                style={styles.addButton}
-                onPress={async () => await handelCreateNewTab(newListName) }
-              >
-                <Text style={styles.addButtonText}>Add</Text>
-              </Pressable>
-            </View>
-          </View>
-        </Pressable>
-      </Modal>
-
-      {/* Pager View */}
-      <PagerView
-        style={{ flex: 1, marginTop: 20, marginBottom: 50 }}
-        initialPage={0}
-        key={lists.map(l => l.listName).join('-')}
-        ref={pagerViewRef}
-        onPageSelected={(e) => setActiveTab(lists[e.nativeEvent.position].listName)}
-      >
-        {lists.map((list) => (
-          <View key={list.listName}>{renderTabContent(list.contents, list.listName)}</View>
-        ))}
-      </PagerView>
-
-      {/* Move Modal */}
-      {selectedContent && (
-        <Modal
-          transparent={true}
-          visible={moveModalVisible}
-          animationType="fade"
-          onRequestClose={() => setMoveModalVisible(false)}
-        >
-          <Pressable
-            style={appStyles.modalOverlay}
-            onPress={() => setMoveModalVisible(false)}
-          >
-            <View style={appStyles.modalContent}>
-              <Text style={appStyles.modalTitle}>
-                Move "{selectedContent?.title}" to:
-              </Text>
-              {selectedContent && (
-                <>
-                  {/* Render all tabs except FAVORITE_TAB */}
-                  {lists
-                    .filter((list) => list.listName !== FAVORITE_TAB)
-                    .map((list, index) => (
-                      <TouchableOpacity
-                        key={`LandingPage-${selectedContent.contentID}-${list.listName}-${index}`}
-                        style={[
-                          appStyles.modalButton,
-                          isItemInList(lists, list.listName, selectedContent.contentID) && appStyles.selectedModalButton,
-                        ]}
-                        onPress={async () => await moveItemToTab(selectedContent, list.listName, lists)}
-                      >
-                        <Text style={appStyles.modalButtonText}>
-                          {list.listName} {isItemInList(lists, list.listName, selectedContent.contentID) ? "✓" : ""}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-
-                  {/* Render FAVORITE_TAB at the bottom */}
-                  {lists.find(l => l.listName === FAVORITE_TAB) && (
-                    <View
-                      key={`LandingPage-${selectedContent.contentID}-heart`}
-                      style={{ paddingTop: 10 }}
+                <View style={styles.modalContent}>
+                    <Text style={styles.modalTitle}>Add New List</Text>
+                    <TextInput
+                        style={styles.textInput}
+                        placeholder="Enter list name"
+                        value={newListName}
+                        onChangeText={setNewListName}
+                    />
+                    <View style={styles.buttonRow}>
+                    <Pressable
+                        style={styles.cancelButton}
+                        onPress={() => setCreateNewListModal(false)}
                     >
-                      <Heart
-                        heartColor={
-                          isItemInList(lists, FAVORITE_TAB, selectedContent.contentID) ? Colors.selectedHeartColor : Colors.unselectedHeartColor
-                        }
-                        size={35}
-                        onPress={async () => await moveItemToTab(selectedContent, FAVORITE_TAB, lists)}
-                      />
+                        <Text style={styles.cancelButtonText}>Cancel</Text>
+                    </Pressable>
+                    <Pressable
+                        style={styles.addButton}
+                        onPress={async () => await handelCreateNewTab(newListName) }
+                    >
+                        <Text style={styles.addButtonText}>Add</Text>
+                    </Pressable>
                     </View>
-                  )}
-                </>
-              )}
-            </View>
-          </Pressable>
-        </Modal>
-      )}
+                </View>
+                </Pressable>
+            </Modal>
 
-      {/* Overlay */}
-        {isLoading && (
-            <View style={appStyles.overlay}>
-                <ActivityIndicator size="large" color="#fff" />
-            </View>
-        )}
-    </View>
-  );
+            {/* Pager View */}
+            <PagerView
+                style={{ flex: 1, marginTop: 20, marginBottom: 50 }}
+                initialPage={0}
+                key={lists.map(l => l.listName).join('-')}
+                ref={pagerViewRef}
+                onPageSelected={(e) => setActiveTab(lists[e.nativeEvent.position].listName)}
+            >
+                {lists.map((list) => (
+                <View key={list.listName}>{renderTabContent(list.contents, list.listName)}</View>
+                ))}
+            </PagerView>
+
+            {/* Move Modal */}
+            {/* {selectedContent && (
+            <Modal
+                transparent={true}
+                visible={moveModalVisible}
+                animationType="fade"
+                onRequestClose={() => setMoveModalVisible(false)}
+            >
+                <Pressable
+                    style={appStyles.modalOverlay}
+                    onPress={() => setMoveModalVisible(false)}
+                >
+                    <View style={appStyles.modalContent}>
+                    <Text style={appStyles.modalTitle}>
+                        Move "{selectedContent?.title}" to:
+                    </Text>
+                    {selectedContent && (
+                        <>
+                        Render all tabs except FAVORITE_TAB
+                        {lists
+                            .filter((list) => list.listName !== FAVORITE_TAB)
+                            .map((list, index) => (
+                            <TouchableOpacity
+                                key={`LandingPage-${selectedContent.contentID}-${list.listName}-${index}`}
+                                style={[
+                                appStyles.modalButton,
+                                isItemInList(lists, list.listName, selectedContent.contentID) && appStyles.selectedModalButton,
+                                ]}
+                                onPress={async () => await moveItemToTab(selectedContent, list.listName, lists)}
+                            >
+                                <Text style={appStyles.modalButtonText}>
+                                {list.listName} {isItemInList(lists, list.listName, selectedContent.contentID) ? "✓" : ""}
+                                </Text>
+                            </TouchableOpacity>
+                            ))}
+
+                        Render FAVORITE_TAB at the bottom
+                        {lists.find(l => l.listName === FAVORITE_TAB) && (
+                            <View
+                            key={`LandingPage-${selectedContent.contentID}-heart`}
+                            style={{ paddingTop: 10 }}
+                            >
+                            <Heart
+                                heartColor={
+                                    isItemInList(lists, FAVORITE_TAB, selectedContent.contentID) ? Colors.selectedHeartColor : Colors.unselectedHeartColor
+                                }
+                                size={35}
+                                onPress={async () => await moveItemToTab(selectedContent, FAVORITE_TAB, lists)}
+                            />
+                            </View>
+                        )}
+                        </>
+                    )}
+                    </View>
+                </Pressable>
+            </Modal>
+            )} */}
+            <MoveModal
+                selectedItem={selectedContentData}
+                lists={lists}
+                showHeart={true}
+                visibility={moveModalVisible}
+                setVisibilityFunc={setMoveModalVisible}
+                setIsLoadingFunc={setIsLoading}
+                moveItemFunc={moveItemToList}
+                isItemInListFunc={isItemInList}
+                setListsFunc={setLists}
+            />
+
+            {/* Overlay */}
+            {isLoading && (
+                <View style={appStyles.overlay}>
+                    <ActivityIndicator size="large" color="#fff" />
+                </View>
+            )}
+        </View>
+    );
 };
 
 const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.backgroundColor,
-  },
-  loadingText: {
-    color: '#fff',
-    fontSize: 18,
-  },
-  tabBar: {
-    flexDirection: 'row',
-    backgroundColor: Colors.tabBarColor,
-    justifyContent: 'center',
-    alignItems: "center",
-    paddingVertical: 20,
-    paddingHorizontal: 15,
-  },
-  tabItem: {
-    minWidth: 10,
-    minHeight: 10,
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    borderRadius: 5,
-  },
-  activeTabItem: { backgroundColor: Colors.selectedTabColor },
-  tabText: { color: Colors.reviewTextColor, fontSize: 14 },
-  activeTabText: { color: 'white', fontWeight: 'bold' },
-  movieCard: { flex: 1, margin: 5, alignItems: 'center', paddingBottom: 10 },
-  movieImage: { aspectRatio: 11/16, minWidth: screenWidth/3.3, minHeight: screenWidth / 2.2,  borderRadius: 10 },
-  movieTitle: {
-    color: 'white',
-    textAlign: 'center',
-    fontSize: 14,
-    marginTop: 5,
-  },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: Colors.backgroundColor,
+    },
+    loadingText: {
+        color: '#fff',
+        fontSize: 18,
+    },
+    tabBar: {
+        flexDirection: 'row',
+        backgroundColor: Colors.tabBarColor,
+        justifyContent: 'center',
+        alignItems: "center",
+        paddingVertical: 10,
+        paddingHorizontal: 15,
+    },
+    tabItem: {
+        minWidth: 10,
+        minHeight: 10,
+        paddingVertical: 8,
+        paddingHorizontal: 15,
+        borderRadius: 5,
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    activeTabItem: { backgroundColor: Colors.selectedTabColor },
+    tabText: { 
+        color: Colors.reviewTextColor, 
+        fontSize: 14,
+        textAlign: "center",
+    },
+    activeTabText: { color: 'white', fontWeight: 'bold' },
+    movieCard: { flex: 1, margin: 5, alignItems: 'center', paddingBottom: 10 },
+    movieImage: { aspectRatio: 11/16, minWidth: screenWidth/3.3, minHeight: screenWidth / 2.2,  borderRadius: 10 },
+    movieTitle: {
+        color: 'white',
+        textAlign: 'center',
+        fontSize: 14,
+        marginTop: 5,
+    },
 
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    borderRadius: 8,
-    padding: 20,
-    width: '80%',
-    alignItems: 'center',
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    color: Colors.backgroundColor,
-  },
-  textInput: {
-    width: '100%',
-    borderWidth: 1,
-    backgroundColor: `${Colors.unselectedColor}CC`, // Add 'CC' for 80% opacity in HEX
-    borderColor: Colors.backgroundColor,
-    borderRadius: 5,
-    padding: 10,
-    marginBottom: 20,
-  },
-  buttonRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-  },
-  cancelButton: {
-    padding: 10,
-    backgroundColor: Colors.grayCell,
-    borderRadius: 5,
-    flex: 1,
-    marginRight: 10,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    color: Colors.backgroundColor,
-  },
-  addButton: {
-    padding: 10,
-    backgroundColor: Colors.buttonColor,
-    borderRadius: 5,
-    flex: 1,
-    alignItems: 'center',
-  },
-  addButtonText: {
-    color: 'white',
-  },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContent: {
+        backgroundColor: 'white',
+        borderRadius: 8,
+        padding: 20,
+        width: '80%',
+        alignItems: 'center',
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginBottom: 10,
+        color: Colors.backgroundColor,
+    },
+    textInput: {
+        width: '100%',
+        borderWidth: 1,
+        backgroundColor: `${Colors.unselectedColor}CC`, // Add 'CC' for 80% opacity in HEX
+        borderColor: Colors.backgroundColor,
+        borderRadius: 5,
+        padding: 10,
+        marginBottom: 20,
+    },
+    buttonRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+    },
+    cancelButton: {
+        padding: 10,
+        backgroundColor: Colors.grayCell,
+        borderRadius: 5,
+        flex: 1,
+        marginRight: 10,
+        alignItems: 'center',
+    },
+    cancelButtonText: {
+        color: Colors.backgroundColor,
+    },
+    addButton: {
+        padding: 10,
+        backgroundColor: Colors.buttonColor,
+        borderRadius: 5,
+        flex: 1,
+        alignItems: 'center',
+    },
+    addButtonText: {
+        color: 'white',
+    },
 });
