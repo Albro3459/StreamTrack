@@ -5,7 +5,13 @@ import { FAVORITE_TAB } from "../helpers/StreamTrack/listHelper";
 import { Colors } from "@/constants/Colors";
 import { ListData } from "../types/dataTypes";
 
+export enum MOVE_MODAL_DATA_ENUM {
+    TMDB,
+    CONTENT_DATA
+};
+
 interface MoveModalProps {
+    dataType: MOVE_MODAL_DATA_ENUM;
     selectedItem: any;
     lists: any[];
 
@@ -25,9 +31,11 @@ interface MoveModalProps {
     setListsFunc: React.Dispatch<React.SetStateAction<ListData[]>>;
 }
 
-export const MoveModal: React.FC<MoveModalProps> = ({ selectedItem, lists, showHeart, visibility, setVisibilityFunc, setIsLoadingFunc, moveItemFunc, isItemInListFunc, setListsFunc}) => {
+export const MoveModal: React.FC<MoveModalProps> = ({ dataType, selectedItem, lists, showHeart, visibility, setVisibilityFunc, setIsLoadingFunc, moveItemFunc, isItemInListFunc, setListsFunc}) => {
 
     if (!selectedItem) return null;
+
+    const id = dataType === MOVE_MODAL_DATA_ENUM.CONTENT_DATA ? selectedItem.contentID : selectedItem.fullTMDBID;
 
     return (
         <Modal
@@ -51,15 +59,15 @@ export const MoveModal: React.FC<MoveModalProps> = ({ selectedItem, lists, showH
                             .filter((list) => list.listName !== FAVORITE_TAB)
                             .map((list, index) => (
                             <TouchableOpacity
-                                key={`LandingPage-${selectedItem.contentID}-${list.listName}-${index}`}
+                                key={`LandingPage-${id}-${list.listName}-${index}`}
                                 style={[
                                     appStyles.modalButton,
-                                    isItemInListFunc(lists, list.listName, selectedItem.contentID) && appStyles.selectedModalButton,
+                                    isItemInListFunc(lists, list.listName, id) && appStyles.selectedModalButton,
                                 ]}
                                 onPress={async () => await moveItemFunc(selectedItem, list.listName, lists, setListsFunc, setIsLoadingFunc, setVisibilityFunc)}
                             >
                                 <Text style={appStyles.modalButtonText}>
-                                    {list.listName} {isItemInListFunc(lists, list.listName, selectedItem.contentID) ? "✓" : ""}
+                                    {list.listName} {isItemInListFunc(lists, list.listName, id) ? "✓" : ""}
                                 </Text>
                             </TouchableOpacity>
                             ))}
@@ -67,12 +75,12 @@ export const MoveModal: React.FC<MoveModalProps> = ({ selectedItem, lists, showH
                         {/* Render FAVORITE_TAB at the bottom */}
                         {showHeart && lists.find(l => l.listName === FAVORITE_TAB) && (
                             <View
-                            key={`LandingPage-${selectedItem.contentID}-heart`}
+                            key={`LandingPage-${id}-heart`}
                             style={{ paddingTop: 10 }}
                             >
                             <Heart
                                 heartColor={
-                                    isItemInListFunc(lists, FAVORITE_TAB, selectedItem.contentID) ? Colors.selectedHeartColor : Colors.unselectedHeartColor
+                                    isItemInListFunc(lists, FAVORITE_TAB, id) ? Colors.selectedHeartColor : Colors.unselectedHeartColor
                                 }
                                 size={35}
                                 onPress={async () => await moveItemFunc(selectedItem, FAVORITE_TAB, lists, setListsFunc, setIsLoadingFunc, setVisibilityFunc)}

@@ -24,7 +24,7 @@ import { ContentData, ListData } from './types/dataTypes';
 import { addContentToUserList, createNewUserList, FAVORITE_TAB, isItemInList, moveItemToList, removeContentFromUserList, sortLists } from './helpers/StreamTrack/listHelper';
 import { User } from 'firebase/auth';
 import { auth } from '@/firebaseConfig';
-import { MoveModal } from './components/moveModalComponent';
+import { MOVE_MODAL_DATA_ENUM, MoveModal } from './components/moveModalComponent';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -211,64 +211,8 @@ export default function LibraryPage() {
                 ))}
             </PagerView>
 
-            {/* Move Modal */}
-            {/* {selectedContent && (
-            <Modal
-                transparent={true}
-                visible={moveModalVisible}
-                animationType="fade"
-                onRequestClose={() => setMoveModalVisible(false)}
-            >
-                <Pressable
-                    style={appStyles.modalOverlay}
-                    onPress={() => setMoveModalVisible(false)}
-                >
-                    <View style={appStyles.modalContent}>
-                    <Text style={appStyles.modalTitle}>
-                        Move "{selectedContent?.title}" to:
-                    </Text>
-                    {selectedContent && (
-                        <>
-                        Render all tabs except FAVORITE_TAB
-                        {lists
-                            .filter((list) => list.listName !== FAVORITE_TAB)
-                            .map((list, index) => (
-                            <TouchableOpacity
-                                key={`LandingPage-${selectedContent.contentID}-${list.listName}-${index}`}
-                                style={[
-                                appStyles.modalButton,
-                                isItemInList(lists, list.listName, selectedContent.contentID) && appStyles.selectedModalButton,
-                                ]}
-                                onPress={async () => await moveItemToTab(selectedContent, list.listName, lists)}
-                            >
-                                <Text style={appStyles.modalButtonText}>
-                                {list.listName} {isItemInList(lists, list.listName, selectedContent.contentID) ? "✓" : ""}
-                                </Text>
-                            </TouchableOpacity>
-                            ))}
-
-                        Render FAVORITE_TAB at the bottom
-                        {lists.find(l => l.listName === FAVORITE_TAB) && (
-                            <View
-                            key={`LandingPage-${selectedContent.contentID}-heart`}
-                            style={{ paddingTop: 10 }}
-                            >
-                            <Heart
-                                heartColor={
-                                    isItemInList(lists, FAVORITE_TAB, selectedContent.contentID) ? Colors.selectedHeartColor : Colors.unselectedHeartColor
-                                }
-                                size={35}
-                                onPress={async () => await moveItemToTab(selectedContent, FAVORITE_TAB, lists)}
-                            />
-                            </View>
-                        )}
-                        </>
-                    )}
-                    </View>
-                </Pressable>
-            </Modal>
-            )} */}
             <MoveModal
+                dataType={MOVE_MODAL_DATA_ENUM.CONTENT_DATA}
                 selectedItem={selectedContentData}
                 lists={lists}
                 showHeart={true}

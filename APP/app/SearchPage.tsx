@@ -1,6 +1,6 @@
 import { Colors } from '@/constants/Colors';
 import React, { useRef, useState } from 'react';
-import { View, Text, TextInput, FlatList, Image, StyleSheet, Pressable, TouchableOpacity, KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard, Dimensions, ScrollView, Alert, Modal, ActivityIndicator } from 'react-native';
+import { View, Text, TextInput, FlatList, Image, StyleSheet, Pressable, Keyboard, Dimensions, ActivityIndicator } from 'react-native';
 import Heart from './components/heartComponent';
 import { router } from 'expo-router';
 import { appStyles } from '@/styles/appStyles';
@@ -10,6 +10,7 @@ import { TMDB_Content, TMDB, MEDIA_TYPE } from './types/tmdbType';
 import { useUserDataStore } from './stores/userDataStore';
 import { ListData } from './types/dataTypes';
 import { FAVORITE_TAB, findAndMoveTMDBItemToList, isTMDBItemInList } from './helpers/StreamTrack/listHelper';
+import { MOVE_MODAL_DATA_ENUM, MoveModal } from './components/moveModalComponent';
 
 export type Movie = {
     fullTMDBID: string;
@@ -38,9 +39,6 @@ export default function SearchPage() {
     const [searchText, setSearchText] = useState('');
 
     const [moveModalVisible, setMoveModalVisible] = useState(false);
-
-
-    // const [heartColors, setHeartColors] = useState<{ [key: string]: string }>();
 
     const [lists, setLists] = useState<ListData[] | null>([...userData.listsOwned, ...userData.listsSharedWithMe]);
 
@@ -139,61 +137,18 @@ export default function SearchPage() {
                 />
                 )}
 
-                {/* Move Modal */}
-                {selectedMovie && (
-                    <Modal
-                        transparent={true}
-                        visible={moveModalVisible}
-                        animationType="fade"
-                        onRequestClose={() => setMoveModalVisible(false)}
-                    >
-                        <Pressable
-                            style={appStyles.modalOverlay}
-                            onPress={() => setMoveModalVisible(false)}
-                        >
-                            <View style={appStyles.modalContent}>
-                            <Text style={appStyles.modalTitle}>
-                                Move to:
-                            </Text>
-                            {selectedMovie && (
-                                <>
-                                {/* Render all tabs except FAVORITE_TAB */}
-                                {lists
-                                    .filter((list) => list.listName !== FAVORITE_TAB)
-                                    .map((list, index) => (
-                                    <TouchableOpacity
-                                        key={`LandingPage-${selectedMovie.tmdbID}-${list}-${index}`}
-                                        style={[
-                                            appStyles.modalButton,
-                                            isTMDBItemInList(lists, list.listName, selectedMovie.fullTMDBID) && appStyles.selectedModalButton,
-                                        ]}
-                                        onPress={async () => await findAndMoveTMDBItemToList(selectedMovie, list.listName, lists, setLists, setIsSearching, setMoveModalVisible)}
-                                    >
-                                        <Text style={appStyles.modalButtonText}>
-                                            {list.listName} {isTMDBItemInList(lists, list.listName, selectedMovie.fullTMDBID) ? "✓" : ""}
-                                        </Text>
-                                    </TouchableOpacity>
-                                    ))}
-
-                                {/* Render FAVORITE_TAB at the bottom */}
-                                {lists.find(l => l.listName === FAVORITE_TAB) && (
-                                <View
-                                    key={`LandingPage-${selectedMovie.tmdbID}-heart`}
-                                    style={{ paddingTop: 10 }}
-                                    >
-                                    <Heart
-                                        heartColor={isTMDBItemInList(lists, FAVORITE_TAB, selectedMovie.fullTMDBID) ? Colors.selectedHeartColor : Colors.unselectedHeartColor}
-                                        size={35}
-                                        onPress={async () => await findAndMoveTMDBItemToList(selectedMovie, FAVORITE_TAB, lists, setLists, setIsSearching, setMoveModalVisible)}
-                                    />
-                                </View>
-                                )}
-                                </>
-                            )}
-                            </View>
-                        </Pressable>
-                    </Modal>
-                )}
+                <MoveModal
+                    dataType={MOVE_MODAL_DATA_ENUM.TMDB}
+                    selectedItem={selectedMovie}
+                    lists={lists}
+                    showHeart={true}
+                    visibility={moveModalVisible}
+                    setVisibilityFunc={setMoveModalVisible}
+                    setIsLoadingFunc={setIsSearching}
+                    moveItemFunc={findAndMoveTMDBItemToList}
+                    isItemInListFunc={isTMDBItemInList}
+                    setListsFunc={setLists}
+                />
 
                 {/* Loading Overlay */}
                 {isSearching && (

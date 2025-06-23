@@ -12,7 +12,14 @@ interface HeartTypes {
 const Heart: React.FC<HeartTypes> = ({heartColor = Colors.selectedHeartColor, size = 40, onPress = () => {}}) => {
     return (
         <Pressable 
-            onPress={onPress} 
+            onPress={onPress}
+            style={{
+                    shadowColor: "#606060",
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 4,
+                    elevation: 8, // Android shadow
+                }}
         >
             <Icon 
                 name="heart" 
