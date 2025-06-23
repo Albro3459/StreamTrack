@@ -12,6 +12,8 @@ import { MEDIA_TYPE } from './types/tmdbType';
 import { RapidAPIGetByTMDBID } from './helpers/contentAPIHelper';
 import { ContentData, ListData, StreamingOptionData, StreamingServiceData } from './types/dataTypes';
 import { useUserDataStore } from './stores/userDataStore';
+import { FAVORITE_TAB, isItemInList, moveItemToList } from './helpers/StreamTrack/listHelper';
+import { MOVE_MODAL_DATA_ENUM, MoveModal } from './components/moveModalComponent';
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -27,35 +29,25 @@ interface InfoPageParams {
   contentID?: string;
 }
 
-// Prevent splash screen from hiding until everything is loaded
-// SplashScreen.preventAutoHideAsync();
-
 export default function InfoPage() {
-//   const pathname = usePathname();
 
-  const { id, media_type, vertical, horizontal, listName, contentID } = useLocalSearchParams() as InfoPageParams;
+    const { id, media_type, vertical, horizontal, listName, contentID } = useLocalSearchParams() as InfoPageParams;
 
-  const { userData } = useUserDataStore();
+    const { userData } = useUserDataStore();
 
-  const [content, setContent] = useState<ContentData | null>();
+    const [lists, setLists] = useState<ListData[] | null>([...userData.listsOwned, ...userData.listsSharedWithMe]);
 
-  const [isLoading, setIsLoading] = useState(true);
-  
-  const [addToListModal, setAddToListModal] = useState(false);
+    const [content, setContent] = useState<ContentData | null>();
 
-  const [heartColors, setHeartColors] = useState<{[key: string]: string}>();
+    const [isLoading, setIsLoading] = useState(true);
+    
+    const [listModalVisible, setListModalVisible] = useState(false);
 
-  const [activeTab, setActiveTab] = useState<string>('About');
-
-   // Reviews
-   const [reviews, setReviews] = useState([]);
-   const [newReviewText, setNewReviewText] = useState('');
-   const [newReviewRating, setNewReviewRating] = useState(0);
-   const [addReviewModal, setAddReviewModal] = useState(false);
+    const [activeTab, setActiveTab] = useState<string>('About');
  
 //    const [recommendedContent, setRecommendedContent] = useState<PosterContent[]>([]);
 //    const [selectedRecommendation, setSelectedRecommendation] = useState<PosterContent | null>(null);
-   const [infoModalVisible, setInfoModalVisible] = useState(false);
+    const [infoModalVisible, setInfoModalVisible] = useState(false);
 
     const getServicePrice = (option: StreamingOptionData) : string => {
         if (option && option.streamingService && option.price) {
@@ -67,121 +59,41 @@ export default function InfoPage() {
         return "0";
     };
 
-  const toHoursAndMinutes = (runtime: number) => {
-    if (!runtime) { return "N/A" }
-    const hours = Math.floor(runtime / 60);
-    const minutes = runtime % 60;
-    return `${hours}h ${minutes}m`;
-  };
+    const toHoursAndMinutes = (runtime: number) => {
+        if (!runtime) { return "N/A" }
+        const hours = Math.floor(runtime / 60);
+        const minutes = runtime % 60;
+        return `${hours}h ${minutes}m`;
+    };
 
-  useEffect(() => {
-    const fetchContent = async () => {
-        if (!listName || !contentID) {
-            const contentData: ContentData = await RapidAPIGetByTMDBID(id ?? "", media_type ?? MEDIA_TYPE.MOVIE, vertical ?? "", horizontal ?? "");
-            setContent(contentData);
-            setIsLoading(false);
-        } else {
-            const lists: ListData[] = [...userData.listsOwned, ...userData.listsSharedWithMe];
-            const content: ContentData = lists.find(l => l.listName === listName).contents.find(c => c.contentID === contentID);
-            setContent(content);
-            setIsLoading(false);
+    const getRuntime = (content: ContentData): string => {
+        return (!content ? 
+                    (media_type === MEDIA_TYPE.MOVIE ? "0h 0m" : "Seasons: 5  |  Episodes: 10") 
+                    : (
+                        content.showType === 'movie' ? (
+                        content.runtime ? toHoursAndMinutes(content.runtime) : ""
+                    ) : (
+                        content.seasonCount && content.episodeCount ? `Seasons: ${content.seasonCount}  |  Episodes: ${content.episodeCount}` : ""
+                )));
+    };
+
+    useEffect(() => {
+        const fetchContent = async () => {
+            if (!listName || !contentID) {
+                const contentData: ContentData = await RapidAPIGetByTMDBID(id ?? "", media_type ?? MEDIA_TYPE.MOVIE, vertical ?? "", horizontal ?? "");
+                setContent(contentData);
+                setIsLoading(false);
+            } else {
+                const lists: ListData[] = [...userData.listsOwned, ...userData.listsSharedWithMe];
+                const content: ContentData = lists.find(l => l.listName === listName).contents.find(c => c.contentID === contentID);
+                setContent(content);
+                setIsLoading(false);
+            }
+            
         }
-        
-    }
 
-    fetchContent();
-  }, [id, media_type, vertical, horizontal]);
-
-//   useEffect(() => {
-//     const getContentObject = async () => {
-//       try {
-//         if (pathname === "/InfoPage" && contentID) {
-//           setActiveTab('About');
-//           const getContent = await getContentById(contentID);
-//           if (getContent) {
-//             // console.log(`Getting content for ${getContent.title}`);
-//             const posters = await getPostersFromContent(getContent);
-//             const updatedContent: PosterContent = { ...getContent, posters };
-//             setContent(updatedContent);
-
-//             try {
-//               const savedTabs = await AsyncStorage.getItem(STORAGE_KEY);
-//               if (savedTabs) {
-//                 const parsedTabs: WatchList = savedTabs
-//                             ? sortTabs({ ...DEFAULT_TABS, ...JSON.parse(savedTabs) }) // Ensure tabs are sorted
-//                             : DEFAULT_TABS;
-//                 setLists(parsedTabs);
-//                 const savedHeartColors = Object.values(parsedTabs).flat().reduce<{ [key: string]: string }>((acc) => {
-//                   acc[getContent.id] = parsedTabs.Favorite.some((fav) => fav.id === getContent.id)
-//                     ? Colors.selectedHeartColor
-//                     : Colors.unselectedHeartColor;
-//                   return acc;
-//                 }, {});
-//                 setHeartColors(savedHeartColors);
-//               }
-//             } catch (error) {
-//               console.error("Error loading library content:", error);
-//             }
-
-//             const randomContent = await getRandomContent(5);
-//             if (randomContent) {
-//               setRecommendedContent(randomContent);
-//             }
-
-//             // Load and filter reviews for the current content
-//             const storedReviews = await AsyncStorage.getItem(REVIEW_STORAGE_KEY);
-//             if (storedReviews) {
-//               const parsedReviews = JSON.parse(storedReviews);
-//               const filteredReviews = parsedReviews.filter((review) => review.contentID === contentID);
-//               setReviews(filteredReviews);
-//             }
-//           } else {
-//             console.log(`Content not found for ID: ${contentID}`);
-//           }
-//         }
-//       } catch (error) {
-//         console.error("Error fetching content:", error);
-//       } finally {
-//         setIsLoading(false);
-//         await SplashScreen.hideAsync();
-//       }
-//     };
-
-//     getContentObject();
-//   }, [contentID]);
-
-//   const handleAddReview = async () => {
-//     if (!newReviewText || newReviewRating <= 0) {
-//       Alert.alert('Error', 'Please provide a review text and a rating.');
-//       return;
-//     }
-
-//     const newReview = {
-//       id: `${Date.now()}`,
-//     //   user: `@${Global.username || "currentuser"}`,
-//       text: newReviewText.trim(),
-//       rating: newReviewRating,
-//       avatar: 'https://via.placeholder.com/50',
-//       contentID,
-//     };
-
-//     const updatedReviews = [...reviews, newReview];
-//     setReviews(updatedReviews);
-
-//     try {
-//       const storedReviews = await AsyncStorage.getItem(REVIEW_STORAGE_KEY);
-//       const allReviews = storedReviews ? JSON.parse(storedReviews) : [];
-//       const updatedAllReviews = [...allReviews, newReview];
-//       await AsyncStorage.setItem(REVIEW_STORAGE_KEY, JSON.stringify(updatedAllReviews));
-//       Alert.alert('Success', 'Your review has been added!');
-//     } catch (error) {
-//       console.error('Error saving review:', error);
-//     }
-
-//     setNewReviewText('');
-//     setNewReviewRating(0);
-//     setAddReviewModal(false);
-//   };
+        fetchContent();
+    }, [id, media_type, vertical, horizontal]);
 
     const renderTabContent = () => {
         switch (activeTab) {
@@ -211,15 +123,7 @@ export default function InfoPage() {
                     `${content.showType.charAt(0).toUpperCase() + content.showType.slice(1).toLowerCase()}`
                     )}</Text>
                 <Text style={[styles.text, {fontSize: 18, paddingLeft: 15, paddingTop: 10, textAlign: 'left', textAlignVertical: "center"}]}>
-                    {!content ? (
-                        media_type === MEDIA_TYPE.MOVIE ? "0h 0m" : "Seasons: 5  |  Episodes: 10") :
-                    (
-                        content.showType === 'movie' ? (
-                        content.runtime ? toHoursAndMinutes(content.runtime) : ""
-                        ) : (
-                        content.seasonCount && content.episodeCount ? `Seasons: ${content.seasonCount}  |  Episodes: ${content.episodeCount}` : ""
-                        )
-                    )}
+                    {getRuntime(content)}
                 </Text>
                 </View>
 
@@ -294,99 +198,6 @@ export default function InfoPage() {
                 </Text>
             </View>
             );
-        // case 'Reviews':
-        //     return (
-        //         <View style={styles.content}>
-        //         <Text style={[styles.sectionTitle, { paddingBottom: 10 }]}>Reviews</Text>
-        //         {reviews.length === 0 ? (
-        //             <Text style={styles.text}>No reviews yet. Be the first to add one!</Text>
-        //         ) : (
-        //             <FlatList
-        //             showsVerticalScrollIndicator={false}
-        //             scrollEnabled={false}
-        //             data={reviews}
-        //             keyExtractor={(item) => item.id}
-        //             renderItem={({ item }) => (
-        //                 <View style={appStyles.reviewCard}>
-        //                 <Image source={{ uri: item.avatar }} style={appStyles.avatar} />
-        //                 <View style={appStyles.reviewTextContainer}>
-        //                     <Text style={appStyles.reviewUser}>{item.user}</Text>
-        //                     <Text style={appStyles.reviewText}>{item.text}</Text>
-        //                     <View style={appStyles.ratingContainer}>
-        //                     {/* {Array.from({ length: 5 }).map((_, index) => (
-        //                         <MaterialIcons
-        //                         key={index}
-        //                         name={index < item.rating ? 'star' : 'star-border'}
-        //                         size={16}
-        //                         color="#FFD700"
-        //                         />
-        //                     ))} */}
-        //                     {Array.from({ length: 5 }).map((_, index) => {
-        //                         const isFullStar = index < Math.floor(item.rating); // Full star if index is less than integer part of rating
-        //                         const isHalfStar = index >= Math.floor(item.rating) && index < item.rating; // Half star if index is fractional
-
-        //                         return (
-        //                         <MaterialIcons
-        //                             key={index}
-        //                             name={isFullStar ? 'star' : isHalfStar ? 'star-half' : 'star-border'}
-        //                             size={16}
-        //                             color="#FFD700"
-        //                         />
-        //                         );
-        //                     })}
-        //                     </View>
-        //                 </View>
-        //                 </View>
-        //             )}
-        //             />
-        //         )}
-        //         <Button title="Add Review" onPress={() => setAddReviewModal(true)} />
-    
-        //         <Modal
-        //             transparent
-        //             visible={addReviewModal}
-        //             animationType="fade"
-        //             onRequestClose={() => setAddReviewModal(false)}
-        //         >
-        //             <View style={styles.modalOverlay}>
-        //             <View style={styles.modalContent}>
-        //                 <Text style={styles.modalTitle}>Add a Review</Text>
-        //                 <TextInput
-        //                 multiline={true}
-        //                 style={styles.textInput}
-        //                 placeholder="Write your review..."
-        //                 placeholderTextColor="#aaa"
-        //                 value={newReviewText}
-        //                 onChangeText={setNewReviewText}
-        //                 />
-        //                 <Text style={styles.ratingLabel}>Rating:</Text>
-        //                 <View style={styles.ratingInput}>
-        //                 {/* {Array.from({ length: 5 }).map((_, index) => (
-        //                     <Text
-        //                     key={index}
-        //                     style={[
-        //                         styles.ratingStar,
-        //                         { color: index < newReviewRating ? '#FFD700' : '#aaa' },
-        //                     ]}
-        //                     onPress={() => setNewReviewRating(index + 1)}
-        //                     >
-        //                     ★
-        //                     </Text>
-        //                 ))} */}
-        //                 <StarRating
-        //                     rating={newReviewRating}
-        //                     onChange={setNewReviewRating}
-        //                 />
-        //                 </View>
-        //                 <View style={styles.modalButtons}>
-        //                 <Button title="Cancel" onPress={() => setAddReviewModal(false)} />
-        //                 {/* <Button title="Submit" onPress={handleAddReview} /> */}
-        //                 </View>
-        //             </View>
-        //             </View>
-        //         </Modal>
-        //         </View>
-        //     );
         case 'Recommended':
             return (
             <View style={styles.content}>
@@ -422,191 +233,136 @@ export default function InfoPage() {
         }
     };
 
-  //  // Render function for auto generated reviews
-  //  const renderReview = ({ item }: {item: Review}) => {
-
-  //   return (
-  //     <View style={appStyles.reviewCard}>
-  //       <Image source={{ uri: item.avatar }} style={appStyles.avatar} />
-  //       <View style={appStyles.reviewTextContainer}>
-  //         <Text style={appStyles.reviewUser}>{item.user}</Text>
-  //         <Text style={appStyles.reviewText}>{item.text}</Text>
-  //         <Text style={appStyles.reviewMovie}>
-  //           Movie: {item.contentTitle.length > 0 ? item.contentTitle : "Unknown"}
-  //         </Text>
-  //         <View style={appStyles.ratingContainer}>
-  //           {Array.from({ length: 5 }).map((_, index) => (
-  //             <MaterialIcons
-  //               key={index}
-  //               name={index < item.rating ? "star" : "star-border"}
-  //               size={16}
-  //               color="#FFD700"
-  //             />
-  //           ))}
-  //         </View>
-  //       </View>
-  //     </View>
-  //   );
-  // };
-  
-//   if (isLoading) {
-//     return null; // Prevent rendering until loaded
-//   }
-
-  return (
-    <View style={styles.screen} >
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.movieContainer}>
-          {/* Movie Poster */}
-          <Image source={{ uri: content && content.verticalPoster }} style={styles.posterImage} />
-          {/* Movie Info */}
-          <View style={styles.infoSection}>
-            <Text style={styles.title}>{content && content.title}</Text>
-            <View style={styles.attributeContainer} >
-                {/* <StarRating
-                    rating={rating}
-                    onChange={setRating}
-                /> */}
-                <Text style={[styles.text, {fontSize: 18, margin: 0, textAlignVertical: "center"}]}>
-                    {(content ? content.releaseYear : "1999") + "    " +(!content ? (media_type === MEDIA_TYPE.MOVIE ? "0h 0m" : "Seasons: 5  |  Episodes: 10") 
-                    : (
-                        content.showType === 'movie' ? (
-                        content.runtime ? toHoursAndMinutes(content.runtime) : ""
-                        ) : (
-                        content.seasonCount && content.episodeCount ? `Seasons: ${content.seasonCount}  |  Episodes: ${content.episodeCount}` : ""
-                        )
-                    ))}
-                </Text>
-            </View>
-            <View style={styles.attributeContainer} >
-              <TouchableOpacity
-                style={styles.button}
-                onPress={() => setAddToListModal(true)}
-              >
-                <Text style={styles.buttonText}>Add to List</Text>
-              </TouchableOpacity>
-
-              <Modal
-                transparent={true}
-                visible={addToListModal}
-                animationType="fade"
-                onRequestClose={() => setAddToListModal(false)}
-              >
-                {/* so that the modal will close when u tap outside */}
-                <Pressable
-                  style={styles.modalOverlay}
-                  onPress={() => setAddToListModal(false)}
+    return (
+        <View style={styles.screen} >
+        <ScrollView showsVerticalScrollIndicator={false}>
+            <View style={styles.movieContainer}>
+            {/* Movie Poster */}
+            <Image source={{ uri: content && content.verticalPoster }} style={styles.posterImage} />
+            {/* Movie Info */}
+            <View style={styles.infoSection}>
+                <Text style={styles.title}>{content && content.title}</Text>
+                <View style={styles.attributeContainer}>
+                    <Text style={[styles.text, {fontSize: 18, margin: 0, textAlignVertical: "center"}]}>
+                        {(content ? content.releaseYear : "1999") + "    " + getRuntime(content)}
+                    </Text>
+                </View>
+                <View style={styles.attributeContainer} >
+                <TouchableOpacity
+                    style={styles.button}
+                    onPress={() => setListModalVisible(true)}
                 >
-                  <View style={styles.modalContent}>
-                    {/* {Object.keys(lists).filter((list) => list !== FAVORITE_TAB).map((list, index) => (
-                      <Pressable 
-                        key={index}
-                        style={[styles.optionPressable, isItemInList(content, list, lists) && styles.selectedOptionPressable]} 
-                        onPress={async () => await moveItemToTab(content, list, setLists, setPosterLists, [setAddToListModal], null)}
-                      >
-                        <Text style={styles.optionText}>
-                          {list} {isItemInList(content, list, lists) ? "✓" : ""}
-                        </Text>
-                      </Pressable>
-                    ))} */}
-                  </View>
-                </Pressable>
-              </Modal>
-              <Heart 
-                  heartColor={(heartColors && heartColors[content.contentID]) || Colors.unselectedHeartColor}
-                  size={45}
-                //   onPress={async () => await moveItemToTab(content, FAVORITE_TAB, setLists, setPosterLists, [setAddToListModal], setHeartColors)}
-              />
-            </View>
-          </View>
-        </View>
+                    <Text style={styles.buttonText}>Add to List</Text>
+                </TouchableOpacity>
 
-        <View style={styles.tabContainer}>
-          {['About', 'Reviews', 'Recommended'].map((tab) => (
-            <TouchableOpacity
-              key={tab}
-              style={[
-                styles.tab,
-                activeTab === tab && styles.activeTab,
-              ]}
-              onPress={() => setActiveTab(tab)}
+                {/* Lists */}
+                <MoveModal
+                    dataType={MOVE_MODAL_DATA_ENUM.CONTENT_DATA}
+                    selectedItem={content}
+                    lists={lists}
+                    showHeart={false}
+                    visibility={listModalVisible}
+                    setVisibilityFunc={setListModalVisible}
+                    setIsLoadingFunc={setIsLoading}
+                    moveItemFunc={moveItemToList}
+                    isItemInListFunc={isItemInList}
+                    setListsFunc={setLists}
+                />
+                <Heart 
+                    heartColor={isItemInList(lists, FAVORITE_TAB, contentID) ? Colors.selectedHeartColor : Colors.unselectedHeartColor}
+                    size={45}
+                    onPress={async () => await moveItemToList(content, FAVORITE_TAB, lists, setLists, setIsLoading, setListModalVisible)}
+                />
+                </View>
+            </View>
+            </View>
+
+            <View style={styles.tabContainer}>
+            {['About', 'Recommended'].map((tab) => (
+                <TouchableOpacity
+                key={tab}
+                style={[
+                    styles.tab,
+                    activeTab === tab && styles.activeTab,
+                ]}
+                onPress={() => setActiveTab(tab)}
+                >
+                <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
+                    {tab}
+                </Text>
+                </TouchableOpacity>
+            ))}
+            </View>
+
+            {renderTabContent()}
+        </ScrollView>
+
+        {/* Move Modal */}
+        {/* {selectedRecommendation && (
+            <Modal
+            transparent={true}
+            visible={infoModalVisible}
+            animationType="fade"
+            onRequestClose={() => setInfoModalVisible(false)}
             >
-              <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
-                {tab}
-              </Text>
-            </TouchableOpacity>
-          ))}
+            <Pressable
+                style={appStyles.modalOverlay}
+                onPress={() => setInfoModalVisible(false)}
+            >
+                <View style={appStyles.modalContent}>
+                <Text style={appStyles.modalTitle}>
+                    Move "{selectedRecommendation?.title}" to:
+                </Text>
+                {selectedRecommendation && (
+                    <>
+                    Render all tabs except FAVORITE_TAB
+                    {Object.keys(lists)
+                        .filter((tab) => tab !== FAVORITE_TAB)
+                        .map((tab, index) => (
+                        <TouchableOpacity
+                            key={`LandingPage-${selectedRecommendation.id}-${tab}-${index}`}
+                            style={[
+                            appStyles.modalButton,
+                            isItemInList(selectedRecommendation, tab, lists) && appStyles.selectedModalButton,
+                            ]}
+                            onPress={async () => await moveItemToTab(selectedRecommendation, tab, setLists, setPosterLists, [setInfoModalVisible], null)}
+                        >
+                            <Text style={appStyles.modalButtonText}>
+                            {tab} {isItemInList(selectedRecommendation, tab, lists) ? "✓" : ""}
+                            </Text>
+                        </TouchableOpacity>
+                        ))}
+
+                    Render FAVORITE_TAB at the bottom
+                    {lists[FAVORITE_TAB] && (
+                        <View
+                        key={`LandingPage-${selectedRecommendation.id}-heart`}
+                        style={{ paddingTop: 10 }}
+                        >
+                        <Heart
+                            heartColor={
+                            heartColors[selectedRecommendation?.id] || Colors.unselectedHeartColor
+                            }
+                            size={35}
+                            onPress={async () => await moveItemToTab(selectedRecommendation, FAVORITE_TAB, setLists, setPosterLists, [setInfoModalVisible], setHeartColors)}
+                        />
+                        </View>
+                    )}
+                    </>
+                )}
+                </View>
+            </Pressable>
+            </Modal>
+        )} */}
+
+            {/* Overlay */}
+            {isLoading && (
+                <View style={appStyles.overlay}>
+                    <ActivityIndicator size="large" color="#fff" />
+                </View>
+            )}
         </View>
-
-        {renderTabContent()}
-      </ScrollView>
-
-      {/* Move Modal */}
-      {/* {selectedRecommendation && (
-        <Modal
-          transparent={true}
-          visible={infoModalVisible}
-          animationType="fade"
-          onRequestClose={() => setInfoModalVisible(false)}
-        >
-          <Pressable
-            style={appStyles.modalOverlay}
-            onPress={() => setInfoModalVisible(false)}
-          >
-            <View style={appStyles.modalContent}>
-              <Text style={appStyles.modalTitle}>
-                Move "{selectedRecommendation?.title}" to:
-              </Text>
-              {selectedRecommendation && (
-                <>
-                  Render all tabs except FAVORITE_TAB
-                  {Object.keys(lists)
-                    .filter((tab) => tab !== FAVORITE_TAB)
-                    .map((tab, index) => (
-                      <TouchableOpacity
-                        key={`LandingPage-${selectedRecommendation.id}-${tab}-${index}`}
-                        style={[
-                          appStyles.modalButton,
-                          isItemInList(selectedRecommendation, tab, lists) && appStyles.selectedModalButton,
-                        ]}
-                        onPress={async () => await moveItemToTab(selectedRecommendation, tab, setLists, setPosterLists, [setInfoModalVisible], null)}
-                      >
-                        <Text style={appStyles.modalButtonText}>
-                          {tab} {isItemInList(selectedRecommendation, tab, lists) ? "✓" : ""}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-
-                  Render FAVORITE_TAB at the bottom
-                  {lists[FAVORITE_TAB] && (
-                    <View
-                      key={`LandingPage-${selectedRecommendation.id}-heart`}
-                      style={{ paddingTop: 10 }}
-                    >
-                      <Heart
-                        heartColor={
-                          heartColors[selectedRecommendation?.id] || Colors.unselectedHeartColor
-                        }
-                        size={35}
-                        onPress={async () => await moveItemToTab(selectedRecommendation, FAVORITE_TAB, setLists, setPosterLists, [setInfoModalVisible], setHeartColors)}
-                      />
-                    </View>
-                  )}
-                </>
-              )}
-            </View>
-          </Pressable>
-        </Modal>
-      )} */}
-
-        {/* Overlay */}
-        {isLoading && (
-            <View style={appStyles.overlay}>
-                <ActivityIndicator size="large" color="#fff" />
-            </View>
-        )}
-    </View>
-  );
+    );
 }
 
 const styles = StyleSheet.create({

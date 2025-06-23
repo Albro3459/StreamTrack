@@ -49,22 +49,28 @@ export default function SearchPage() {
     const search = async (searchText: string) => {
         setShowNoResults(true);
         if (searchText.length > 0) {
-            setIsSearching(true);
-            const contents: TMDB = await TMDBSearch(searchText);
-            const movies: Movie[] = contents.results.map(content => {
-                return {
-                    fullTMDBID: content.media_type+"/"+content.id.toString(),
-                    tmdbID: content.id.toString(),
-                    title: content.media_type === "movie" ? content.title : content.name,
-                    mediaType: content.media_type,
-                    rating:  parseFloat((content.vote_average/2).toFixed(2)), // rating is on 10 pt scale so this converts to 5 star scale
-                    verticalPoster: content.poster_path, 
-                    horizontalPoster: content.backdrop_path,
-                    content: content,
+            try {
+                setIsSearching(true);
+                const contents: TMDB = await TMDBSearch(searchText);
+                const movies: Movie[] = contents.results.map(content => {
+                    return {
+                        fullTMDBID: content.media_type+"/"+content.id.toString(),
+                        tmdbID: content.id.toString(),
+                        title: content.media_type === "movie" ? content.title : content.name,
+                        mediaType: content.media_type,
+                        rating:  parseFloat((content.vote_average/2).toFixed(2)), // rating is on 10 pt scale so this converts to 5 star scale
+                        verticalPoster: content.poster_path, 
+                        horizontalPoster: content.backdrop_path,
+                        content: content,
+                    }
+                });
+                setMovies(movies);
+            } finally {
+                if (flatListRef.current && movies && movies.length > 0) {
+                    flatListRef.current.scrollToOffset({ animated: true, offset: 0});
                 }
-            });
-            setMovies(movies);
-            setIsSearching(false);
+                setIsSearching(false);
+            }
         }
     };
 

@@ -215,7 +215,6 @@ export default function LibraryPage() {
                 dataType={MOVE_MODAL_DATA_ENUM.CONTENT_DATA}
                 selectedItem={selectedContentData}
                 lists={lists}
-                showHeart={true}
                 visibility={moveModalVisible}
                 setVisibilityFunc={setMoveModalVisible}
                 setIsLoadingFunc={setIsLoading}

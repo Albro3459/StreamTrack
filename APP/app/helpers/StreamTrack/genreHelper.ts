@@ -3,7 +3,7 @@ import { GenreData } from "../../types/dataTypes";
 
 export const getGenreData = async (token: string): Promise<GenreData[] | null> => {
     try {
-        const url = DataAPIURL + "API/Genre/Get";
+        const url = DataAPIURL + "API/Genre/GetMain";
 
         const options = {
             method: 'GET',

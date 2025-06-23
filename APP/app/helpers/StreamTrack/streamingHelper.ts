@@ -3,7 +3,7 @@ import { DataAPIURL } from "@/secrets/DataAPIUrl";
 
 export const getStreamingServiceData = async (token: string): Promise<StreamingServiceData[] | null> => {
     try {
-        const url = DataAPIURL + "API/Streaming/Get";
+        const url = DataAPIURL + "API/Streaming/GetMain";
 
         const options = {
             method: 'GET',

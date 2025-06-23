@@ -15,7 +15,7 @@ interface MoveModalProps {
     selectedItem: any;
     lists: any[];
 
-    showHeart: boolean;
+    showHeart?: boolean;
     visibility: boolean;
 
     setVisibilityFunc: React.Dispatch<React.SetStateAction<boolean>>;
@@ -31,7 +31,7 @@ interface MoveModalProps {
     setListsFunc: React.Dispatch<React.SetStateAction<ListData[]>>;
 }
 
-export const MoveModal: React.FC<MoveModalProps> = ({ dataType, selectedItem, lists, showHeart, visibility, setVisibilityFunc, setIsLoadingFunc, moveItemFunc, isItemInListFunc, setListsFunc}) => {
+export const MoveModal: React.FC<MoveModalProps> = ({ dataType, selectedItem, lists, showHeart = true, visibility, setVisibilityFunc, setIsLoadingFunc, moveItemFunc, isItemInListFunc, setListsFunc}) => {
 
     if (!selectedItem) return null;
 
@@ -50,27 +50,27 @@ export const MoveModal: React.FC<MoveModalProps> = ({ dataType, selectedItem, li
             >
                 <View style={appStyles.modalContent}>
                     <Text style={appStyles.modalTitle}>
-                        {/* Move "{selectedItem?.title}" to: */}
-                        Move to:
+                        Save to...
                     </Text>
                     <>
                         {/* Render all tabs except FAVORITE_TAB */}
                         {lists
                             .filter((list) => list.listName !== FAVORITE_TAB)
-                            .map((list, index) => (
-                            <TouchableOpacity
-                                key={`LandingPage-${id}-${list.listName}-${index}`}
-                                style={[
-                                    appStyles.modalButton,
-                                    isItemInListFunc(lists, list.listName, id) && appStyles.selectedModalButton,
-                                ]}
-                                onPress={async () => await moveItemFunc(selectedItem, list.listName, lists, setListsFunc, setIsLoadingFunc, setVisibilityFunc)}
-                            >
-                                <Text style={appStyles.modalButtonText}>
-                                    {list.listName} {isItemInListFunc(lists, list.listName, id) ? "✓" : ""}
-                                </Text>
-                            </TouchableOpacity>
-                            ))}
+                            .map((list, index) => {
+                                const isSelected = isItemInListFunc(lists, list.listName, id);
+                                return (<Pressable
+                                    key={`LandingPage-${id}-${list.listName}-${index}`}
+                                    style={[
+                                        appStyles.modalButton,
+                                        isSelected && appStyles.selectedModalButton,
+                                    ]}
+                                    onPress={async () => await moveItemFunc(selectedItem, list.listName, lists, setListsFunc, setIsLoadingFunc, setVisibilityFunc)}
+                                >
+                                    <Text style={appStyles.modalButtonText}>
+                                        {list.listName} {isSelected ? "✓" : ""}
+                                    </Text>
+                                </Pressable>)}
+                        )}
 
                         {/* Render FAVORITE_TAB at the bottom */}
                         {showHeart && lists.find(l => l.listName === FAVORITE_TAB) && (
