@@ -42,7 +42,8 @@ export const MoveModal: React.FC<MoveModalProps> = ({ selectedItem, lists, showH
             >
                 <View style={appStyles.modalContent}>
                     <Text style={appStyles.modalTitle}>
-                        Move "{selectedItem?.title}" to:
+                        {/* Move "{selectedItem?.title}" to: */}
+                        Move to:
                     </Text>
                     <>
                         {/* Render all tabs except FAVORITE_TAB */}

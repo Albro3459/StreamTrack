@@ -1,24 +1,24 @@
-import { PosterContent } from "@/app/types/contentType";
+import { Content } from "@/app/types/contentType";
 import { ContentData } from "@/app/types/dataTypes";
 import { MEDIA_TYPE } from "@/app/types/tmdbType";
 
-export const convertPosterContentToContentData = (posterContent: PosterContent): ContentData => {
+export const convertContentToContentData = (content: Content, verticalPoster: string, horizontalPoster: string): ContentData => {
     return {
-        contentID: posterContent.id,
-        title: posterContent.title,
-        overview: posterContent.overview,
-        releaseYear: posterContent.releaseYear,
-        imdb_ID: posterContent.imdbId,
-        tmdb_ID: posterContent.tmdbId,
-        showType: posterContent.showType as MEDIA_TYPE,
-        genres: posterContent.genres.map(g => ({ name: g.name })),
-        cast: posterContent.cast,
-        directors: posterContent.directors,
-        rating: posterContent.rating,
-        runtime: posterContent.runtime ?? null,
-        seasonCount: posterContent.seasonCount ?? null,
-        episodeCount: posterContent.episodeCount ?? null,
-        streamingOptions: (posterContent.streamingOptions['us'] || []).map(option => ({
+        contentID: content.id,
+        title: content.title,
+        overview: content.overview,
+        releaseYear: content.releaseYear,
+        imdb_ID: content.imdbId,
+        tmdb_ID: content.tmdbId,
+        showType: content.showType as MEDIA_TYPE,
+        genres: content.genres.map(g => ({ name: g.name })),
+        cast: content.cast,
+        directors: content.directors,
+        rating: content.rating,
+        runtime: content.runtime ?? null,
+        seasonCount: content.seasonCount ?? null,
+        episodeCount: content.episodeCount ?? null,
+        streamingOptions: (content.streamingOptions['us'] || []).map(option => ({
             // NO CONTENT because we need to avoid a CYCLE
             streamingService: {
                 name: option.service.name,
@@ -28,8 +28,8 @@ export const convertPosterContentToContentData = (posterContent: PosterContent):
             price: option.price?.amount ?? null,
             deepLink: option.link,
         })),
-        verticalPoster: posterContent.posters.vertical ?? '',
-        horizontalPoster: posterContent.posters.horizontal ?? '',
+        verticalPoster: verticalPoster,
+        horizontalPoster: horizontalPoster,
     };
 };
 

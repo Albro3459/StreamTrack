@@ -1,22 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { StyleSheet, View, Text, ScrollView, FlatList, Image, TouchableOpacity, Pressable, Dimensions, Alert, Modal } from "react-native";
-import { Card, Title, Button, Searchbar } from "react-native-paper";
+import { Card, Title } from "react-native-paper";
 import { MaterialIcons } from "@expo/vector-icons";
-import { Link, router, usePathname } from "expo-router";
+import { router } from "expo-router";
 import { Colors } from "@/constants/Colors";
-// import { getContentById, getPostersFromContent, getRandomContent } from "./helpers/APIHelper";
-import { Content, PosterContent } from "./types/contentType";
 import { appStyles, RalewayFont } from "@/styles/appStyles";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import Heart from "./components/heartComponent";
-// import { Global, STORAGE_KEY } from "@/Global";
-// import { DEFAULT_TABS, FAVORITE_TAB, isItemInList, moveItemToTab, sortTabs } from "./helpers/listHelper";
 // import { WatchList } from "./types/listsType";
 import { useUserDataStore } from "./stores/userDataStore";
 import { Review } from "./types/reviewType";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/firebaseConfig";
-import { getUserData } from "./helpers/StreamTrack/userHelper";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -31,13 +24,13 @@ export default function LandingPage () {
     // const [tabs, setTabs] = useState<WatchList>(DEFAULT_TABS);
     const [heartColors, setHeartColors] = useState<{ [key: string]: string }>({});  
     const [isLoading, setIsLoading] = useState(true);
-    const [selectedContent, setSelectedContent] = useState<PosterContent>(null);
+    // const [selectedContent, setSelectedContent] = useState<PosterContent>(null);
     const [listModalVisible, setListModalVisible] = useState(false);
 
     // State to manage the currently displayed movie
     const [carouselIndex, setCarouselIndex] = useState(0);
-    const [carouselContent, setCarouselContent] = useState<PosterContent[]>([]);
-    const [moviesAndShows, setMoviesAndShows] = useState<PosterContent[]>([]);    
+    // const [carouselContent, setCarouselContent] = useState<PosterContent[]>([]);
+    // const [moviesAndShows, setMoviesAndShows] = useState<PosterContent[]>([]);    
     
     // Array of reviews
     const [reviews, setReviews] = useState<Review[]>([
@@ -125,17 +118,17 @@ export default function LandingPage () {
     //   loadContent();
     // }, [pathname]);
 
-    // Function to handle the Next button
-    const handleNextMovie = () => {
-      setCarouselIndex((prevIndex) => (prevIndex + 1) % carouselContent.length); // Loop back to the first movie
-    };
+    // // Function to handle the Next button
+    // const handleNextMovie = () => {
+    //   setCarouselIndex((prevIndex) => (prevIndex + 1) % carouselContent.length); // Loop back to the first movie
+    // };
   
-    // Function to handle the Previous button
-    const handlePreviousMovie = () => {
-      setCarouselIndex((prevIndex) =>
-        prevIndex === 0 ? carouselContent.length - 1 : prevIndex - 1
-      );
-    };
+    // // Function to handle the Previous button
+    // const handlePreviousMovie = () => {
+    //   setCarouselIndex((prevIndex) =>
+    //     prevIndex === 0 ? carouselContent.length - 1 : prevIndex - 1
+    //   );
+    // };
 
     // useEffect(() => {
     //   const fetchRecommendedContent  = async () => {
@@ -229,7 +222,7 @@ export default function LandingPage () {
         {/* Trending Section */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>TRENDING</Text>
-          <Pressable onPress={() => router.push({
+          {/* <Pressable onPress={() => router.push({
                                     pathname: '/InfoPage',
                                     params: { id: carouselContent[carouselIndex]?.id || "10" },
                     })}>
@@ -241,24 +234,27 @@ export default function LandingPage () {
                 </Title>
               </Card.Content>
             </Card>
-          </Pressable>
+          </Pressable> */}
 
           {/* Circular Navigation Buttons */}
           <View style={styles.navigationButtons}>
             <TouchableOpacity
-              onPress={handlePreviousMovie}
+            //   onPress={handlePreviousMovie}
               style={styles.circleButton}
             >
               <MaterialIcons name="arrow-back" size={24} color="#fff" />
             </TouchableOpacity>
-            <TouchableOpacity onPress={handleNextMovie} style={styles.circleButton}>
-              <MaterialIcons name="arrow-forward" size={24} color="#fff" />
+            <TouchableOpacity 
+                // onPress={handleNextMovie} 
+                style={styles.circleButton}
+            >
+                <MaterialIcons name="arrow-forward" size={24} color="#fff" />
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Most Recommended Section */}
-        <View style={[styles.section, { height: 200 }]}>
+        {/* <View style={[styles.section, { height: 200 }]}>
           <Text style={styles.sectionTitle}>MOST RECOMMENDED</Text>
           <FlatList
             data={moviesAndShows}
@@ -286,7 +282,7 @@ export default function LandingPage () {
               </Pressable>
             )}
           />
-        </View>
+        </View> */}
 
         {/* Reviews Section */}
         <View style={styles.section}>

@@ -1,24 +1,16 @@
 import { Colors } from '@/constants/Colors';
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, ScrollView, Button, TouchableOpacity, Dimensions, Pressable, Modal, FlatList, Alert, TextInput, Linking, ActivityIndicator } from 'react-native';
-import * as SplashScreen from "expo-splash-screen";
 import StarRating from 'react-native-star-rating-widget';
 import Heart from './components/heartComponent';
-import { Content, PosterContent, Service, StreamingOption } from './types/contentType';
-import { useLocalSearchParams, usePathname } from 'expo-router/build/hooks';
-// import { getContentById, getPostersFromContent, getRandomContent } from './helpers/fetchHelper';
+import { useLocalSearchParams } from 'expo-router/build/hooks';
 import { MaterialIcons } from '@expo/vector-icons';
 import { appStyles, RalewayFont } from '@/styles/appStyles';
 import { router } from 'expo-router';
 import { SvgUri } from 'react-native-svg';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-// import { Global, STORAGE_KEY } from '@/Global';
-// import { DEFAULT_TABS, FAVORITE_TAB, isItemInList, moveItemToTab, sortTabs, turnTabsIntoPosterTabs } from './helpers/listHelper';
-// import { PosterList, WatchList } from './types/listsType';
 import { MEDIA_TYPE } from './types/tmdbType';
 import { RapidAPIGetByTMDBID } from './helpers/contentAPIHelper';
 import { ContentData, ListData, StreamingOptionData, StreamingServiceData } from './types/dataTypes';
-import { convertPosterContentToContentData } from './helpers/StreamTrack/contentHelper';
 import { useUserDataStore } from './stores/userDataStore';
 
 const screenWidth = Dimensions.get("window").width;
@@ -61,8 +53,8 @@ export default function InfoPage() {
    const [newReviewRating, setNewReviewRating] = useState(0);
    const [addReviewModal, setAddReviewModal] = useState(false);
  
-   const [recommendedContent, setRecommendedContent] = useState<PosterContent[]>([]);
-   const [selectedRecommendation, setSelectedRecommendation] = useState<PosterContent | null>(null);
+//    const [recommendedContent, setRecommendedContent] = useState<PosterContent[]>([]);
+//    const [selectedRecommendation, setSelectedRecommendation] = useState<PosterContent | null>(null);
    const [infoModalVisible, setInfoModalVisible] = useState(false);
 
     const getServicePrice = (option: StreamingOptionData) : string => {
@@ -85,9 +77,7 @@ export default function InfoPage() {
   useEffect(() => {
     const fetchContent = async () => {
         if (!listName || !contentID) {
-            const posterContent: PosterContent = await RapidAPIGetByTMDBID(id ?? "", media_type ?? MEDIA_TYPE.MOVIE, vertical ?? "", horizontal ?? "");
-            // setPosterContent(posterContent);
-            const contentData: ContentData = convertPosterContentToContentData(posterContent); 
+            const contentData: ContentData = await RapidAPIGetByTMDBID(id ?? "", media_type ?? MEDIA_TYPE.MOVIE, vertical ?? "", horizontal ?? "");
             setContent(contentData);
             setIsLoading(false);
         } else {
@@ -304,130 +294,130 @@ export default function InfoPage() {
                 </Text>
             </View>
             );
-            case 'Reviews':
-            return (
-                <View style={styles.content}>
-                <Text style={[styles.sectionTitle, { paddingBottom: 10 }]}>Reviews</Text>
-                {reviews.length === 0 ? (
-                    <Text style={styles.text}>No reviews yet. Be the first to add one!</Text>
-                ) : (
-                    <FlatList
-                    showsVerticalScrollIndicator={false}
-                    scrollEnabled={false}
-                    data={reviews}
-                    keyExtractor={(item) => item.id}
-                    renderItem={({ item }) => (
-                        <View style={appStyles.reviewCard}>
-                        <Image source={{ uri: item.avatar }} style={appStyles.avatar} />
-                        <View style={appStyles.reviewTextContainer}>
-                            <Text style={appStyles.reviewUser}>{item.user}</Text>
-                            <Text style={appStyles.reviewText}>{item.text}</Text>
-                            <View style={appStyles.ratingContainer}>
-                            {/* {Array.from({ length: 5 }).map((_, index) => (
-                                <MaterialIcons
-                                key={index}
-                                name={index < item.rating ? 'star' : 'star-border'}
-                                size={16}
-                                color="#FFD700"
-                                />
-                            ))} */}
-                            {Array.from({ length: 5 }).map((_, index) => {
-                                const isFullStar = index < Math.floor(item.rating); // Full star if index is less than integer part of rating
-                                const isHalfStar = index >= Math.floor(item.rating) && index < item.rating; // Half star if index is fractional
+        // case 'Reviews':
+        //     return (
+        //         <View style={styles.content}>
+        //         <Text style={[styles.sectionTitle, { paddingBottom: 10 }]}>Reviews</Text>
+        //         {reviews.length === 0 ? (
+        //             <Text style={styles.text}>No reviews yet. Be the first to add one!</Text>
+        //         ) : (
+        //             <FlatList
+        //             showsVerticalScrollIndicator={false}
+        //             scrollEnabled={false}
+        //             data={reviews}
+        //             keyExtractor={(item) => item.id}
+        //             renderItem={({ item }) => (
+        //                 <View style={appStyles.reviewCard}>
+        //                 <Image source={{ uri: item.avatar }} style={appStyles.avatar} />
+        //                 <View style={appStyles.reviewTextContainer}>
+        //                     <Text style={appStyles.reviewUser}>{item.user}</Text>
+        //                     <Text style={appStyles.reviewText}>{item.text}</Text>
+        //                     <View style={appStyles.ratingContainer}>
+        //                     {/* {Array.from({ length: 5 }).map((_, index) => (
+        //                         <MaterialIcons
+        //                         key={index}
+        //                         name={index < item.rating ? 'star' : 'star-border'}
+        //                         size={16}
+        //                         color="#FFD700"
+        //                         />
+        //                     ))} */}
+        //                     {Array.from({ length: 5 }).map((_, index) => {
+        //                         const isFullStar = index < Math.floor(item.rating); // Full star if index is less than integer part of rating
+        //                         const isHalfStar = index >= Math.floor(item.rating) && index < item.rating; // Half star if index is fractional
 
-                                return (
-                                <MaterialIcons
-                                    key={index}
-                                    name={isFullStar ? 'star' : isHalfStar ? 'star-half' : 'star-border'}
-                                    size={16}
-                                    color="#FFD700"
-                                />
-                                );
-                            })}
-                            </View>
-                        </View>
-                        </View>
-                    )}
-                    />
-                )}
-                <Button title="Add Review" onPress={() => setAddReviewModal(true)} />
+        //                         return (
+        //                         <MaterialIcons
+        //                             key={index}
+        //                             name={isFullStar ? 'star' : isHalfStar ? 'star-half' : 'star-border'}
+        //                             size={16}
+        //                             color="#FFD700"
+        //                         />
+        //                         );
+        //                     })}
+        //                     </View>
+        //                 </View>
+        //                 </View>
+        //             )}
+        //             />
+        //         )}
+        //         <Button title="Add Review" onPress={() => setAddReviewModal(true)} />
     
-                <Modal
-                    transparent
-                    visible={addReviewModal}
-                    animationType="fade"
-                    onRequestClose={() => setAddReviewModal(false)}
-                >
-                    <View style={styles.modalOverlay}>
-                    <View style={styles.modalContent}>
-                        <Text style={styles.modalTitle}>Add a Review</Text>
-                        <TextInput
-                        multiline={true}
-                        style={styles.textInput}
-                        placeholder="Write your review..."
-                        placeholderTextColor="#aaa"
-                        value={newReviewText}
-                        onChangeText={setNewReviewText}
-                        />
-                        <Text style={styles.ratingLabel}>Rating:</Text>
-                        <View style={styles.ratingInput}>
-                        {/* {Array.from({ length: 5 }).map((_, index) => (
-                            <Text
-                            key={index}
-                            style={[
-                                styles.ratingStar,
-                                { color: index < newReviewRating ? '#FFD700' : '#aaa' },
-                            ]}
-                            onPress={() => setNewReviewRating(index + 1)}
-                            >
-                            ★
-                            </Text>
-                        ))} */}
-                        <StarRating
-                            rating={newReviewRating}
-                            onChange={setNewReviewRating}
-                        />
-                        </View>
-                        <View style={styles.modalButtons}>
-                        <Button title="Cancel" onPress={() => setAddReviewModal(false)} />
-                        {/* <Button title="Submit" onPress={handleAddReview} /> */}
-                        </View>
-                    </View>
-                    </View>
-                </Modal>
-                </View>
-            );
+        //         <Modal
+        //             transparent
+        //             visible={addReviewModal}
+        //             animationType="fade"
+        //             onRequestClose={() => setAddReviewModal(false)}
+        //         >
+        //             <View style={styles.modalOverlay}>
+        //             <View style={styles.modalContent}>
+        //                 <Text style={styles.modalTitle}>Add a Review</Text>
+        //                 <TextInput
+        //                 multiline={true}
+        //                 style={styles.textInput}
+        //                 placeholder="Write your review..."
+        //                 placeholderTextColor="#aaa"
+        //                 value={newReviewText}
+        //                 onChangeText={setNewReviewText}
+        //                 />
+        //                 <Text style={styles.ratingLabel}>Rating:</Text>
+        //                 <View style={styles.ratingInput}>
+        //                 {/* {Array.from({ length: 5 }).map((_, index) => (
+        //                     <Text
+        //                     key={index}
+        //                     style={[
+        //                         styles.ratingStar,
+        //                         { color: index < newReviewRating ? '#FFD700' : '#aaa' },
+        //                     ]}
+        //                     onPress={() => setNewReviewRating(index + 1)}
+        //                     >
+        //                     ★
+        //                     </Text>
+        //                 ))} */}
+        //                 <StarRating
+        //                     rating={newReviewRating}
+        //                     onChange={setNewReviewRating}
+        //                 />
+        //                 </View>
+        //                 <View style={styles.modalButtons}>
+        //                 <Button title="Cancel" onPress={() => setAddReviewModal(false)} />
+        //                 {/* <Button title="Submit" onPress={handleAddReview} /> */}
+        //                 </View>
+        //             </View>
+        //             </View>
+        //         </Modal>
+        //         </View>
+        //     );
         case 'Recommended':
             return (
             <View style={styles.content}>
                 <Text style={styles.sectionTitle}>Recommended</Text>
                 <Text style={styles.text}>Explore more movies like this!</Text>
-                <FlatList
-                data={recommendedContent}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                nestedScrollEnabled
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                    <Pressable
-                    style={appStyles.movieCard}
-                    onPress={() => router.push({
-                                        pathname: '/InfoPage',
-                                        params: { id: item.id },
-                                        })}
-                    onLongPress={() => {setSelectedRecommendation(item); setInfoModalVisible(true);}}
-                    >
-                    <Image
-                        source={{uri: item && item.posters.vertical }}
-                        style={appStyles.movieImage}
-                    />
-                    <Text style={appStyles.movieTitle}>{item.title}</Text>
-                    </Pressable>
-                )}
-                />
+                {/* <FlatList
+                    data={recommendedContent}
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    nestedScrollEnabled
+                    keyExtractor={(item) => item.id}
+                    renderItem={({ item }) => (
+                        <Pressable
+                        style={appStyles.movieCard}
+                        onPress={() => router.push({
+                                            pathname: '/InfoPage',
+                                            params: { id: item.id },
+                                            })}
+                        onLongPress={() => {setSelectedRecommendation(item); setInfoModalVisible(true);}}
+                        >
+                        <Image
+                            source={{uri: item && item.posters.vertical }}
+                            style={appStyles.movieImage}
+                        />
+                        <Text style={appStyles.movieTitle}>{item.title}</Text>
+                        </Pressable>
+                    )}
+                /> */}
             </View>
             );
-            default:
+        default:
             break;
         }
     };

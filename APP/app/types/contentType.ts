@@ -106,13 +106,13 @@ export type Content = {
 
 // CUSTOM:
 
-export type Posters = {
-    vertical?: string | null;
-    horizontal?: string | null;
-};
+// export type Posters = {
+//     vertical?: string | null;
+//     horizontal?: string | null;
+// };
 
-export type PosterContent = Content & {
-    posters: Posters
-};
+// export type PosterContent = Content & {
+//     posters: Posters
+// };
 
 export default {};

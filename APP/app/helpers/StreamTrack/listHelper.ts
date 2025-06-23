@@ -1,11 +1,8 @@
-import { PosterContent } from "@/app/types/contentType";
 import { ContentData, ListData, UserData } from "@/app/types/dataTypes";
 import { DataAPIURL } from "@/secrets/DataAPIUrl";
-import { convertPosterContentToContentData } from "./contentHelper";
 import { User } from "firebase/auth";
 import { auth } from "@/firebaseConfig";
 import { setUserData, useUserDataStore } from "@/app/stores/userDataStore";
-import { MEDIA_TYPE } from "@/app/types/tmdbType";
 import { RapidAPIGetByTMDBID } from "../contentAPIHelper";
 import { Movie } from "@/app/SearchPage";
 
@@ -39,9 +36,7 @@ export const findAndMoveTMDBItemToList = async (movie: Movie, listName: string, 
                                 setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
                                 setMoveModalVisible: React.Dispatch<React.SetStateAction<boolean>>        
 ) => {
-    const posterContent: PosterContent = await RapidAPIGetByTMDBID(movie.tmdbID, movie.mediaType, movie.verticalPoster, movie.horizontalPoster);
-    if (!posterContent) return;
-    const content: ContentData = convertPosterContentToContentData(posterContent);
+    const content: ContentData = await RapidAPIGetByTMDBID(movie.tmdbID, movie.mediaType, movie.verticalPoster, movie.horizontalPoster);
     await moveItemToList(content, listName, lists, setLists, setIsLoading, setMoveModalVisible);
 };
 
@@ -78,10 +73,6 @@ export const moveItemToList = async (content: ContentData, listName: string, lis
     }
     setIsLoading(false);
     setMoveModalVisible(false);
-};
-
-export const addPosterContentToUserList = async (token: string | null, listName: string, posterContent: PosterContent) => {
-    return await addContentToUserList(token, listName, convertPosterContentToContentData(posterContent));
 };
 
 export const addContentToUserList = async (token: string | null, listName: string, content: ContentData) => {

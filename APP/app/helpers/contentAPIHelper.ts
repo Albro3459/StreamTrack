@@ -2,7 +2,9 @@ import axios from 'axios';
 
 import { RAPIDAPI_KEY, TMDB_BEARER_TOKEN } from '@/secrets/API_keys';
 import { MEDIA_TYPE, TMDB } from '../types/tmdbType';
-import { Content, PosterContent, Posters } from '../types/contentType';
+import { Content } from '../types/contentType';
+import { ContentData } from '../types/dataTypes';
+import { convertContentToContentData } from './StreamTrack/contentHelper';
 
 // Search API
 const TMDB_Base_Url = "https://api.themoviedb.org/3/search/multi?query=";
@@ -44,7 +46,7 @@ export const TMDBSearch = async (keyword: string): Promise<TMDB> => {
     return data;
 }
 
-export const RapidAPIGetByTMDBID = async (tmdbID: string, media_type: MEDIA_TYPE, vertical: string, horizontal: string): Promise<PosterContent> => {
+export const RapidAPIGetByTMDBID = async (tmdbID: string, media_type: MEDIA_TYPE, vertical: string, horizontal: string): Promise<ContentData> => {
 
     const url = RapidAPI_Base_Url + media_type + "/" + tmdbID + RapidAPI_Ending;
 
@@ -55,44 +57,30 @@ export const RapidAPIGetByTMDBID = async (tmdbID: string, media_type: MEDIA_TYPE
     };
     const result = await axios.request(options);
     
-    const data: Content = await result.data;
+    const content: Content = await result.data;
 
-    const posters: Posters = {
-        vertical: vertical, horizontal: horizontal
-    }
+    const contentData: ContentData = convertContentToContentData(content, vertical, horizontal);
 
-    const content: PosterContent = {
-        ...data,
-        posters: posters
-    };
-
-    return content;
+    return contentData;
 }
 
-export const RapidAPIGetByRapidID = async (id: string, vertical: string, horizontal: string): Promise<PosterContent> => {
+// export const RapidAPIGetByRapidID = async (id: string, vertical: string, horizontal: string): Promise<ContentData> => {
 
-    const url = RapidAPI_Base_Url + id + RapidAPI_Ending;
+//     const url = RapidAPI_Base_Url + id + RapidAPI_Ending;
 
-    const options = {
-        method: 'GET',
-        url,
-        headers: RapidAPI_Headers
-    };
-    const result = await axios.request(options);
+//     const options = {
+//         method: 'GET',
+//         url,
+//         headers: RapidAPI_Headers
+//     };
+//     const result = await axios.request(options);
     
-    const data: Content = await result.data;
+//     const content: Content = await result.data;
 
-    const posters: Posters = {
-        vertical: vertical, horizontal: horizontal
-    }
+//     const contentData: ContentData = convertContentToContentData(content, vertical, horizontal);
 
-    const content: PosterContent = {
-        ...data,
-        posters: posters
-    };
-
-    return content;
-}
+//     return contentData;
+// }
 
 
 export default {}

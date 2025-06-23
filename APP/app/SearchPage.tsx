@@ -1,18 +1,10 @@
 import { Colors } from '@/constants/Colors';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { View, Text, TextInput, FlatList, Image, StyleSheet, Pressable, TouchableOpacity, KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard, Dimensions, ScrollView, Alert, Modal, ActivityIndicator } from 'react-native';
 import Heart from './components/heartComponent';
-import { Content, PosterContent } from './types/contentType';
-// import { getContentById, getPostersFromContent, searchByKeywords } from './helpers/fetchHelper';
-import { router, usePathname } from 'expo-router';
+import { router } from 'expo-router';
 import { appStyles } from '@/styles/appStyles';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-// import { Global, STORAGE_KEY } from '@/Global';
-// import { PosterList, WatchList } from './types/listsType';
-// import { DEFAULT_TABS, FAVORITE_TAB, isItemInList, moveItemToTab, sortTabs, turnTabsIntoPosterTabs } from './helpers/listHelper';
-import { Feather, Ionicons } from '@expo/vector-icons';
-import FilterModal from './components/filterModalComponent';
-import { Filter } from './types/filterTypes';
+import { Feather } from '@expo/vector-icons';
 import { TMDBSearch } from './helpers/contentAPIHelper';
 import { TMDB_Content, TMDB, MEDIA_TYPE } from './types/tmdbType';
 import { useUserDataStore } from './stores/userDataStore';
@@ -161,7 +153,7 @@ export default function SearchPage() {
                         >
                             <View style={appStyles.modalContent}>
                             <Text style={appStyles.modalTitle}>
-                                Move "{selectedMovie.title}" to:
+                                Move to:
                             </Text>
                             {selectedMovie && (
                                 <>
