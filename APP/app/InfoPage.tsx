@@ -78,13 +78,19 @@ export default function InfoPage() {
 
     useEffect(() => {
         const fetchContent = async () => {
+            const lists: ListData[] = [...userData.listsOwned, ...userData.listsSharedWithMe];
+            let content: ContentData;
             if (!listName || !contentID) {
-                const contentData: ContentData = await RapidAPIGetByTMDBID(tmdbID ?? "", media_type ?? MEDIA_TYPE.MOVIE, verticalPoster ?? "", horizontalPoster ?? "");
-                setContent(contentData);
-                setIsLoading(false);
+                const allContents = lists.flatMap(l => l.contents);
+                content = allContents.find(c => c.tmdb_ID === (media_type+"/"+tmdbID));
+                if (!content) {
+                    content = await RapidAPIGetByTMDBID(tmdbID ?? "", media_type ?? MEDIA_TYPE.MOVIE, verticalPoster ?? "", horizontalPoster ?? "");
+                }
             } else {
-                const lists: ListData[] = [...userData.listsOwned, ...userData.listsSharedWithMe];
-                const content: ContentData = lists.find(l => l.listName === listName).contents.find(c => c.contentID === contentID);
+                content = lists.find(l => l.listName === listName).contents.find(c => c.contentID === contentID);
+            }
+
+            if (content) {
                 setContent(content);
                 setIsLoading(false);
             }
