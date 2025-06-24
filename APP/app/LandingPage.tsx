@@ -159,6 +159,7 @@ export default function LandingPage () {
     //   fetchRecommendedContent();
     // }, []);     
 
+    // Testing
     // useEffect(() => {
     //     const fetchInitialUserData = async () => {
     //         if (user) {
@@ -298,62 +299,6 @@ export default function LandingPage () {
       </ScrollView>
 
       {/* Move Modal */}
-      {/* {selectedContent && (
-        <Modal
-          transparent={true}
-          visible={listModalVisible}
-          animationType="fade"
-          onRequestClose={() => setListModalVisible(false)}
-        >
-          <Pressable
-            style={appStyles.modalOverlay}
-            onPress={() => setListModalVisible(false)}
-          >
-            <View style={appStyles.modalContent}>
-              <Text style={appStyles.modalTitle}>
-                Move "{selectedContent?.title}" to:
-              </Text>
-              {selectedContent && (
-                <>
-                  Render all tabs except FAVORITE_TAB because we show heart for it
-                  {Object.keys(tabs)
-                    .filter((tab) => tab !== FAVORITE_TAB)
-                    .map((tab, index) => (
-                      <TouchableOpacity
-                        key={`LandingPage-${selectedContent.id}-${tab}-${index}`}
-                        style={[
-                          appStyles.modalButton,
-                          isItemInList(selectedContent, tab, tabs) && appStyles.selectedModalButton,
-                        ]}
-                        onPress={async () => await moveItemToTab(selectedContent, tab, setTabs, null, [setListModalVisible], null)}
-                      >
-                        <Text style={appStyles.modalButtonText}>
-                          {tab} {isItemInList(selectedContent, tab, tabs) ? "✓" : ""}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
-
-                  Render FAVORITE_TAB at the bottom as a heart
-                  {tabs[FAVORITE_TAB] && (
-                    <View
-                      key={`LandingPage-${selectedContent.id}-heart`}
-                      style={{ paddingTop: 10 }}
-                    >
-                      <Heart
-                        heartColor={
-                          heartColors[selectedContent?.id] || Colors.unselectedHeartColor
-                        }
-                        size={35}
-                        onPress={async () => await moveItemToTab(selectedContent, FAVORITE_TAB, setTabs, null, [setListModalVisible], setHeartColors)}
-                      />
-                    </View>
-                  )}
-                </>
-              )}
-            </View>
-          </Pressable>
-        </Modal>
-      )} */}
 
         <View style={styles.libraryOverlay}>
             <TouchableOpacity

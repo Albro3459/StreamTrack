@@ -66,7 +66,10 @@ export const MoveModal: React.FC<MoveModalProps> = ({ dataType, selectedItem, li
                                     ]}
                                     onPress={async () => await moveItemFunc(selectedItem, list.listName, lists, setListsFunc, setIsLoadingFunc, setVisibilityFunc)}
                                 >
-                                    <Text style={appStyles.modalButtonText}>
+                                    <Text style={[
+                                        appStyles.modalButtonText,
+                                        isSelected && appStyles.selectedModalButtonText,
+                                    ]}>
                                         {list.listName} {isSelected ? "✓" : ""}
                                     </Text>
                                 </Pressable>)}

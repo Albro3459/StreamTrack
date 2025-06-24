@@ -175,7 +175,6 @@ const styles = StyleSheet.create({
     topContainer: {
         justifyContent: "space-around",
         alignItems: "center",
-        // marginVertical: "5%",
         marginTop: -35,
     },
     container: {
@@ -231,8 +230,6 @@ const styles = StyleSheet.create({
         alignSelf: "center",
     },
     selectedTextBox: {
-        // color: "#fff", // White text
-        // backgroundColor: Colors.selectedColor,
         shadowColor: "#000",
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,
@@ -259,6 +256,8 @@ const styles = StyleSheet.create({
         alignSelf: "center",
     },
     pressableBubble: {
+        height: 45,
+        minWidth: 45*1.5,
         borderRadius: 30,
         backgroundColor: Colors.grayCell,
         padding: "4%",

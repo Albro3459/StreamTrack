@@ -64,12 +64,10 @@ export const delayedMoveTMDBItemToList = async (movie: Movie, listName: string, 
         
         let contents: Partial<ContentData>[] = [];
         if (list.contents.some(c => c.tmdb_ID === movie.fullTMDBID)) {
-            console.log("Remove");
             // Remove
             contents = list.contents.filter(c => c.tmdb_ID !== movie.fullTMDBID);
         }
         else { // Add
-            console.log("Add");
             contents = [...list.contents, fakeContent];
         }
 
@@ -120,7 +118,6 @@ export const moveItemToList = async (content: ContentData, listName: string, lis
         userData.listsOwned = userData.listsOwned.filter(l => l.listName !== list.listName);
         userData.listsOwned.push(list);
         setUserData(userData, true);
-        console.log("LISTS UPDATED\n");
     }
 };
 

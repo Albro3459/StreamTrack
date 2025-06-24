@@ -39,10 +39,9 @@ interface PressableBubbleGroupProps {
     styles: any;
     onChange: React.Dispatch<React.SetStateAction<boolean>>;
     services?: StreamingServiceData[] | null;
-    serviceLogoSize?: number;
 }
 
-export const PressableBubblesGroup: React.FC<PressableBubbleGroupProps> = ({ labels, selectedLabels, setLabelState, styles, onChange, services, serviceLogoSize = 45 }) => (
+export const PressableBubblesGroup: React.FC<PressableBubbleGroupProps> = ({ labels, selectedLabels, setLabelState, styles, onChange, services}) => (
     labels && labels.length > 0 ? labels.map((label) =>
         <Pressable 
             key={label} 
@@ -57,15 +56,14 @@ export const PressableBubblesGroup: React.FC<PressableBubbleGroupProps> = ({ lab
             key={service.name}
             onPress={() => {toggleSelection(service.name, setLabelState); onChange(true);}}
             style={[
-                {height: serviceLogoSize, minHeight: serviceLogoSize},
                 styles.pressableBubble,
                 selectedLabels.has(service.name) && styles.selectedBubble
             ]}
         >
             <SvgUri
                 uri={selectedLabels.has(service.name) ? service.darkLogo : service.lightLogo}
-                width={serviceLogoSize}
-                height={serviceLogoSize}
+                width={45}
+                height={45}
                 style={{marginBottom: 5}}
             />
         </Pressable>

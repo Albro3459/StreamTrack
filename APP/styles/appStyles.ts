@@ -146,7 +146,7 @@ export const appStyles = StyleSheet.create({
         width: "100%",
     },
     modalButton: {
-        backgroundColor: '#6c6c91',
+        backgroundColor: Colors.grayCell,
         padding: 10,
         borderRadius: 5,
         margin: 5,
@@ -155,10 +155,15 @@ export const appStyles = StyleSheet.create({
         alignItems: 'center',
     },
     selectedModalButton: {
-        backgroundColor: Colors.selectedColor,
+        backgroundColor: Colors.unselectedColor,
     },
     modalButtonText: {
-        color: '#fff',
+        color: Colors.cardBackgroundColor,
+        fontWeight: 'bold',
+        fontSize: 16,
+    },
+    selectedModalButtonText: {
+        color: "white",
         fontWeight: 'bold',
         fontSize: 16,
     },
