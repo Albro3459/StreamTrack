@@ -1,7 +1,6 @@
 import { Colors } from '@/constants/Colors';
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, Button, TouchableOpacity, Dimensions, Pressable, Modal, FlatList, Alert, TextInput, Linking, ActivityIndicator } from 'react-native';
-import StarRating from 'react-native-star-rating-widget';
+import { View, Text, Image, StyleSheet, ScrollView, Button, TouchableOpacity, Dimensions, Pressable, Modal, FlatList, TextInput, Linking, ActivityIndicator } from 'react-native';
 import Heart from './components/heartComponent';
 import { useLocalSearchParams } from 'expo-router/build/hooks';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -17,21 +16,21 @@ import { MOVE_MODAL_DATA_ENUM, MoveModal } from './components/moveModalComponent
 
 const screenWidth = Dimensions.get("window").width;
 
-// const REVIEW_STORAGE_KEY = 'movie_reviews';
-
 interface InfoPageParams {
-  id?: string;
-  media_type?: MEDIA_TYPE;
-  vertical?: string;
-  horizontal?: string;
+    tmdbID?: string;
+    title?: string;
+    year?: string;
+    media_type?: MEDIA_TYPE;
+    verticalPoster?: string;
+    horizontalPoster?: string;
 
-  listName?: string;
-  contentID?: string;
+    listName?: string;
+    contentID?: string;
 }
 
 export default function InfoPage() {
 
-    const { id, media_type, vertical, horizontal, listName, contentID } = useLocalSearchParams() as InfoPageParams;
+    const { tmdbID, title, year, media_type, verticalPoster, horizontalPoster, listName, contentID } = useLocalSearchParams() as InfoPageParams;
 
     const { userData } = useUserDataStore();
 
@@ -80,7 +79,7 @@ export default function InfoPage() {
     useEffect(() => {
         const fetchContent = async () => {
             if (!listName || !contentID) {
-                const contentData: ContentData = await RapidAPIGetByTMDBID(id ?? "", media_type ?? MEDIA_TYPE.MOVIE, vertical ?? "", horizontal ?? "");
+                const contentData: ContentData = await RapidAPIGetByTMDBID(tmdbID ?? "", media_type ?? MEDIA_TYPE.MOVIE, verticalPoster ?? "", horizontalPoster ?? "");
                 setContent(contentData);
                 setIsLoading(false);
             } else {
@@ -93,7 +92,7 @@ export default function InfoPage() {
         }
 
         fetchContent();
-    }, [id, media_type, vertical, horizontal]);
+    }, [tmdbID, media_type, verticalPoster, horizontalPoster]);
 
     const renderTabContent = () => {
         switch (activeTab) {
@@ -241,10 +240,10 @@ export default function InfoPage() {
             <Image source={{ uri: content && content.verticalPoster }} style={styles.posterImage} />
             {/* Movie Info */}
             <View style={styles.infoSection}>
-                <Text style={styles.title}>{content && content.title}</Text>
+                <Text style={styles.title}>{title ? title : (content && content.title)}</Text>
                 <View style={styles.attributeContainer}>
                     <Text style={[styles.text, {fontSize: 18, margin: 0, textAlignVertical: "center"}]}>
-                        {(content ? content.releaseYear : "1999") + "    " + getRuntime(content)}
+                        {(year ? year : (content ? content.releaseYear : "1999")) + "    " + getRuntime(content)}
                     </Text>
                 </View>
                 <View style={styles.attributeContainer} >

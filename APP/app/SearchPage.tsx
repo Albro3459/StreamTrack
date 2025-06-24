@@ -16,6 +16,7 @@ export type Movie = {
     fullTMDBID: string;
     tmdbID: string;
     title: string;
+    year: string;
     mediaType: MEDIA_TYPE;
     rating: number;
     verticalPoster: string; 
@@ -57,6 +58,7 @@ export default function SearchPage() {
                         fullTMDBID: content.media_type+"/"+content.id.toString(),
                         tmdbID: content.id.toString(),
                         title: content.media_type === "movie" ? content.title : content.name,
+                        year: content.release_date ? content.release_date.split("-")[0] : "1999",
                         mediaType: content.media_type,
                         rating:  parseFloat((content.vote_average/2).toFixed(2)), // rating is on 10 pt scale so this converts to 5 star scale
                         verticalPoster: content.poster_path, 
@@ -120,7 +122,7 @@ export default function SearchPage() {
                         //   Global.backPressLoadSearch = true;
                             router.push({
                                 pathname: '/InfoPage',
-                                params: { id: movie.tmdbID, media_type: movie.mediaType, vertical: movie.verticalPoster, horizontal: movie.horizontalPoster },
+                                params: { tmdbID: movie.tmdbID, title: movie.title, year: movie.year, media_type: movie.mediaType, verticalPoster: movie.verticalPoster, horizontalPoster: movie.horizontalPoster },
                             });
                         }}
                         onLongPress={() => {setSelectedMovie(movie); setMoveModalVisible(true);}}
