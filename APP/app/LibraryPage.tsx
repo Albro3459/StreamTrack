@@ -177,6 +177,7 @@ export default function LibraryPage() {
                     <TextInput
                         style={styles.textInput}
                         placeholder="Enter list name"
+                        placeholderTextColor={"darkgrey"}
                         value={newListName}
                         onChangeText={setNewListName}
                     />
@@ -317,7 +318,7 @@ const styles = StyleSheet.create({
         width: '100%',
     },
     cancelButton: {
-        backgroundColor: '#6c6c91', // Match modalButton color
+        backgroundColor: Colors.selectedTabColor,
         padding: 10,
         borderRadius: 5,
         flex: 1,
@@ -331,7 +332,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     addButton: {
-        backgroundColor: Colors.selectedColor, // Use same as selectedModalButton
+        backgroundColor: Colors.selectedColor,
         padding: 10,
         borderRadius: 5,
         flex: 1,

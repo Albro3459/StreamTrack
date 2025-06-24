@@ -22,7 +22,8 @@ export const convertContentToContentData = (content: Content, verticalPoster: st
             // NO CONTENT because we need to avoid a CYCLE
             streamingService: {
                 name: option.service.name,
-                logo: option.service.imageSet.darkThemeImage,
+                lightLogo: option.service.imageSet.lightThemeImage,
+                darkLogo: option.service.imageSet.darkThemeImage,
             },
             type: option.type,
             price: option.price?.amount ?? null,

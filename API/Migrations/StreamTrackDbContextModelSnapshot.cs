@@ -242,10 +242,14 @@ namespace StreamTrack.Migrations
                     b.Property<string>("ServiceID")
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("DarkLogo")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("Logo")
+                    b.Property<string>("LightLogo")
                         .IsRequired()
                         .HasColumnType("TEXT");
 
@@ -261,57 +265,65 @@ namespace StreamTrack.Migrations
                         new
                         {
                             ServiceID = "1",
+                            DarkLogo = "https://media.movieofthenight.com/services/netflix/logo-dark-theme.svg",
                             IsDeleted = false,
-                            Logo = "https://media.movieofthenight.com/services/netflix/logo-dark-theme.svg",
+                            LightLogo = "https://media.movieofthenight.com/services/netflix/logo-light-theme.svg",
                             Name = "Netflix"
                         },
                         new
                         {
                             ServiceID = "2",
+                            DarkLogo = "https://media.movieofthenight.com/services/hulu/logo-dark-theme.svg",
                             IsDeleted = false,
-                            Logo = "https://media.movieofthenight.com/services/hulu/logo-dark-theme.svg",
+                            LightLogo = "https://media.movieofthenight.com/services/hulu/logo-light-theme.svg",
                             Name = "Hulu"
                         },
                         new
                         {
                             ServiceID = "3",
+                            DarkLogo = "https://media.movieofthenight.com/services/max/logo-dark-theme.svg",
                             IsDeleted = false,
-                            Logo = "https://media.movieofthenight.com/services/max/logo-dark-theme.svg",
+                            LightLogo = "https://media.movieofthenight.com/services/max/logo-light-theme.svg",
                             Name = "HBO Max"
                         },
                         new
                         {
                             ServiceID = "4",
+                            DarkLogo = "https://media.movieofthenight.com/services/prime/logo-dark-theme.svg",
                             IsDeleted = false,
-                            Logo = "https://media.movieofthenight.com/services/prime/logo-dark-theme.svg",
+                            LightLogo = "https://media.movieofthenight.com/services/prime/logo-light-theme.svg",
                             Name = "Amazon Prime"
                         },
                         new
                         {
                             ServiceID = "5",
+                            DarkLogo = "https://media.movieofthenight.com/services/disney/logo-dark-theme.svg",
                             IsDeleted = false,
-                            Logo = "https://media.movieofthenight.com/services/disney/logo-dark-theme.svg",
+                            LightLogo = "https://media.movieofthenight.com/services/disney/logo-light-theme.svg",
                             Name = "Disney+"
                         },
                         new
                         {
                             ServiceID = "6",
+                            DarkLogo = "https://media.movieofthenight.com/services/apple/logo-dark-theme.svg",
                             IsDeleted = false,
-                            Logo = "https://media.movieofthenight.com/services/apple/logo-dark-theme.svg",
+                            LightLogo = "https://media.movieofthenight.com/services/apple/logo-light-theme.svg",
                             Name = "Apple TV"
                         },
                         new
                         {
                             ServiceID = "7",
+                            DarkLogo = "https://media.movieofthenight.com/services/paramount/logo-dark-theme.svg",
                             IsDeleted = false,
-                            Logo = "https://media.movieofthenight.com/services/paramount/logo-dark-theme.svg",
+                            LightLogo = "https://media.movieofthenight.com/services/paramount/logo-light-theme.svg",
                             Name = "Paramount+"
                         },
                         new
                         {
                             ServiceID = "8",
+                            DarkLogo = "https://media.movieofthenight.com/services/peacock/logo-dark-theme.svg",
                             IsDeleted = false,
-                            Logo = "https://media.movieofthenight.com/services/peacock/logo-dark-theme.svg",
+                            LightLogo = "https://media.movieofthenight.com/services/peacock/logo-light-theme.svg",
                             Name = "Peacock"
                         });
                 });

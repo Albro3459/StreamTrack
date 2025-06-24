@@ -63,7 +63,8 @@ export type GenreData = {
 
 export type StreamingServiceData = {
     name: string;
-    logo: string;
+    lightLogo: string;
+    darkLogo: string;
 };
 
 export type StreamingOptionData = {

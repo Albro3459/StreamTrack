@@ -176,7 +176,7 @@ public class Service {
             return service;
         }
 
-        service = new StreamingService(dto.Name, dto.Logo);
+        service = new StreamingService(dto.Name, dto.LightLogo, dto.DarkLogo);
         await context.StreamingService.AddAsync(service);
         await context.SaveChangesAsync();
 

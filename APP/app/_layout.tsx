@@ -243,11 +243,14 @@ export default function RootLayout() {
                 options={() => ({
                 title: "Profile",
                 headerBackButtonDisplayMode: "minimal",
-                headerTintColor: "black",
+                headerTintColor: "white",
                 headerTitleStyle: {
                     fontSize: 24,
-                    color: Colors.backgroundColor,
+                    color: "white",
                 },
+                headerStyle: {
+                        backgroundColor: Colors.unselectedColor,
+                    },
             })}/>
             
         </Stack>

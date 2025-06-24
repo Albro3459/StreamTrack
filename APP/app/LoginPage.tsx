@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     input: {
         height: 50,
         borderRadius: 10,
-        backgroundColor: Colors.reviewTextColor,
+        backgroundColor: Colors.grayCell,
         paddingHorizontal: 15,
         marginBottom: 15,
         fontSize: 16,

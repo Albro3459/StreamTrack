@@ -81,7 +81,7 @@ export default function ProfilePage() {
                     {/* First container */}
                     <View style={[styles.container]}>
                         <View style={[styles.labelContainer, {paddingTop: 10}]}>
-                            <Text style={styles.labelText}>First Name:</Text>
+                            <Text style={styles.labelText}>First Name</Text>
                         </View>
                         <TextInput
                             style={[styles.textField, firstNameText && firstNameText.length > 0 ? styles.selectedTextBox : null]}
@@ -89,7 +89,7 @@ export default function ProfilePage() {
                             onChangeText={(newText) => {setFirstNameText(newText); setIsEditing(true);}}
                         />
                         <View style={styles.labelContainer}>
-                            <Text style={styles.labelText}>Last Name:</Text>
+                            <Text style={styles.labelText}>Last Name</Text>
                         </View>
                         <TextInput
                             style={[styles.textField, lastNameText && lastNameText.length > 0 ? styles.selectedTextBox : null]}
@@ -98,9 +98,7 @@ export default function ProfilePage() {
                         />
 
                         <View style={styles.labelContainer}>
-                            <Text style={styles.labelText}>Favorite Genres:</Text>
-                            <View style={{ flex: 1, flexDirection: "row", justifyContent: "flex-end" }}>
-                            </View>
+                            <Text style={styles.labelText}>Favorite Genres</Text>
                         </View>
                         <View style={styles.pressableContainer}>
                             <PressableBubblesGroup
@@ -113,9 +111,7 @@ export default function ProfilePage() {
                         </View>
 
                         <View style={styles.labelContainer}>
-                            <Text style={styles.labelText}>Streaming Services:</Text>
-                            <View style={{ flex: 1, flexDirection: "row", justifyContent: "flex-end" }}>
-                            </View>
+                            <Text style={styles.labelText}>Streaming Services</Text>
                         </View>
                         <View style={styles.pressableContainer}>
                             <PressableBubblesGroup
@@ -135,11 +131,11 @@ export default function ProfilePage() {
                         {/* Button */}
                         { isEditing ? (
                             <Pressable style={styles.button} onPress={async () => await saveProfile(firstNameText, lastNameText, selectedGenres, selectedStreamingServices)}>
-                                <Text style={{ color: Colors.tabBarColor, fontWeight: "bold", fontSize: 30 }}>Save</Text>
+                                <Text style={styles.buttonText}>Save</Text>
                             </Pressable>
                         ) : (
                             <Pressable style={styles.button} onPress={async () => { await LogOut(auth); router.push('/LoginPage');}}>
-                                <Text style={{ color: Colors.tabBarColor, fontWeight: "bold", fontSize: 30 }}>Logout</Text>
+                                <Text style={styles.buttonText}>Logout</Text>
                             </Pressable>
                         )}
                     </View>
@@ -160,7 +156,7 @@ export default function ProfilePage() {
 
 const styles = StyleSheet.create({
     background: {
-        backgroundColor: Colors.unselectedColor,
+        backgroundColor: Colors.backgroundColor,
         padding: "5%",
     },
     image: {
@@ -183,15 +179,22 @@ const styles = StyleSheet.create({
         marginTop: -35,
     },
     container: {
-        backgroundColor: "white",
-        paddingVertical: "4%",
+        backgroundColor: Colors.cardBackgroundColor,
+        paddingVertical: "3%",
         borderRadius: 15,
         marginVertical: "5%",
-        marginTop: "10%"
+        marginTop: "10%",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 5,
     },
+
     labelContainer: {
         flexDirection: "row",
         paddingRight: "5%",
+        paddingBottom: 5,
     },
     pressableContainer: {
         flexWrap: "wrap",
@@ -204,37 +207,37 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     textField: {
-        backgroundColor: Colors.unselectedColor,
+        backgroundColor: Colors.grayCell,
         width: "90%",
         height: 50,
         borderRadius: 15,
         marginBottom: 20,
         fontSize: 18,
-        color: Colors.unselectedTextColor,
+        color: Colors.cardBackgroundColor,
         padding: 10,
         textAlign: "left",
         alignSelf: "center",
     },
     textBox: {
-        backgroundColor: Colors.unselectedColor,
+        backgroundColor: Colors.grayCell,
         width: "90%",
         minHeight: 200,
         borderRadius: 15,
         marginBottom: 20,
         fontSize: 18,
-        color: Colors.unselectedTextColor,
+        color: Colors.cardBackgroundColor,
         padding: 15,
         textAlignVertical: "top",
         alignSelf: "center",
     },
     selectedTextBox: {
-        color: "white",
-        backgroundColor: Colors.selectedColor,
-        shadowColor: "black",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
+        // color: "#fff", // White text
+        // backgroundColor: Colors.selectedColor,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
         shadowRadius: 4,
-        elevation: 5, // for Android
+        elevation: 5,
     },
     nameText: {
         fontSize: 35,
@@ -242,12 +245,11 @@ const styles = StyleSheet.create({
         padding: "1%",
     },
     labelText: {
-        color: "black",
+        color: "#fff",
         fontSize: 20,
         fontFamily: RalewayFont,
-        // alignSelf: "flex-start",
         paddingBottom: 5,
-        paddingLeft: "8%",
+        paddingLeft: "7%",
     },
     separatorLine: {
         width: "90%",
@@ -258,17 +260,17 @@ const styles = StyleSheet.create({
     },
     pressableBubble: {
         borderRadius: 30,
-        backgroundColor: Colors.unselectedColor,
+        backgroundColor: Colors.grayCell,
         padding: "4%",
         justifyContent: 'center',
         alignItems: 'center', 
     },
     pressableText: {
         fontSize: 16,
-        color: Colors.unselectedTextColor,
+        color: Colors.cardBackgroundColor,
     },
     selectedBubble: {
-        backgroundColor: Colors.selectedColor,
+        backgroundColor: Colors.unselectedColor,
         shadowColor: "black",
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.3,
@@ -285,38 +287,23 @@ const styles = StyleSheet.create({
         alignItems: "center"
     },
     button: {
-        backgroundColor: "white",
-        paddingVertical: 10,
-        paddingHorizontal: 10,
-        borderRadius: 10,
+        backgroundColor: Colors.unselectedColor,
+        padding: 10,
+        borderRadius: 5,
         marginTop: 10,
         width: 120,
-        height: 60,
+        height: 50,
         justifyContent: "center",
         alignItems: "center",
-    },
-    dateContainer: {
-        backgroundColor: Colors.unselectedColor,
-        width: "90%",
-        height: 50,
-        borderRadius: 15,
-        marginBottom: 20,
-        padding: 10,
-        alignContent: "flex-start",
-        alignSelf: "center",
-        justifyContent: "center",
         shadowColor: "black",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
         shadowRadius: 4,
-        elevation: 5, // for Android
+        elevation: 5,
     },
-    selectedDateContainer: {
-        backgroundColor: Colors.selectedColor,
-    },
-    datePicker: {
-        borderRadius: 15,
-        alignSelf: "flex-start",
-        overflow: "hidden",
+    buttonText: {
+        color: "#fff",
+        fontWeight: "bold",
+        fontSize: 24,
     },
 });

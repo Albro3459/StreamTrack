@@ -57,7 +57,8 @@ namespace StreamTrack.Migrations
                 {
                     ServiceID = table.Column<string>(type: "TEXT", nullable: false),
                     Name = table.Column<string>(type: "TEXT", nullable: false),
-                    Logo = table.Column<string>(type: "TEXT", nullable: false),
+                    LightLogo = table.Column<string>(type: "TEXT", nullable: false),
+                    DarkLogo = table.Column<string>(type: "TEXT", nullable: false),
                     IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
@@ -269,17 +270,17 @@ namespace StreamTrack.Migrations
 
             migrationBuilder.InsertData(
                 table: "StreamingService",
-                columns: new[] { "ServiceID", "IsDeleted", "Logo", "Name" },
+                columns: new[] { "ServiceID", "DarkLogo", "IsDeleted", "LightLogo", "Name" },
                 values: new object[,]
                 {
-                    { "1", false, "https://media.movieofthenight.com/services/netflix/logo-dark-theme.svg", "Netflix" },
-                    { "2", false, "https://media.movieofthenight.com/services/hulu/logo-dark-theme.svg", "Hulu" },
-                    { "3", false, "https://media.movieofthenight.com/services/max/logo-dark-theme.svg", "HBO Max" },
-                    { "4", false, "https://media.movieofthenight.com/services/prime/logo-dark-theme.svg", "Amazon Prime" },
-                    { "5", false, "https://media.movieofthenight.com/services/disney/logo-dark-theme.svg", "Disney+" },
-                    { "6", false, "https://media.movieofthenight.com/services/apple/logo-dark-theme.svg", "Apple TV" },
-                    { "7", false, "https://media.movieofthenight.com/services/paramount/logo-dark-theme.svg", "Paramount+" },
-                    { "8", false, "https://media.movieofthenight.com/services/peacock/logo-dark-theme.svg", "Peacock" }
+                    { "1", "https://media.movieofthenight.com/services/netflix/logo-dark-theme.svg", false, "https://media.movieofthenight.com/services/netflix/logo-light-theme.svg", "Netflix" },
+                    { "2", "https://media.movieofthenight.com/services/hulu/logo-dark-theme.svg", false, "https://media.movieofthenight.com/services/hulu/logo-light-theme.svg", "Hulu" },
+                    { "3", "https://media.movieofthenight.com/services/max/logo-dark-theme.svg", false, "https://media.movieofthenight.com/services/max/logo-light-theme.svg", "HBO Max" },
+                    { "4", "https://media.movieofthenight.com/services/prime/logo-dark-theme.svg", false, "https://media.movieofthenight.com/services/prime/logo-light-theme.svg", "Amazon Prime" },
+                    { "5", "https://media.movieofthenight.com/services/disney/logo-dark-theme.svg", false, "https://media.movieofthenight.com/services/disney/logo-light-theme.svg", "Disney+" },
+                    { "6", "https://media.movieofthenight.com/services/apple/logo-dark-theme.svg", false, "https://media.movieofthenight.com/services/apple/logo-light-theme.svg", "Apple TV" },
+                    { "7", "https://media.movieofthenight.com/services/paramount/logo-dark-theme.svg", false, "https://media.movieofthenight.com/services/paramount/logo-light-theme.svg", "Paramount+" },
+                    { "8", "https://media.movieofthenight.com/services/peacock/logo-dark-theme.svg", false, "https://media.movieofthenight.com/services/peacock/logo-light-theme.svg", "Peacock" }
                 });
 
             migrationBuilder.CreateIndex(

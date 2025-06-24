@@ -63,7 +63,7 @@ export const PressableBubblesGroup: React.FC<PressableBubbleGroupProps> = ({ lab
             ]}
         >
             <SvgUri
-                uri={service.logo}
+                uri={selectedLabels.has(service.name) ? service.darkLogo : service.lightLogo}
                 width={serviceLogoSize}
                 height={serviceLogoSize}
                 style={{marginBottom: 5}}
