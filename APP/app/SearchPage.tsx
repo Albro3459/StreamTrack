@@ -1,5 +1,5 @@
 import { Colors } from '@/constants/Colors';
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TextInput, FlatList, Image, StyleSheet, Pressable, Keyboard, Dimensions, ActivityIndicator } from 'react-native';
 import Heart from './components/heartComponent';
 import { router } from 'expo-router';
@@ -9,7 +9,7 @@ import { TMDBSearch } from './helpers/contentAPIHelper';
 import { TMDB_Content, TMDB, MEDIA_TYPE } from './types/tmdbType';
 import { useUserDataStore } from './stores/userDataStore';
 import { ListData } from './types/dataTypes';
-import { FAVORITE_TAB, findAndMoveTMDBItemToList, isTMDBItemInList } from './helpers/StreamTrack/listHelper';
+import { delayedMoveTMDBItemToList, FAVORITE_TAB, isTMDBItemInList, PartialListData } from './helpers/StreamTrack/listHelper';
 import { MOVE_MODAL_DATA_ENUM, MoveModal } from './components/moveModalComponent';
 
 export type Movie = {
@@ -40,7 +40,7 @@ export default function SearchPage() {
 
     const [moveModalVisible, setMoveModalVisible] = useState(false);
 
-    const [lists, setLists] = useState<ListData[] | null>([...userData.listsOwned, ...userData.listsSharedWithMe]);
+    const [lists, setLists] = useState<PartialListData[] | null>([...userData.listsOwned, ...userData.listsSharedWithMe]);
 
     const [selectedMovie, setSelectedMovie] = useState<Movie>(null);
 
@@ -120,7 +120,7 @@ export default function SearchPage() {
                         //   Global.backPressLoadSearch = true;
                             router.push({
                                 pathname: '/InfoPage',
-                                params: { id: movie.tmdbID, media_type: movie.content.media_type, vertical: movie.verticalPoster, horizontal: movie.horizontalPoster },
+                                params: { id: movie.tmdbID, media_type: movie.mediaType, vertical: movie.verticalPoster, horizontal: movie.horizontalPoster },
                             });
                         }}
                         onLongPress={() => {setSelectedMovie(movie); setMoveModalVisible(true);}}
@@ -135,7 +135,7 @@ export default function SearchPage() {
                             <Heart 
                                 heartColor={isTMDBItemInList(lists, FAVORITE_TAB, movie.fullTMDBID) ? Colors.selectedHeartColor : Colors.unselectedHeartColor}
                                 size={40}
-                                onPress={async () => await findAndMoveTMDBItemToList(selectedMovie, FAVORITE_TAB, lists, setLists, setIsSearching, setMoveModalVisible)}
+                                onPress={async () => await delayedMoveTMDBItemToList(movie, FAVORITE_TAB, lists, setLists, setIsSearching, setMoveModalVisible)}
                             />
                         </View>
                     </Pressable>
@@ -147,11 +147,11 @@ export default function SearchPage() {
                     dataType={MOVE_MODAL_DATA_ENUM.TMDB}
                     selectedItem={selectedMovie}
                     lists={lists}
-                    showHeart={true}
+                    showHeart={false}
                     visibility={moveModalVisible}
                     setVisibilityFunc={setMoveModalVisible}
                     setIsLoadingFunc={setIsSearching}
-                    moveItemFunc={findAndMoveTMDBItemToList}
+                    moveItemFunc={delayedMoveTMDBItemToList}
                     isItemInListFunc={isTMDBItemInList}
                     setListsFunc={setLists}
                 />

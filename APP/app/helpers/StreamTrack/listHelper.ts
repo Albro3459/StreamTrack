@@ -5,6 +5,7 @@ import { auth } from "@/firebaseConfig";
 import { setUserData, useUserDataStore } from "@/app/stores/userDataStore";
 import { RapidAPIGetByTMDBID } from "../contentAPIHelper";
 import { Movie } from "@/app/SearchPage";
+import { CACHE, FetchCache } from "../cacheHelper";
 
 export const FAVORITE_TAB = "Favorites";
 
@@ -15,15 +16,14 @@ export const isItemInList = (lists: ListData[], listName: string, contentID: str
     return list.contents.some(c => c.contentID === contentID);
 };
 
-export const isTMDBItemInList = (lists: ListData[], listName: string, fullTMDBID: string) => {
-    const list: ListData = lists.find(l => l.listName === listName);
+export const isTMDBItemInList = (lists: ListData[] | PartialListData[], listName: string, fullTMDBID: string): boolean => {
+    const list: ListData | PartialListData = lists.find(l => l.listName === listName);
     if (!list) return false;
-
     return list.contents.some(c => c.tmdb_ID === fullTMDBID);
 };
 
 // Sorts the lists so just favorite tab is first. That's literally it. Used on the library page to keep the heart on the left
-export const sortLists = (lists: ListData[]) => {
+export const sortLists = <T extends { listName: string }>(lists: T[]): T[] => {
     return [...lists].sort((a, b) => {
         if (a.listName === FAVORITE_TAB) return -1;
         if (b.listName === FAVORITE_TAB) return 1;
@@ -31,48 +31,134 @@ export const sortLists = (lists: ListData[]) => {
     });
 };
 
-export const findAndMoveTMDBItemToList = async (movie: Movie, listName: string, lists: ListData[], 
-                                setLists: React.Dispatch<React.SetStateAction<ListData[]>>,
+export type PartialListData = {
+    isOwner: boolean;
+    listName: string;
+    contents: ContentData[] | Partial<ContentData>[];
+    // permission: string;
+};
+
+export const delayedMoveTMDBItemToList = async (movie: Movie, listName: string, lists: PartialListData[], 
+                                setLists: React.Dispatch<React.SetStateAction<PartialListData[]>>,
                                 setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
                                 setMoveModalVisible: React.Dispatch<React.SetStateAction<boolean>>        
 ) => {
-    const content: ContentData = await RapidAPIGetByTMDBID(movie.tmdbID, movie.mediaType, movie.verticalPoster, movie.horizontalPoster);
-    await moveItemToList(content, listName, lists, setLists, setIsLoading, setMoveModalVisible);
+    // Responds with the updated list immediately, but it updates the lists behind the scenes! (Possible race conditions but it makes for a faster UI)
+        // The commit before this possible race condition is 620e70d81d65cf458de2f1fc757b31544dd969f7
+
+    // Only works for user owned lists for now
+
+    try {
+        setIsLoading(true);
+        let list: PartialListData = lists.find(l => l.listName === listName);
+        if (!list) {
+            return;
+        }
+        const user: User | null = auth.currentUser;
+        if (!user) {
+            return;
+        }
+        const fakeContent: Partial<ContentData> = {
+            tmdb_ID: movie.fullTMDBID
+        };
+        
+        let contents: Partial<ContentData>[] = [];
+        if (list.contents.some(c => c.tmdb_ID === movie.fullTMDBID)) {
+            console.log("Remove");
+            // Remove
+            contents = list.contents.filter(c => c.tmdb_ID !== movie.fullTMDBID);
+        }
+        else { // Add
+            console.log("Add");
+            contents = [...list.contents, fakeContent];
+        }
+
+        const partialList: PartialListData = {
+            ...list,
+            contents: contents
+        };
+
+        if (partialList) {
+            setLists(prev => {
+                const newLists = prev.map(l => l.listName === listName ? partialList : l);
+                return sortLists(newLists);
+            });
+            
+            findAndMoveTMDBItemToList(movie, listName, lists); // Fire and forget :)
+        }
+    } catch (e: any) {
+        console.log("Error fake move TMDB item func: ", e);
+    } finally {
+        setIsLoading(false);
+        setMoveModalVisible(false);
+    }
 };
 
-export const moveItemToList = async (content: ContentData, listName: string, lists: ListData[], 
+export const findAndMoveTMDBItemToList = async (movie: Movie, listName: string, lists: PartialListData[]) => {
+    const content: ContentData = await RapidAPIGetByTMDBID(movie.tmdbID, movie.mediaType, movie.verticalPoster, movie.horizontalPoster);
+    await moveItemToList(content, listName, lists);
+};
+
+export const moveItemToList = async (content: ContentData, listName: string, lists: PartialListData[]) => {
+    // console.log("Moving!");
+    // Only works for user owned lists for now
+    let partialList: PartialListData = lists.find(l => l.listName === listName);
+    if (!partialList) {
+        return;
+    }
+    const user: User | null = auth.currentUser;
+    if (!user) {
+        return;
+    }
+    const token = await user.getIdToken();
+    const list: ListData = partialList.contents.some(c => c.contentID === content.contentID) ? 
+            await removeContentFromUserList(token, partialList.listName, content.contentID)
+            :
+            await addContentToUserList(token, partialList.listName, content);
+    if (list) {
+        const userData: UserData = useUserDataStore.getState().userData;
+        userData.listsOwned = userData.listsOwned.filter(l => l.listName !== list.listName);
+        userData.listsOwned.push(list);
+        setUserData(userData, true);
+        console.log("LISTS UPDATED\n");
+    }
+};
+
+export const moveItemToListWithFuncs = async (content: ContentData, listName: string, lists: ListData[], 
                                 setLists: React.Dispatch<React.SetStateAction<ListData[]>>,
                                 setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
                                 setMoveModalVisible: React.Dispatch<React.SetStateAction<boolean>>        
 ) => {
     // Only works for user owned lists for now
-    setIsLoading(true);
-    let list: ListData = lists.find(l => l.listName === listName);
-    if (!list) {
+
+    try {
+        setIsLoading(true);
+        let list: ListData = lists.find(l => l.listName === listName);
+        if (!list) {
+            return;
+        }
+        const user: User | null = auth.currentUser;
+        if (!user) {
+            return;
+        }
+        const token = await user.getIdToken();
+        list = list.contents.some(c => c.contentID === content.contentID) ? 
+                await removeContentFromUserList(token, list.listName, content.contentID)
+                :
+                await addContentToUserList(token, list.listName, content);
+        if (list) {
+            const userData: UserData = useUserDataStore.getState().userData;
+            userData.listsOwned = userData.listsOwned.filter(l => l.listName !== list.listName);
+            userData.listsOwned.push(list);
+            setLists(sortLists([...userData.listsOwned, ...userData.listsSharedWithMe]));
+            setUserData(userData, true);
+        }
+    } catch (e: any) {
+        console.log("Error move item func: ", e);
+    } finally {
         setIsLoading(false);
         setMoveModalVisible(false);
-        return;
     }
-    const user: User | null = auth.currentUser;
-    if (!user) {
-        setIsLoading(false);
-        setMoveModalVisible(false);
-        return;
-    }
-    const token = await user.getIdToken();
-    list = list.contents.some(c => c.contentID === content.contentID) ? 
-            await removeContentFromUserList(token, list.listName, content.contentID)
-            :
-            await addContentToUserList(token, list.listName, content);
-    if (list) {
-        const userData: UserData = useUserDataStore.getState().userData;
-        userData.listsOwned = userData.listsOwned.filter(l => l.listName !== list.listName);
-        userData.listsOwned.push(list);
-        setLists(sortLists([...userData.listsOwned, ...userData.listsSharedWithMe]));
-        setUserData(userData);
-    }
-    setIsLoading(false);
-    setMoveModalVisible(false);
 };
 
 export const addContentToUserList = async (token: string | null, listName: string, content: ContentData) => {

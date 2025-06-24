@@ -12,7 +12,7 @@ import { MEDIA_TYPE } from './types/tmdbType';
 import { RapidAPIGetByTMDBID } from './helpers/contentAPIHelper';
 import { ContentData, ListData, StreamingOptionData, StreamingServiceData } from './types/dataTypes';
 import { useUserDataStore } from './stores/userDataStore';
-import { FAVORITE_TAB, isItemInList, moveItemToList } from './helpers/StreamTrack/listHelper';
+import { FAVORITE_TAB, isItemInList, moveItemToListWithFuncs } from './helpers/StreamTrack/listHelper';
 import { MOVE_MODAL_DATA_ENUM, MoveModal } from './components/moveModalComponent';
 
 const screenWidth = Dimensions.get("window").width;
@@ -264,14 +264,14 @@ export default function InfoPage() {
                     visibility={listModalVisible}
                     setVisibilityFunc={setListModalVisible}
                     setIsLoadingFunc={setIsLoading}
-                    moveItemFunc={moveItemToList}
+                    moveItemFunc={moveItemToListWithFuncs}
                     isItemInListFunc={isItemInList}
                     setListsFunc={setLists}
                 />
                 <Heart 
-                    heartColor={isItemInList(lists, FAVORITE_TAB, contentID) ? Colors.selectedHeartColor : Colors.unselectedHeartColor}
+                    heartColor={isItemInList(lists, FAVORITE_TAB, contentID ? contentID : content ? content.contentID : "") ? Colors.selectedHeartColor : Colors.unselectedHeartColor}
                     size={45}
-                    onPress={async () => await moveItemToList(content, FAVORITE_TAB, lists, setLists, setIsLoading, setListModalVisible)}
+                    onPress={async () => await moveItemToListWithFuncs(content, FAVORITE_TAB, lists, setLists, setIsLoading, setListModalVisible)}
                 />
                 </View>
             </View>

@@ -19,9 +19,9 @@ export const fetchUserData = (token: string) => {
 };
 export const clearUserData = () => useUserDataStore.getState().clearUserData();
 
-export const setUserData = (data: UserData) => {
+export const setUserData = (data: UserData, force: boolean = false) => {
     const store = useUserDataStore.getState();
-    if (store.loading) return;
+    if (!force && store.loading) return;
     store.clearUserData();
     store.setUserData(data);
 }
