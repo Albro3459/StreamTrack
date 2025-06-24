@@ -9,6 +9,15 @@ import { CACHE, FetchCache } from "../cacheHelper";
 
 export const FAVORITE_TAB = "Favorites";
 
+// Sorts the lists so the favorite tab is first and alphabetical order
+export const sortLists = <T extends { listName: string }>(lists: T[]): T[] => {
+    return [...lists].sort((a, b) => {
+        if (a.listName === FAVORITE_TAB) return -1;
+        if (b.listName === FAVORITE_TAB) return 1;
+        return a.listName.localeCompare(b.listName);
+    });
+};
+
 export const isItemInList = (lists: ListData[], listName: string, contentID: string) => {
     const list: ListData = lists.find(l => l.listName === listName);
     if (!list) return false;
@@ -20,15 +29,6 @@ export const isTMDBItemInList = (lists: ListData[] | PartialListData[], listName
     const list: ListData | PartialListData = lists.find(l => l.listName === listName);
     if (!list) return false;
     return list.contents.some(c => c.tmdb_ID === fullTMDBID);
-};
-
-// Sorts the lists so just favorite tab is first. That's literally it. Used on the library page to keep the heart on the left
-export const sortLists = <T extends { listName: string }>(lists: T[]): T[] => {
-    return [...lists].sort((a, b) => {
-        if (a.listName === FAVORITE_TAB) return -1;
-        if (b.listName === FAVORITE_TAB) return 1;
-        return 0;
-    });
 };
 
 export type PartialListData = {

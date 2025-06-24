@@ -470,7 +470,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: LIBRARY_OVERLAY_HEIGHT,
-    backgroundColor: Colors.tabBarColor,
+    backgroundColor: Colors.unselectedColor,
     borderTopWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
@@ -482,7 +482,7 @@ const styles = StyleSheet.create({
     padding: 10,
     marginBottom: 10,
     borderRadius: 10,
-    backgroundColor: Colors.selectedTabColor, 
+    backgroundColor: Colors.cardBackgroundColor+"CC", 
     alignContent: "center",
     justifyContent: "center"
   },

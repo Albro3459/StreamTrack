@@ -6,7 +6,7 @@ import { Colors } from "@/constants/Colors";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/firebaseConfig";
 import { checkIfUserExists } from "./helpers/StreamTrack/userHelper";
-import { FetchCache } from "./helpers/cacheHelper";
+import { CACHE, FetchCache } from "./helpers/cacheHelper";
 
 export default function Index() {
     const router = useRouter();

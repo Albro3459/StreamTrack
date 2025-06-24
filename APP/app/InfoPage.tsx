@@ -137,9 +137,9 @@ export default function InfoPage() {
 
                 <Text style={[styles.sectionTitle, {marginBottom: 0} ]}>Where to Watch</Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', columnGap: 10, paddingBottom: 10}}>
-                    {content && content.streamingOptions.filter(s => !s.price).map(streamingOption => (
+                    {content && content.streamingOptions.filter(s => !s.price).map((streamingOption, index) => (
                         <Pressable
-                            key={JSON.stringify(streamingOption)}
+                            key={index+streamingOption.deepLink}
                             style={{
                                 maxWidth: screenWidth / 5,
                                 maxHeight: 50,
@@ -162,9 +162,9 @@ export default function InfoPage() {
                             />
                         </Pressable>
                     ))}
-                     {content && content.streamingOptions.filter(s => s.price).map(streamingOption => (
+                     {content && content.streamingOptions.filter(s => s.price).map((streamingOption, index) => (
                         <Pressable
-                            key={JSON.stringify(streamingOption)}
+                            key={index+streamingOption.deepLink}
                             style={{
                                 maxWidth: screenWidth / 5,
                                 maxHeight: 50,
@@ -239,126 +239,69 @@ export default function InfoPage() {
     };
 
     return (
-        <View style={styles.screen} >
-        <ScrollView showsVerticalScrollIndicator={false}>
-            <View style={styles.movieContainer}>
-            {/* Movie Poster */}
-            <Image source={{ uri: content && content.verticalPoster }} style={styles.posterImage} />
-            {/* Movie Info */}
-            <View style={styles.infoSection}>
-                <Text style={styles.title}>{title ? title : (content && content.title)}</Text>
-                <View style={styles.attributeContainer}>
-                    <Text style={[styles.text, {fontSize: 18, margin: 0, textAlignVertical: "center"}]}>
-                        {(year ? year : (content ? content.releaseYear : "1999")) + "    " + getRuntime(content)}
-                    </Text>
-                </View>
-                <View style={styles.attributeContainer} >
-                <TouchableOpacity
-                    style={styles.button}
-                    onPress={() => setListModalVisible(true)}
-                >
-                    <Text style={styles.buttonText}>Add to List</Text>
-                </TouchableOpacity>
-
-                {/* Lists */}
-                <MoveModal
-                    dataType={MOVE_MODAL_DATA_ENUM.CONTENT_DATA}
-                    selectedItem={content}
-                    lists={lists}
-                    showHeart={false}
-                    visibility={listModalVisible}
-                    setVisibilityFunc={setListModalVisible}
-                    setIsLoadingFunc={setIsLoading}
-                    moveItemFunc={moveItemToListWithFuncs}
-                    isItemInListFunc={isItemInList}
-                    setListsFunc={setLists}
-                />
-                <Heart 
-                    heartColor={isItemInList(lists, FAVORITE_TAB, contentID ? contentID : content ? content.contentID : "") ? Colors.selectedHeartColor : Colors.unselectedHeartColor}
-                    size={45}
-                    onPress={async () => await moveItemToListWithFuncs(content, FAVORITE_TAB, lists, setLists, setIsLoading, setListModalVisible)}
-                />
-                </View>
-            </View>
-            </View>
-
-            <View style={styles.tabContainer}>
-            {['About', 'Recommended'].map((tab) => (
-                <TouchableOpacity
-                key={tab}
-                style={[
-                    styles.tab,
-                    activeTab === tab && styles.activeTab,
-                ]}
-                onPress={() => setActiveTab(tab)}
-                >
-                <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
-                    {tab}
-                </Text>
-                </TouchableOpacity>
-            ))}
-            </View>
-
-            {renderTabContent()}
-        </ScrollView>
-
-        {/* Move Modal */}
-        {/* {selectedRecommendation && (
-            <Modal
-            transparent={true}
-            visible={infoModalVisible}
-            animationType="fade"
-            onRequestClose={() => setInfoModalVisible(false)}
-            >
-            <Pressable
-                style={appStyles.modalOverlay}
-                onPress={() => setInfoModalVisible(false)}
-            >
-                <View style={appStyles.modalContent}>
-                <Text style={appStyles.modalTitle}>
-                    Move "{selectedRecommendation?.title}" to:
-                </Text>
-                {selectedRecommendation && (
-                    <>
-                    Render all tabs except FAVORITE_TAB
-                    {Object.keys(lists)
-                        .filter((tab) => tab !== FAVORITE_TAB)
-                        .map((tab, index) => (
+        <View style={styles.screen}>
+            <ScrollView showsVerticalScrollIndicator={false}>
+                <View style={styles.movieContainer}>
+                {/* Movie Poster */}
+                <Image source={{ uri: content && content.verticalPoster }} style={styles.posterImage} />
+                {/* Movie Info */}
+                <View style={styles.infoSection}>
+                    <Text style={styles.title}>{title ? title : (content && content.title)}</Text>
+                    <View style={styles.attributeContainer}>
+                        <Text style={[styles.text, {fontSize: 18, textAlignVertical: "center"}]}>
+                            {(year ? year : (content ? content.releaseYear : "1999")) + "    " + getRuntime(content)}
+                        </Text>
+                    </View>
+                    <View style={[styles.attributeContainer, {marginTop: 5}]} >
                         <TouchableOpacity
-                            key={`LandingPage-${selectedRecommendation.id}-${tab}-${index}`}
-                            style={[
-                            appStyles.modalButton,
-                            isItemInList(selectedRecommendation, tab, lists) && appStyles.selectedModalButton,
-                            ]}
-                            onPress={async () => await moveItemToTab(selectedRecommendation, tab, setLists, setPosterLists, [setInfoModalVisible], null)}
+                            style={styles.button}
+                            onPress={() => setListModalVisible(true)}
                         >
-                            <Text style={appStyles.modalButtonText}>
-                            {tab} {isItemInList(selectedRecommendation, tab, lists) ? "✓" : ""}
-                            </Text>
+                            <Text style={styles.buttonText}>Save to List</Text>
                         </TouchableOpacity>
-                        ))}
-
-                    Render FAVORITE_TAB at the bottom
-                    {lists[FAVORITE_TAB] && (
-                        <View
-                        key={`LandingPage-${selectedRecommendation.id}-heart`}
-                        style={{ paddingTop: 10 }}
-                        >
-                        <Heart
-                            heartColor={
-                            heartColors[selectedRecommendation?.id] || Colors.unselectedHeartColor
-                            }
-                            size={35}
-                            onPress={async () => await moveItemToTab(selectedRecommendation, FAVORITE_TAB, setLists, setPosterLists, [setInfoModalVisible], setHeartColors)}
+                        
+                        <Heart 
+                            heartColor={isItemInList(lists, FAVORITE_TAB, contentID ? contentID : content ? content.contentID : "") ? Colors.selectedHeartColor : Colors.unselectedHeartColor}
+                            size={45}
+                            onPress={async () => await moveItemToListWithFuncs(content, FAVORITE_TAB, lists, setLists, setIsLoading, setListModalVisible)}
                         />
-                        </View>
-                    )}
-                    </>
-                )}
+                    </View>
                 </View>
-            </Pressable>
-            </Modal>
-        )} */}
+                </View>
+
+                <View style={styles.tabContainer}>
+                    {['About', 'Recommended'].map((tab) => (
+                        <TouchableOpacity
+                        key={tab}
+                        style={[
+                            styles.tab,
+                            activeTab === tab && styles.activeTab,
+                        ]}
+                        onPress={() => setActiveTab(tab)}
+                        >
+                        <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
+                            {tab}
+                        </Text>
+                        </TouchableOpacity>
+                    ))}
+                </View>
+
+                {renderTabContent()}
+            </ScrollView>
+
+            {/* Lists */}
+            <MoveModal
+                dataType={MOVE_MODAL_DATA_ENUM.CONTENT_DATA}
+                selectedItem={content}
+                lists={lists}
+                showHeart={false}
+                visibility={listModalVisible}
+                setVisibilityFunc={setListModalVisible}
+                setIsLoadingFunc={setIsLoading}
+                moveItemFunc={moveItemToListWithFuncs}
+                isItemInListFunc={isItemInList}
+                setListsFunc={setLists}
+            />
 
             {/* Overlay */}
             {isLoading && (
@@ -389,10 +332,9 @@ const styles = StyleSheet.create({
       elevation: 5, // For Android shadow
     },
     attributeContainer: {
-      flexDirection: 'row', 
-      columnGap: 15, 
-      alignContent: "center",
-      alignItems: "center"
+        flexDirection: 'row', 
+        columnGap: 15, 
+        alignItems: "center",
     },
     posterImage: {
       width: 200,
@@ -425,7 +367,6 @@ const styles = StyleSheet.create({
       flexDirection: 'row',
       columnGap: 10,
       borderRadius: 8,
-      marginTop: 16,
     },
     tab: {
       padding: 12,
@@ -473,11 +414,9 @@ const styles = StyleSheet.create({
     },
     button: {
       backgroundColor: Colors.buttonColor,
-      paddingVertical: 10,
       paddingHorizontal: 20,
       borderRadius: 10,
-      marginTop: 10,
-      width: 200,
+      width: 150,
       height: 50,
       justifyContent: "center",
       alignItems: "center",

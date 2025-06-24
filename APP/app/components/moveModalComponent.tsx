@@ -1,7 +1,7 @@
 import { appStyles } from "@/styles/appStyles";
 import { Modal, Pressable, TouchableOpacity, View, Text } from "react-native";
 import Heart from "./heartComponent";
-import { FAVORITE_TAB } from "../helpers/StreamTrack/listHelper";
+import { FAVORITE_TAB, sortLists } from "../helpers/StreamTrack/listHelper";
 import { Colors } from "@/constants/Colors";
 import { ListData } from "../types/dataTypes";
 
@@ -54,7 +54,7 @@ export const MoveModal: React.FC<MoveModalProps> = ({ dataType, selectedItem, li
                     </Text>
                     <>
                         {/* Render all tabs except FAVORITE_TAB */}
-                        {lists
+                        {sortLists(lists)
                             .filter((list) => list.listName !== FAVORITE_TAB)
                             .map((list, index) => {
                                 const isSelected = isItemInListFunc(lists, list.listName, id);
