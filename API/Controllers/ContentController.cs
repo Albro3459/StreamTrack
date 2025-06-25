@@ -44,4 +44,35 @@ public class ContentController : ControllerBase {
 
         return mapper.Map<Content, ContentDTO>(content);
     }
+
+    // POST: API/Content/BulkUpdate
+    [HttpPost("BulkUpdate")]
+    public async Task<ActionResult<ContentDTO>> BulkUpdate(List<ContentDTO> dtos) {
+        // Only the lambda user will be sending the content
+
+        string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(uid) || uid != LAMBDA.UID) {
+            return Unauthorized();
+        }
+
+        List<Content> contents = new();
+        foreach (var dto in dtos) {
+            Content? content = await context.Content.FirstOrDefaultAsync(c => c.ContentID == dto.ContentID);
+            if (content == null) {
+                content = await service.ContentDTOToContent(dto);
+                if (content != null) {
+                    contents.Add(content);
+                }
+            }
+        }
+
+        if (contents.Count == 0) return Ok();
+
+        await context.Content.AddRangeAsync(contents);
+
+        await context.SaveChangesAsync();
+
+        return Ok();
+    }
 }

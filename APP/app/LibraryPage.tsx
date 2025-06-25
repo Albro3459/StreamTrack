@@ -21,7 +21,7 @@ import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { setUserData, useUserDataStore } from './stores/userDataStore';
 import { ContentData, ListData } from './types/dataTypes';
-import { addContentToUserList, createNewUserList, FAVORITE_TAB, isItemInList, moveItemToListWithFuncs, removeContentFromUserList, sortLists } from './helpers/StreamTrack/listHelper';
+import { createNewUserList, FAVORITE_TAB, isItemInList, moveItemToListWithFuncs, sortLists } from './helpers/StreamTrack/listHelper';
 import { User } from 'firebase/auth';
 import { auth } from '@/firebaseConfig';
 import { MOVE_MODAL_DATA_ENUM, MoveModal } from './components/moveModalComponent';

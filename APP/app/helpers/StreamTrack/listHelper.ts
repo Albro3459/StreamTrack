@@ -109,7 +109,7 @@ export const moveItemToList = async (content: ContentData, listName: string, lis
         return;
     }
     const token = await user.getIdToken();
-    const list: ListData = partialList.contents.some(c => c.contentID === content.contentID) ? 
+    const list: ListData | null = partialList.contents.some(c => c.contentID === content.contentID) ? 
             await removeContentFromUserList(token, partialList.listName, content.contentID)
             :
             await addContentToUserList(token, partialList.listName, content);
@@ -158,7 +158,7 @@ export const moveItemToListWithFuncs = async (content: ContentData, listName: st
     }
 };
 
-export const addContentToUserList = async (token: string | null, listName: string, content: ContentData) => {
+export const addContentToUserList = async (token: string | null, listName: string, content: ContentData): Promise<ListData | null> => {
     try {
         if (!token) return null;
 
@@ -190,10 +190,11 @@ export const addContentToUserList = async (token: string | null, listName: strin
 
     } catch (err) {
         console.error('Adding content to list failed:', err);
+        return null;
     }
 };
 
-export const removeContentFromUserList = async (token: string | null, listName: string, contentID: string) => {
+export const removeContentFromUserList = async (token: string | null, listName: string, contentID: string): Promise<ListData | null> => {
     try {
         if (!token) return null;
 
@@ -222,10 +223,11 @@ export const removeContentFromUserList = async (token: string | null, listName: 
 
     } catch (err) {
         console.error('Removing content from list failed:', err);
+        return null;
     }
 };
 
-export const createNewUserList = async (token: string | null, listName: string) => {
+export const createNewUserList = async (token: string | null, listName: string): Promise<ListData | null> => {
     try {
         if (!token) return null;
 
@@ -254,6 +256,7 @@ export const createNewUserList = async (token: string | null, listName: string) 
 
     } catch (err) {
         console.error('Creating new list failed:', err);
+        return null;
     }
 };
 
