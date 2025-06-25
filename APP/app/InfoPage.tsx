@@ -156,7 +156,7 @@ export default function InfoPage() {
                             }}
                         >
                             <SvgUri
-                                uri={streamingOption.streamingService.logo}
+                                uri={streamingOption.streamingService.darkLogo}
                                 width={screenWidth / 5}
                                 height={screenWidth / 5}
                             />
@@ -181,7 +181,7 @@ export default function InfoPage() {
                             }}
                         >
                             <SvgUri
-                                uri={streamingOption.streamingService.logo}
+                                uri={streamingOption.streamingService.darkLogo}
                                 width={screenWidth / 5}
                                 height={screenWidth / 5}
                             />
@@ -294,6 +294,7 @@ export default function InfoPage() {
                 dataType={MOVE_MODAL_DATA_ENUM.CONTENT_DATA}
                 selectedItem={content}
                 lists={lists}
+                showLabel={false}
                 showHeart={false}
                 visibility={listModalVisible}
                 setVisibilityFunc={setListModalVisible}
@@ -373,7 +374,7 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       borderTopLeftRadius: 8,
       borderTopRightRadius: 8,
-      backgroundColor: Colors.unselectedColor,
+      backgroundColor: Colors.selectedColor,
     },
     activeTab: {
       backgroundColor: Colors.selectedColor,
@@ -433,7 +434,7 @@ const styles = StyleSheet.create({
       alignItems: "center",
     },
     modalContent: {
-      backgroundColor: Colors.cardBackgroundColor,
+      backgroundColor: Colors.altBackgroundColor,
       borderRadius: 10,
       padding: 20,
       width: screenWidth*0.8,
@@ -445,7 +446,7 @@ const styles = StyleSheet.create({
       elevation: 5,
     },
     optionPressable: {
-      backgroundColor: Colors.unselectedColor,
+      backgroundColor: Colors.selectedColor,
       width: "90%",
       borderRadius: 10,
       margin: 5

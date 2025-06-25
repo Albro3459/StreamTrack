@@ -19,45 +19,41 @@ export default function LoginPage() {
 
     // Main submit handler
     const handleAuth = async () => {
-        if (!email.includes("@") || !email.includes(".")) {
-            Alert.alert("Invalid email", "Enter a valid email address.");
-            return;
-        }
-        if (!password) {
-            Alert.alert("Missing password", "Enter a password.");
-            return;
-        }
-        if (isSignUp) {
-            if (password !== confirmPassword) {
-                Alert.alert("Error", "Passwords do not match.");
+        try {
+            if (!email.includes("@") || !email.includes(".")) {
+                Alert.alert("Invalid email", "Enter a valid email address.");
                 return;
             }
-            if (password.length < 6) {
-                Alert.alert("Error", "Password must be at least 6 characters.");
+            if (!password) {
+                Alert.alert("Missing password", "Enter a password.");
                 return;
             }
-            try {
+            if (isSignUp) {
+                if (password !== confirmPassword) {
+                    Alert.alert("Error", "Passwords do not match.");
+                    return;
+                }
+                if (password.length < 6) {
+                    Alert.alert("Error", "Password must be at least 6 characters.");
+                    return;
+                }
+                
                 setSigning(true);
-                await SignUp(auth, email, password);
-                setSigning(false);
-
+                await SignUp(auth, email.trim(), password);
                 router.replace({
                     pathname: '/ProfilePage',
                     params: { isSigningUp: 1 }, // Have to pass as number or string
                 });
-            } catch (e: any) {
-                Alert.alert("Sign Up Failed", e.message);
-            }
-        } else {
-            try {
-                setSigning(true);
-                await SignIn(auth, email, password);
-                setSigning(false);
                 
+            } else {
+                setSigning(true);
+                await SignIn(auth, email.trim(), password);
                 router.replace("/LandingPage");
-            } catch (e: any) {
-                Alert.alert("Sign In Failed", e.message);
             }
+        } catch (e: any) {
+            Alert.alert(`Sign ${isSignUp ? "Up" : "In"} Failed`, e.message);
+        } finally {
+            setSigning(false);
         }
     };
 
@@ -78,6 +74,7 @@ export default function LoginPage() {
                     placeholder="Password"
                     value={password}
                     onChangeText={setPassword}
+                    onSubmitEditing={() => {!isSignUp && handleAuth()}}
                     secureTextEntry
                 />
                 {isSignUp ? (
@@ -86,6 +83,7 @@ export default function LoginPage() {
                         placeholder="Confirm Password"
                         value={confirmPassword}
                         onChangeText={setConfirmPassword}
+                        onSubmitEditing={() => {isSignUp && handleAuth()}}
                         secureTextEntry
                     />
                 ) : (
@@ -99,17 +97,19 @@ export default function LoginPage() {
                     </View>
                 )}
             </View>
-            <TouchableOpacity style={styles.button} onPress={handleAuth}>
-                <Text style={styles.buttonText}>{isSignUp ? "Sign Up" : "Sign In"}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-                style={[styles.button, styles.secondaryButton]}
-                onPress={() => setIsSignUp(!isSignUp)}
-            >
-                <Text style={[styles.buttonText, styles.secondaryButtonText]}>
-                    {isSignUp ? "Back to Sign In" : "Sign Up Instead"}
-                </Text>
-            </TouchableOpacity>
+            <View style={styles.buttonContainer}>
+                <TouchableOpacity style={styles.button} onPress={handleAuth}>
+                    <Text style={styles.buttonText}>{isSignUp ? "Sign Up" : "Sign In"}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                    style={[styles.button, styles.secondaryButton]}
+                    onPress={() => setIsSignUp(!isSignUp)}
+                >
+                    <Text style={[styles.buttonText, styles.secondaryButtonText]}>
+                        {isSignUp ? "Sign In" : "Sign Up"}
+                    </Text>
+                </TouchableOpacity>
+            </View>
 
             {/* Overlay */}
             {signing && (
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     },
     inputContainer: {
         marginBottom: 32,
-        backgroundColor: Colors.cardBackgroundColor,
+        backgroundColor: Colors.altBackgroundColor,
         borderRadius: 15,
         padding: 18,
         shadowColor: "#000",
@@ -167,10 +167,14 @@ const styles = StyleSheet.create({
         fontStyle: "italic",
         textDecorationLine: "underline"
     },
+    buttonContainer: {
+        alignItems: "center",
+    },
     button: {
         backgroundColor: Colors.buttonColor,
+        width: 140,
         borderRadius: 10,
-        paddingVertical: 16,
+        paddingVertical: 14,
         alignItems: "center",
         marginBottom: 15,
         shadowRadius: 10,
@@ -180,12 +184,12 @@ const styles = StyleSheet.create({
         elevation: 5,
     },
     buttonText: {
-        color: Colors.unselectedTextColor,
+        color: Colors.selectedTextColor,
         fontSize: 18,
         fontWeight: "600"
     },
     secondaryButton: {
-        backgroundColor: Colors.cardBackgroundColor,
+        backgroundColor: Colors.altBackgroundColor,
         borderWidth: 1,
         borderColor: Colors.buttonColor,
     },

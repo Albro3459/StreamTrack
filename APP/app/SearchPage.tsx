@@ -116,6 +116,7 @@ export default function SearchPage() {
                     ref={flatListRef}
                     data={movies}
                     keyExtractor={(item) => item.tmdbID}
+                    showsVerticalScrollIndicator={false}
                     renderItem={({ item: movie }) => (
                     <Pressable
                         onPress={() => {
@@ -131,7 +132,7 @@ export default function SearchPage() {
                             <Image source={{ uri: movie.verticalPoster }} style={appStyles.cardPoster} />
                             <View style={appStyles.cardContent}>
                                 <Text style={appStyles.cardTitle}>{movie.title}</Text>
-                                <Text style={appStyles.cardDescription}>{movie.content.overview}</Text>
+                                <Text style={appStyles.cardDescription} numberOfLines={4}>{movie.content.overview}</Text>
                                 <Text style={appStyles.cardRating}>⭐ {movie.rating}</Text>
                             </View>
                             <Heart 
@@ -178,31 +179,12 @@ const styles = StyleSheet.create({
         paddingBottom: 70
     },
     searchBar: {
-        backgroundColor: Colors.cardBackgroundColor,
+        backgroundColor: Colors.altBackgroundColor,
         paddingVertical: 10,
         paddingHorizontal: 15,
         borderRadius: 10,
         color: '#FFFFFF',
         marginBottom: 20,
-        fontSize: 16,
-    },
-
-    loadingOverlay: {
-        ...StyleSheet.absoluteFillObject,
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    loadingContainer: {
-        backgroundColor: '#222',
-        padding: 20,
-        borderRadius: 10,
-        alignItems: 'center',
-    },
-    loadingText: {
-        color: '#fff',
-        marginTop: 10,
         fontSize: 16,
     },
 });

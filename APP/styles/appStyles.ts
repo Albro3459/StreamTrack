@@ -32,7 +32,7 @@ export const appStyles = StyleSheet.create({
     
     reviewCard: {
         flexDirection: "row",
-        backgroundColor: Colors.cardBackgroundColor,
+        backgroundColor: Colors.altBackgroundColor,
         borderRadius: 10,
         padding: 10,
         marginBottom: 10,
@@ -70,7 +70,7 @@ export const appStyles = StyleSheet.create({
       cardContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: Colors.cardBackgroundColor,
+        backgroundColor: Colors.altBackgroundColor,
         borderRadius: 10,
         marginBottom: 15,
         padding: 10,
@@ -112,7 +112,7 @@ export const appStyles = StyleSheet.create({
         alignItems: "center",
     },
     modalContent: {
-        backgroundColor: Colors.cardBackgroundColor,
+        backgroundColor: Colors.altBackgroundColor,
         borderRadius: 10,
         padding: 20,
         width: "67%",
@@ -130,7 +130,7 @@ export const appStyles = StyleSheet.create({
         marginBottom: 10,
     },
     optionPressable: {
-        backgroundColor: Colors.unselectedColor,
+        backgroundColor: Colors.selectedColor,
         width: "90%",
         borderRadius: 10,
         margin: 5,
@@ -155,16 +155,15 @@ export const appStyles = StyleSheet.create({
         alignItems: 'center',
     },
     selectedModalButton: {
-        backgroundColor: Colors.unselectedColor,
+        backgroundColor: Colors.selectedColor,
     },
     modalButtonText: {
-        color: Colors.cardBackgroundColor,
-        fontWeight: 'bold',
+        color: Colors.altBackgroundColor,
         fontSize: 16,
     },
     selectedModalButtonText: {
         color: "white",
-        fontWeight: 'bold',
+        fontWeight: "600",
         fontSize: 16,
     },
 });

@@ -125,9 +125,9 @@ export default function LibraryPage() {
     };
 
     return (
-        <View style={{ flex: 1, backgroundColor: Colors.backgroundColor }}>
+        <View style={styles.container}>
             {/* Tab Bar */}
-            <View style={[styles.tabBar, {flexDirection: 'row'}, (lists && lists.length <= 4) && {paddingLeft: 24}]}>
+            <View style={[styles.tabBar, (lists && lists.length <= 4) && {paddingLeft: 24}]}>
                 <FlatList<string>
                     data={lists.map(l => l.listName)}
                     horizontal
@@ -155,9 +155,7 @@ export default function LibraryPage() {
                     )}
                 />
                 <Pressable onPress={() => setCreateNewListModal(true)} >
-                    <View style={{ paddingLeft: 10}}>
                         <Ionicons name="add-circle-outline" size={35} color="white" />
-                    </View> 
                 </Pressable>
             </View>
                 
@@ -216,6 +214,7 @@ export default function LibraryPage() {
                 dataType={MOVE_MODAL_DATA_ENUM.CONTENT_DATA}
                 selectedItem={selectedContentData}
                 lists={lists}
+                showLabel={false}
                 visibility={moveModalVisible}
                 setVisibilityFunc={setMoveModalVisible}
                 setIsLoadingFunc={setIsLoading}
@@ -245,13 +244,15 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 18,
     },
+    container: { flex: 1, backgroundColor: Colors.backgroundColor },
     tabBar: {
         flexDirection: 'row',
         backgroundColor: Colors.backgroundColor,
-        justifyContent: 'center',
-        alignItems: "center",
-        paddingVertical: 10,
-        paddingHorizontal: 15,
+        // justifyContent: 'center',
+        // alignItems: "center",
+        paddingVertical: 15,
+        paddingLeft: 15,
+        paddingRight: "3.5%",
     },
     tabItem: {
         // minWidth: 10,
@@ -262,7 +263,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
     },
-    activeTabItem: { backgroundColor: Colors.cardBackgroundColor },
+    activeTabItem: { backgroundColor: Colors.altBackgroundColor },
     tabText: { 
         color: Colors.reviewTextColor, 
         fontSize: 14,
@@ -285,7 +286,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     modalContent: {
-        backgroundColor: Colors.cardBackgroundColor,
+        backgroundColor: Colors.altBackgroundColor,
         borderRadius: 10,
         padding: 20,
         width: '67%',

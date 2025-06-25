@@ -124,7 +124,7 @@ export default function RootLayout() {
                         color: "white"
                     },
                     headerStyle: {
-                        backgroundColor: Colors.unselectedColor,
+                        backgroundColor: Colors.selectedColor,
                     },
                 })}
             />
@@ -139,7 +139,7 @@ export default function RootLayout() {
                         color: "white"
                     },
                     headerStyle: {
-                        backgroundColor: Colors.unselectedColor,
+                        backgroundColor: Colors.selectedColor,
                     },
                     headerLeft: () => (
                         <Pressable onPress={() => {
@@ -173,7 +173,7 @@ export default function RootLayout() {
                         color: "white"
                     },
                     headerStyle: {
-                        backgroundColor: Colors.unselectedColor,
+                        backgroundColor: Colors.selectedColor,
                     },
                     // headerLeft: () => (
                     //     <Pressable onPress={() => handleSpinnerPageBackPress(navigation)}>
@@ -203,7 +203,7 @@ export default function RootLayout() {
                         color: "white"
                     },
                     headerStyle: {
-                        backgroundColor: Colors.unselectedColor,
+                        backgroundColor: Colors.selectedColor,
                     },
                     headerRight: () => (
                         <TouchableOpacity onPress={() => {
@@ -229,7 +229,7 @@ export default function RootLayout() {
                         color: "white"
                     },
                     headerStyle: {
-                        backgroundColor: Colors.unselectedColor,
+                        backgroundColor: Colors.selectedColor,
                     },
                     // headerLeft: () => (
                     //     <Pressable onPress={() => handleInfoPageBackPress(navigation)}>
@@ -249,7 +249,7 @@ export default function RootLayout() {
                     color: "white",
                 },
                 headerStyle: {
-                        backgroundColor: Colors.unselectedColor,
+                        backgroundColor: Colors.selectedColor,
                     },
             })}/>
             

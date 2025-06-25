@@ -15,6 +15,7 @@ interface MoveModalProps {
     selectedItem: any;
     lists: any[];
 
+    showLabel?: boolean;
     showHeart?: boolean;
     visibility: boolean;
 
@@ -31,7 +32,7 @@ interface MoveModalProps {
     setListsFunc: React.Dispatch<React.SetStateAction<ListData[]>>;
 }
 
-export const MoveModal: React.FC<MoveModalProps> = ({ dataType, selectedItem, lists, showHeart = true, visibility, setVisibilityFunc, setIsLoadingFunc, moveItemFunc, isItemInListFunc, setListsFunc}) => {
+export const MoveModal: React.FC<MoveModalProps> = ({ dataType, selectedItem, lists, showLabel = true, showHeart = true, visibility, setVisibilityFunc, setIsLoadingFunc, moveItemFunc, isItemInListFunc, setListsFunc}) => {
 
     if (!selectedItem) return null;
 
@@ -48,10 +49,10 @@ export const MoveModal: React.FC<MoveModalProps> = ({ dataType, selectedItem, li
                 style={appStyles.modalOverlay}
                 onPress={() => setVisibilityFunc(false)}
             >
-                <View style={appStyles.modalContent}>
-                    <Text style={appStyles.modalTitle}>
+                <View style={[appStyles.modalContent, showHeart && {paddingBottom: 10}]}>
+                    {showLabel && <Text style={appStyles.modalTitle}>
                         Save to...
-                    </Text>
+                    </Text>}
                     <>
                         {/* Render all tabs except FAVORITE_TAB */}
                         {sortLists(lists)
@@ -78,8 +79,8 @@ export const MoveModal: React.FC<MoveModalProps> = ({ dataType, selectedItem, li
                         {/* Render FAVORITE_TAB at the bottom */}
                         {showHeart && lists.find(l => l.listName === FAVORITE_TAB) && (
                             <View
-                            key={`LandingPage-${id}-heart`}
-                            style={{ paddingTop: 10 }}
+                                key={`LandingPage-${id}-heart`}
+                                style={{ paddingTop: 10 }}
                             >
                             <Heart
                                 heartColor={

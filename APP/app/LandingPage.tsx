@@ -13,7 +13,7 @@ import { auth } from "@/firebaseConfig";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
-const LIBRARY_OVERLAY_HEIGHT = screenHeight*.095
+const LIBRARY_OVERLAY_HEIGHT = screenHeight*.095;
 
 export default function LandingPage () {
     // const pathname = usePathname();
@@ -216,100 +216,100 @@ export default function LandingPage () {
       );
     };
 
-  return (
-    <View style={styles.container} >
-      <ScrollView style={{ marginBottom: LIBRARY_OVERLAY_HEIGHT}} showsVerticalScrollIndicator={false}>
-        <Text style={styles.welcomeText}>WELCOME BACK {userData ? userData.firstName.length > 0 ? userData.firstName.toUpperCase() : "USER" : "USER"}!</Text>
-        {/* Trending Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>TRENDING</Text>
-          {/* <Pressable onPress={() => router.push({
-                                    pathname: '/InfoPage',
-                                    params: { id: carouselContent[carouselIndex]?.id || "10" },
-                    })}>
-            <Card style={styles.trendingCard}>
-              <Image source={{ uri: carouselContent[carouselIndex] && carouselContent[carouselIndex].posters.horizontal }} style={styles.trendingImage} />
-              <Card.Content>
-                <Title style={styles.trendingTitle}>
-                  {carouselContent && carouselContent[carouselIndex] && carouselContent[carouselIndex].title}
-                </Title>
-              </Card.Content>
-            </Card>
-          </Pressable> */}
+    return (
+        <View style={styles.container} >
+        <ScrollView style={{ marginBottom: LIBRARY_OVERLAY_HEIGHT}} showsVerticalScrollIndicator={false}>
+            <Text style={styles.welcomeText}>WELCOME BACK {userData ? userData.firstName.length > 0 ? userData.firstName.toUpperCase() : "USER" : "USER"}!</Text>
+            {/* Trending Section */}
+            <View style={styles.section}>
+            <Text style={styles.sectionTitle}>TRENDING</Text>
+            {/* <Pressable onPress={() => router.push({
+                                        pathname: '/InfoPage',
+                                        params: { id: carouselContent[carouselIndex]?.id || "10" },
+                        })}>
+                <Card style={styles.trendingCard}>
+                <Image source={{ uri: carouselContent[carouselIndex] && carouselContent[carouselIndex].posters.horizontal }} style={styles.trendingImage} />
+                <Card.Content>
+                    <Title style={styles.trendingTitle}>
+                    {carouselContent && carouselContent[carouselIndex] && carouselContent[carouselIndex].title}
+                    </Title>
+                </Card.Content>
+                </Card>
+            </Pressable> */}
 
-          {/* Circular Navigation Buttons */}
-          <View style={styles.navigationButtons}>
-            <TouchableOpacity
-            //   onPress={handlePreviousMovie}
-              style={styles.circleButton}
-            >
-              <MaterialIcons name="arrow-back" size={24} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity 
-                // onPress={handleNextMovie} 
+            {/* Circular Navigation Buttons */}
+            <View style={styles.navigationButtons}>
+                <TouchableOpacity
+                //   onPress={handlePreviousMovie}
                 style={styles.circleButton}
-            >
-                <MaterialIcons name="arrow-forward" size={24} color="#fff" />
-            </TouchableOpacity>
-          </View>
+                >
+                <MaterialIcons name="arrow-back" size={24} color="#fff" />
+                </TouchableOpacity>
+                <TouchableOpacity 
+                    // onPress={handleNextMovie} 
+                    style={styles.circleButton}
+                >
+                    <MaterialIcons name="arrow-forward" size={24} color="#fff" />
+                </TouchableOpacity>
+            </View>
+            </View>
+
+            {/* Most Recommended Section */}
+            {/* <View style={[styles.section, { height: 200 }]}>
+            <Text style={styles.sectionTitle}>MOST RECOMMENDED</Text>
+            <FlatList
+                data={moviesAndShows}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                nestedScrollEnabled
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                <Pressable
+                    style={styles.movieCard}
+                    onPress={() => router.push({
+                            pathname: '/InfoPage',
+                            params: { id: item.id },
+                        })}
+                    onLongPress={() => {
+                    setSelectedContent(item);
+                    setListModalVisible(true);
+                    }}
+                >
+                    <Image
+                    source={{ uri: item && item.posters.vertical }}
+                    style={styles.movieImage}
+                    />
+                    <Text style={styles.movieTitle}>{item.title}</Text>
+                </Pressable>
+                )}
+            />
+            </View> */}
+
+            {/* Reviews Section */}
+            <View style={styles.section}>
+            <Text style={styles.sectionTitle}>TOP REVIEWS</Text>
+            <FlatList
+                data={reviews}
+                renderItem={renderReview}
+                scrollEnabled={false}
+                keyExtractor={(item) => item.id}
+            />
+            </View>
+
+        </ScrollView>
+
+        {/* Move Modal */}
+
+            <View style={styles.libraryOverlay}>
+                <TouchableOpacity
+                    style={styles.libraryButton}
+                    onPress={() => router.push('/LibraryPage')} // Navigate to the Library page
+                >
+                    <Text style={styles.libraryButtonText}>Library</Text>
+                </TouchableOpacity>
+            </View>
         </View>
-
-        {/* Most Recommended Section */}
-        {/* <View style={[styles.section, { height: 200 }]}>
-          <Text style={styles.sectionTitle}>MOST RECOMMENDED</Text>
-          <FlatList
-            data={moviesAndShows}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            nestedScrollEnabled
-            keyExtractor={(item) => item.id}
-            renderItem={({ item }) => (
-              <Pressable
-                style={styles.movieCard}
-                onPress={() => router.push({
-                        pathname: '/InfoPage',
-                        params: { id: item.id },
-                      })}
-                onLongPress={() => {
-                  setSelectedContent(item);
-                  setListModalVisible(true);
-                }}
-              >
-                <Image
-                  source={{ uri: item && item.posters.vertical }}
-                  style={styles.movieImage}
-                />
-                <Text style={styles.movieTitle}>{item.title}</Text>
-              </Pressable>
-            )}
-          />
-        </View> */}
-
-        {/* Reviews Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>TOP REVIEWS</Text>
-          <FlatList
-            data={reviews}
-            renderItem={renderReview}
-            scrollEnabled={false}
-            keyExtractor={(item) => item.id}
-          />
-        </View>
-
-      </ScrollView>
-
-      {/* Move Modal */}
-
-        <View style={styles.libraryOverlay}>
-            <TouchableOpacity
-                style={styles.libraryButton}
-                onPress={() => router.push('/LibraryPage')} // Navigate to the Library page
-            >
-                <Text style={styles.libraryButtonText}>Library</Text>
-            </TouchableOpacity>
-        </View>
-    </View>
-  );
+    );
 }
 
 const styles = StyleSheet.create({
@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   trendingCard: {
-    backgroundColor: Colors.cardBackgroundColor,
+    backgroundColor: Colors.altBackgroundColor,
     borderRadius: 10,
   },
   trendingImage: {
@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   filterSection: {
-    backgroundColor: Colors.cardBackgroundColor,
+    backgroundColor: Colors.altBackgroundColor,
     padding: 20,
     borderRadius: 10,
     marginBottom: 50
@@ -415,26 +415,23 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     height: LIBRARY_OVERLAY_HEIGHT,
-    backgroundColor: Colors.unselectedColor,
-    borderTopWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 100,
   },
   libraryButton: {
-    width: screenWidth*.5,
-    height: screenHeight*.06,
-    padding: 10,
+    width: 140,
+    paddingVertical: 14,
     marginBottom: 10,
     borderRadius: 10,
-    backgroundColor: Colors.cardBackgroundColor+"CC", 
+    backgroundColor: Colors.selectedColor,
     alignContent: "center",
     justifyContent: "center"
   },
   libraryButtonText: {
     color: '#fff',
-    fontSize: 24,
-    fontFamily: RalewayFont,
+    fontSize: 18,
+    fontWeight: "600",
     textAlign:"center",
   },
 });
