@@ -14,19 +14,19 @@ import { GENRE, ORDER_BY, ORDER_DIRECTION, SERVICE, SHOW_TYPE } from "./types/co
 
 // }
 
-// const genres: GENRE[] = [GENRE.ACTION, GENRE.COMEDY, GENRE.DRAMA, GENRE.THRILLER, GENRE.SCIFI, GENRE.ROMANCE, GENRE.HORROR, GENRE.WESTERN];
-// const services: SERVICE[] = [SERVICE.NETFLIX, SERVICE.HULU, SERVICE.HBO, SERVICE.PRIME, SERVICE.DISNEY, SERVICE.APPLE, SERVICE.PARAMOUNT, SERVICE.PEACOCK];
+const genres: GENRE[] = [GENRE.ACTION, GENRE.COMEDY, GENRE.DRAMA, GENRE.THRILLER, GENRE.SCIFI, GENRE.ROMANCE, GENRE.HORROR, GENRE.WESTERN];
+const services: SERVICE[] = [SERVICE.NETFLIX, SERVICE.HULU, SERVICE.HBO, SERVICE.PRIME, SERVICE.DISNEY, SERVICE.APPLE, SERVICE.PARAMOUNT, SERVICE.PEACOCK];
 const order_by: ORDER_BY = ORDER_BY.POPULARITY_1WEEK;
 const order_direction: ORDER_DIRECTION = ORDER_DIRECTION.DESC;
 
-// testing
-const genres: GENRE[] = [GENRE.ACTION];
-const services: SERVICE[] = [SERVICE.NETFLIX];
-const show_type = SHOW_TYPE.MOVIE;
-
 // 8 genres x 8 services = 64 calls x 2 for movies and shows = 128 total calls
 
+// TODO: HANDLE MISSING POSTERS with the TMDB API
+
 export const handler = async () => {
+
+    const token: string | null = await getFirebaseToken();
+    // console.log(token);
 
     let count = 0;
 
@@ -34,28 +34,26 @@ export const handler = async () => {
 
     for (const service of services) {
         for (const genre of genres) {
-            // for (const show_type of Object.values(SHOW_TYPE)) {
+            for (const show_type of Object.values(SHOW_TYPE)) {
                 try {
                     const results: ContentData[] = await fetchByServiceAndGenre(service, genre, show_type, order_by, order_direction); // Add getting posters from TMDB next
                     for (const item of results) {
                         uniqueContentMap.set(item.contentID, item);
                     }
                     count++;
+                    console.log("Current Count: " + count);
+                    console.log("Content IDs just added: " + JSON.stringify(results.map(c => c.contentID)) + "\n");
                 } catch (error) {
                     console.error(`Failed for service=${service}, genre=${genre}, showType=${show_type}, order_by=${order_by}, order_direction=${order_direction}:`, error);
                     return { status: 400, count: count } // crash out
                 }
-            // }
+            }
         }
     }
 
+    console.log("TOTAL COUNT: " + count);
+
     const dedupedContents: ContentData[] = Array.from(uniqueContentMap.values());
-
-    // // console.log(JSON.stringify(dedupedContents));
-
-    const token: string | null = await getFirebaseToken();
-    
-    // console.log(token);
 
     const result: number | null = await bulkUpdateContents(token, dedupedContents);
     if (!result) return { status: 400, count: count }
