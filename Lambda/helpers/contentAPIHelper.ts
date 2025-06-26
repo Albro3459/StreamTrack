@@ -1,10 +1,10 @@
-import axios, { AxiosRequestConfig } from 'axios';
+import axios from 'axios';
 
 import { RAPIDAPI_KEY, TMDB_BEARER_TOKEN } from '../secrets/API_keys';
-import { MEDIA_TYPE, TMDB } from '../types/tmdbType';
 import { Content } from '../types/contentType';
 import { ContentData } from '../types/dataTypes';
 import { convertContentToContentData } from './contentHelper';
+import { GENRE, ORDER_BY, ORDER_DIRECTION, SERVICE, SHOW_TYPE } from '@/types/contentFilterOptions';
 
 // Search API
 const TMDB_Base_Url = "https://api.themoviedb.org/3/search/multi?query=";
@@ -18,7 +18,7 @@ const RapidAPI_Headers = {
     'x-rapidapi-host': 'streaming-availability.p.rapidapi.com'
 };
 
-export const fetchByServiceAndGenre = async (service: string, genre: string): Promise<ContentData[]> => {
+export const fetchByServiceAndGenre = async (service: SERVICE, genre: GENRE, show_type: SHOW_TYPE, order_by: ORDER_BY, order_direction: ORDER_DIRECTION): Promise<ContentData[]> => {
     const options = {
         method: 'GET',
         url: RapidAPI_Base_Url+"search/filters",
@@ -26,28 +26,20 @@ export const fetchByServiceAndGenre = async (service: string, genre: string): Pr
             country: 'us',
             series_granularity: 'show',
             genres: genre,
-            order_direction: 'desc',
-            order_by: 'popularity_1week',
+            order_direction: order_direction,
+            order_by: order_by,
             output_language: 'en',
-            catalogs: service
+            catalogs: service,
+            show_type: show_type
         },
         headers: RapidAPI_Headers
     };
 
-    // console.log(options.url);
-    // console.log(JSON.stringify({
-    //     url: options.url,
-    //     params: options.params,
-    //     headers: options.headers
-    // }, null, 2));
-
     const response = await axios.request(options);
-    // console.log(JSON.stringify(response.data));
 
     const contents: Content[] = response.data.shows as Content[];
     const contentData: ContentData[] = contents.map(c => convertContentToContentData(c));
 
-    // console.log(JSON.stringify(contentData));
     return contentData;
 }
 

@@ -1,50 +1,65 @@
-export const Genres = [
-    { label: 'Action', value: 'action' },
-    { label: 'Adventure', value: 'adventure' },
-    { label: 'Animation', value: 'animation' },
-    { label: 'Comedy', value: 'comedy' },
-    { label: 'Crime', value: 'crime' },
-    { label: 'Documentary', value: 'documentary' },
-    { label: 'Drama', value: 'drama' },
-    { label: 'Family', value: 'family' },
-    { label: 'Fantasy', value: 'fantasy' },
-    { label: 'History', value: 'history' },
-    { label: 'Horror', value: 'horror' },
-    { label: 'Musical', value: 'music' },
-    { label: 'Biography', value: 'biography' },
-    { label: 'Mystery', value: 'mystery' },
-    { label: 'News', value: 'news' },
-    { label: 'Reality', value: 'reality' },
-    { label: 'Romance', value: 'romance' },
-    { label: 'Science Fiction', value: 'scifi' },
-    { label: 'Talk Show', value: 'talk' },
-    { label: 'Thriller', value: 'thriller' },
-    { label: 'War', value: 'war' },
-    { label: 'Western', value: 'western' }
-];
+export enum SHOW_TYPE {
+    MOVIE = "movie",
+    SERIES = "series"
+}
 
-export const Types = [
-    { label: 'Movie', value: 'movie' },
-    { label: 'Show', value: 'series' },
-];
+export enum GENRE {
+    ACTION = "action",
+    ADVENTURE = "adventure",
+    ANIMATION = "animation",
+    COMEDY = "comedy",
+    CRIME = "crime",
+    DOCUMENTARY = "documentary",
+    DRAMA = "drama",
+    FAMILY = "family",
+    FANTASY = "fantasy",
+    HISTORY = "history",
+    HORROR = "horror",
+    MUSICAL = "music",
+    BIOGRAPHY = "biography",
+    MYSTERY = "mystery",
+    NEWS = "news",
+    REALITY = "reality",
+    ROMANCE = "romance",
+    SCIFI = "scifi",
+    TALK = "talk",
+    THRILLER = "thriller",
+    WAR = "war",
+    WESTERN = "western"
+}
 
-export const Services = [
-    { label: 'Netflix', value: 'netflix' },
-    { label: 'Hulu', value: 'hulu' },
-    { label: 'HBO Max', value: 'hbo' },
-    { label: 'Amazon Prime', value: 'prime' },
-    { label: 'Apple TV', value: 'apple' },
-    { label: 'Disney+', value: 'disney' },
-    { label: 'Peacock', value: 'peacock' },
-    { label: 'Paramount+', value: 'paramount' },
-    { label: 'Discovery+', value: 'discovery' },
-    { label: 'Starz', value: 'starz' },
-    { label: 'Tubi', value: 'tubi' },
-];
+export enum SERVICE {
+    NETFLIX = "netflix",
+    HULU = "hulu",
+    HBO = "hbo",
+    PRIME = "prime",
+    APPLE = "apple",
+    DISNEY = "disney",
+    PEACOCK = "peacock",
+    PARAMOUNT = "paramount",
+    DISCOVERY = "discovery",
+    STARZ = "starz",
+    TUBI = "tubi"
+}
 
-export const PaidOptions = [
-    { label: 'Free', value: 'free' },
-    { label: 'Subscription', value: 'subscription' },
-    { label: 'Rent', value: 'rent' },
-    { label: 'Buy', value: 'buy' },
-];
+export enum ORDER_BY {
+    ORIGINAL_TITLE = "original_title",
+    RELEASE_DATE = "release_date",
+    RATING = "rating",
+    POPULARITY_ALLTIME = "popularity_alltime",
+    POPULARITY_1YEAR = "popularity_1year",
+    POPULARITY_1MONTH = "popularity_1month",
+    POPULARITY_1WEEK = "popularity_1week"
+}
+
+export enum ORDER_DIRECTION {
+    ASC = "asc",
+    DESC = "desc"
+}
+
+// export enum PAID_OPTION {
+//     FREE = "free",
+//     SUBSCRIPTION = "subscription",
+//     RENT = "rent",
+//     BUY = "buy"
+// }

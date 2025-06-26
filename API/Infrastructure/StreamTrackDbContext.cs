@@ -24,6 +24,10 @@ public class StreamTrackDbContext : DbContext {
         // ... define relationships
 
         modelBuilder.Entity<User>()
+            .HasIndex(u => u.Email)
+                .IsUnique();
+
+        modelBuilder.Entity<User>()
             .HasMany(u => u.ListsOwned)
             .WithOne(l => l.Owner)
                 .HasForeignKey(l => l.OwnerUserID);
@@ -88,13 +92,17 @@ public class StreamTrackDbContext : DbContext {
                 x => JsonSerializer.Deserialize<List<string>>(x, null as JsonSerializerOptions) ?? new()
             ).Metadata.SetValueComparer(stringListComparer); // It needs to know how to compare the string arrays
 
+
         modelBuilder.Entity<User>().HasQueryFilter(u => !u.IsDeleted);
         modelBuilder.Entity<List>().HasQueryFilter(l => !l.IsDeleted);
-        modelBuilder.Entity<ListShares>().HasQueryFilter(l => !l.IsDeleted);
         modelBuilder.Entity<Content>().HasQueryFilter(c => !c.IsDeleted);
         modelBuilder.Entity<Genre>().HasQueryFilter(g => !g.IsDeleted);
         modelBuilder.Entity<StreamingService>().HasQueryFilter(s => !s.IsDeleted);
-        modelBuilder.Entity<StreamingOption>().HasQueryFilter(s => !s.IsDeleted);
+
+        modelBuilder.Entity<ListShares>()
+            .HasQueryFilter(ls => !ls.List.IsDeleted && !ls.User.IsDeleted);
+        modelBuilder.Entity<StreamingOption>()
+            .HasQueryFilter(so => !so.Content.IsDeleted);
 
         // ... seed data
 

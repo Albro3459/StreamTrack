@@ -35,8 +35,8 @@ export const TMDBSearch = async (keyword: string): Promise<TMDB> => {
     const result = await fetch(url, options);
     const data: TMDB = await result.json();
 
-    // data.results = data.results.filter(x => x.poster_path (x.media_type === "tv" || x.media_type === "movie"));
-    data.results = data.results.filter(x => x.media_type === "tv" || x.media_type === "movie");
+    // data.results = data.results.filter(x => x.poster_path && (x.media_type === "tv" || x.media_type === "movie"));
+    data.results = data.results.filter(x => x.media_type === MEDIA_TYPE.TV || x.media_type === MEDIA_TYPE.MOVIE);
     data.results = data.results.map(x => ({
         ...x,
         backdrop_path: x.backdrop_path ? "https://image.tmdb.org/t/p/w1280" + x.backdrop_path : null,

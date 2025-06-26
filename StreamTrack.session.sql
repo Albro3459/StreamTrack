@@ -5,6 +5,7 @@ select * from List;
 select * from ListContent;
 
 select * from Content;
+select * from Content where VerticalPoster LIKE '%www%' OR HorizontalPoster LIKE '%www%';
 
 select * from Genre;
 

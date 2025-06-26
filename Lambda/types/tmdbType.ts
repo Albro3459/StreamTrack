@@ -1,5 +1,5 @@
 
-export enum MEDIA_TYPE {
+export enum TMDB_MEDIA_TYPE {
     MOVIE = "movie",
     TV = "tv"
 }
@@ -17,7 +17,7 @@ export type TMDB_Content = {
     original_name:  string | null;
     overview: string;
     poster_path: string | null;
-    media_type: MEDIA_TYPE;
+    media_type: TMDB_MEDIA_TYPE;
     adult: boolean;
     original_language: string;
     genre_ids: number[];

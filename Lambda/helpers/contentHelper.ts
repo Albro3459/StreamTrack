@@ -1,6 +1,6 @@
 import { Content } from "../types/contentType";
 import { ContentData } from "../types/dataTypes";
-import { MEDIA_TYPE } from "../types/tmdbType";
+import { TMDB_MEDIA_TYPE } from "../types/tmdbType";
 
 export const convertContentToContentData = (content: Content): ContentData => {
     return {
@@ -10,7 +10,7 @@ export const convertContentToContentData = (content: Content): ContentData => {
         releaseYear: content.releaseYear,
         imdb_ID: content.imdbId,
         tmdb_ID: content.tmdbId,
-        showType: content.showType as MEDIA_TYPE,
+        showType: content.showType as TMDB_MEDIA_TYPE,
         genres: content.genres.map(g => ({ name: g.name })),
         cast: content.cast,
         directors: content.directors,

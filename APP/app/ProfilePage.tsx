@@ -186,7 +186,7 @@ const styles = StyleSheet.create({
         height: 50,
         borderRadius: 10,
         marginBottom: 20,
-        fontSize: 18,
+        fontSize: 16,
         color: Colors.altBackgroundColor,
         padding: 10,
         textAlign: "left",

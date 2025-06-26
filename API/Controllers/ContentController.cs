@@ -45,6 +45,24 @@ public class ContentController : ControllerBase {
         return mapper.Map<Content, ContentDTO>(content);
     }
 
+    // GET: API/Content/GetAll
+    [HttpGet("GetAll")]
+    public async Task<ActionResult<List<ContentDTO>>> GetAllContent() {
+
+        string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(uid))
+            return Unauthorized();
+
+        List<Content> contents = await context.Content
+                .Include(c => c.Genres)
+                .Include(c => c.StreamingOptions)
+                    .ThenInclude(s => s.StreamingService)
+                .ToListAsync();
+
+        return mapper.Map<List<Content>, List<ContentDTO>>(contents);
+    }
+
     // POST: API/Content/BulkUpdate
     [HttpPost("BulkUpdate")]
     public async Task<ActionResult<ContentDTO>> BulkUpdate(List<ContentDTO> dtos) {

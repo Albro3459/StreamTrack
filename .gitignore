@@ -25,6 +25,10 @@
 API/bin
 API/obj
 
+# DB
+**/StreamTrack.db-wal
+**/StreamTrack.db-shm
+
 # Hide all the keys
 **/secrets/
 

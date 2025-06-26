@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace StreamTrack.Migrations
 {
     [DbContext(typeof(StreamTrackDbContext))]
-    [Migration("20250624051927_Initial")]
+    [Migration("20250626015540_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -195,9 +195,6 @@ namespace StreamTrack.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnOrder(1);
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Permission")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -222,9 +219,6 @@ namespace StreamTrack.Migrations
                     b.Property<string>("DeepLink")
                         .IsRequired()
                         .HasColumnType("TEXT");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Price")
                         .HasColumnType("TEXT");
@@ -352,6 +346,9 @@ namespace StreamTrack.Migrations
                         .HasColumnType("TEXT");
 
                     b.HasKey("UserID");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
 
                     b.ToTable("User");
                 });

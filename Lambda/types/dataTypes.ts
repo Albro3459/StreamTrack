@@ -1,4 +1,4 @@
-import { MEDIA_TYPE } from "./tmdbType";
+import { TMDB_MEDIA_TYPE } from "./tmdbType";
 
 // Send
 export type ListsUpdateData = {
@@ -43,7 +43,7 @@ export type ContentData = {
     releaseYear: number;
     imdb_ID: string;
     tmdb_ID: string;
-    showType: MEDIA_TYPE;
+    showType: TMDB_MEDIA_TYPE;
     genres: GenreData[];
     cast: string[];
     directors: string[];

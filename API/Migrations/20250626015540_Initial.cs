@@ -113,8 +113,7 @@ namespace StreamTrack.Migrations
                     ServiceID = table.Column<string>(type: "TEXT", nullable: false),
                     Type = table.Column<string>(type: "TEXT", nullable: false),
                     Price = table.Column<string>(type: "TEXT", nullable: true),
-                    DeepLink = table.Column<string>(type: "TEXT", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false)
+                    DeepLink = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -232,8 +231,7 @@ namespace StreamTrack.Migrations
                 {
                     ListID = table.Column<string>(type: "TEXT", nullable: false),
                     UserID = table.Column<string>(type: "TEXT", nullable: false),
-                    Permission = table.Column<string>(type: "TEXT", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false)
+                    Permission = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -307,6 +305,12 @@ namespace StreamTrack.Migrations
                 name: "IX_StreamingOption_ServiceID",
                 table: "StreamingOption",
                 column: "ServiceID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_User_Email",
+                table: "User",
+                column: "Email",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_UserGenre_UsersUserID",

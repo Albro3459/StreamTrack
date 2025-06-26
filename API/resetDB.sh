@@ -8,7 +8,7 @@ echo "Removing existing migrations directory: $MIGRATIONS"
 rm -rf "$MIGRATIONS"
 
 echo "Removing existing database file: $SQL_DB"
-rm -f "$SQL_DB"
+rm -f "$SQL_DB" "$SQL_DB-shm" "$SQL_DB-wal"
 
 echo "Adding new Entity Framework migration: Initial"
 dotnet ef migrations add "Initial" --project "$ROOT_DIR"

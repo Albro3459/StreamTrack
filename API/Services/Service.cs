@@ -114,10 +114,11 @@ public class Service {
         var genreTasks = dto.Genres.Select(g => GenreDTOToGenre(g)).ToList();
         content.Genres = (await Task.WhenAll(genreTasks)).ToList();
 
-        await context.Content.AddAsync(content);
-        await context.SaveChangesAsync();
+        // await context.Content.AddAsync(content);
+        context.Content.Add(content);
+        // await context.SaveChangesAsync();
 
-        var streamingOptionTasks = dto.StreamingOptions.Select(s => StreamingOptionDTOToStreamingOption(s, dto.ContentID)).ToList();
+        var streamingOptionTasks = dto.StreamingOptions.Select(s => StreamingOptionDTOToStreamingOption(s, content)).ToList();
         var streamingOptions = await Task.WhenAll(streamingOptionTasks);
         if (streamingOptions.Any(s => s == null)) {
             return null;
@@ -127,7 +128,7 @@ public class Service {
                                     .Cast<StreamingOption>()
                                     .ToList();
 
-        await context.SaveChangesAsync();
+        // await context.SaveChangesAsync();
 
         // Skip Lists now because this is being called by the AddToUserList in ListController
 
@@ -135,50 +136,58 @@ public class Service {
     }
 
     public async Task<Genre> GenreDTOToGenre(GenreDTO dto) {
-        Genre? genre = await context.Genre.Where(g => g.Name == dto.Name).FirstOrDefaultAsync();
+        // Check db
+        Genre? genre = await context.Genre.FirstOrDefaultAsync(g => g.Name == dto.Name);
+        if (genre != null) {
+            return genre;
+        }
+
+        // Check if it was already added in the LOCAL context (Local is in this current transaction in RAM, not the DB). This is a pretty big optimization.
+        genre = context.Genre.Local.FirstOrDefault(g => g.Name == dto.Name);
         if (genre != null) {
             return genre;
         }
 
         genre = new Genre(dto.Name);
-        await context.Genre.AddAsync(genre);
-        await context.SaveChangesAsync();
+        // await context.Genre.AddAsync(genre);
+        context.Genre.Add(genre);
+        // await context.SaveChangesAsync();
 
         return genre;
     }
 
-    public async Task<StreamingOption?> StreamingOptionDTOToStreamingOption(StreamingOptionDTO dto, string? contentID) {
-        StreamingOption? streamingOption = await context.StreamingOption.Where(s => (
-            s.ContentID == contentID &&
-            s.StreamingService.Name == dto.StreamingService.Name
-        )).FirstOrDefaultAsync();
+    public async Task<StreamingOption?> StreamingOptionDTOToStreamingOption(StreamingOptionDTO dto, Content content) {
+        StreamingOption? streamingOption = await context.StreamingOption.FirstOrDefaultAsync(s => s.ContentID == content.ContentID && s.StreamingService.Name == dto.StreamingService.Name);
         if (streamingOption != null) return streamingOption;
 
-        Content? content = await context.Content.Where(c => c.ContentID == contentID).FirstOrDefaultAsync();
-        if (content == null) return null;
+        // Check if it was already added in the LOCAL context (Local is in this current transaction in RAM, not the DB). This is a pretty big optimization.
+        streamingOption = context.StreamingOption.Local.FirstOrDefault(s => s.ContentID == content.ContentID && s.StreamingService.Name == dto.StreamingService.Name);
+        if (streamingOption != null) { return streamingOption; }
 
         StreamingService service = await StreamingServiceDTOToStreamingService(dto.StreamingService);
 
         streamingOption = new StreamingOption(content, service, dto.Type, dto.Price, dto.DeepLink);
 
-        await context.StreamingOption.AddAsync(streamingOption);
-        await context.SaveChangesAsync();
+        // await context.StreamingOption.AddAsync(streamingOption);
+        context.StreamingOption.Add(streamingOption);
+        // await context.SaveChangesAsync();
 
         return streamingOption;
 
     }
 
     public async Task<StreamingService> StreamingServiceDTOToStreamingService(StreamingServiceDTO dto) {
-        StreamingService? service = await context.StreamingService
-            .FirstOrDefaultAsync(s => s.Name == dto.Name);
+        StreamingService? service = await context.StreamingService.FirstOrDefaultAsync(s => s.Name == dto.Name);
+        if (service != null) { return service; }
 
-        if (service != null) {
-            return service;
-        }
+        // Local check
+        service = context.StreamingService.Local.FirstOrDefault(s => s.Name == dto.Name);
+        if (service != null) { return service; }
 
         service = new StreamingService(dto.Name, dto.LightLogo, dto.DarkLogo);
-        await context.StreamingService.AddAsync(service);
-        await context.SaveChangesAsync();
+        // await context.StreamingService.AddAsync(service);
+        context.StreamingService.Add(service);
+        // await context.SaveChangesAsync();
 
         return service;
     }

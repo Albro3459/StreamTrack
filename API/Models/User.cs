@@ -1,7 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using Microsoft.EntityFrameworkCore;
 
 namespace API.Models;
 
+[Index(nameof(Email), IsUnique = true)]
 public class User : SoftDeletableEntity {
     [Key]
     [Required]

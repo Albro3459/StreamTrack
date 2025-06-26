@@ -68,33 +68,28 @@ public class UserController : ControllerBase {
         if (string.IsNullOrEmpty(uid) || string.IsNullOrEmpty(email))
             return Unauthorized();
 
-        User? user = await context.User
-                .Include(u => u.ListsOwned)
-                .Include(u => u.ListShares)
-                .Include(u => u.Genres)
-                .Include(u => u.StreamingServices)
-                .FirstOrDefaultAsync(u => u.Email == email);
-
-        if (user != null) {
-            user.IsDeleted = true;
-            foreach (var list in user.ListsOwned) {
-                list.IsDeleted = true;
-            }
-            foreach (var list in user.ListShares) {
-                list.IsDeleted = true;
-            }
-            user.Genres.Clear();
-            user.StreamingServices.Clear();
-
-            await context.SaveChangesAsync();
+        // Delete incorrect users (different email or uid)
+        User? uidUser = await context.User.FirstOrDefaultAsync(u => u.UserID == uid && u.Email != email);
+        if (uidUser != null) {
+            context.User.Remove(uidUser);
         }
 
-        user = new User(uid, email);
+        User? emailUser = await context.User.FirstOrDefaultAsync(u => u.Email == email && u.UserID != uid);
+        if (emailUser != null) {
+            context.User.Remove(emailUser);
+        }
 
-        await context.User.AddAsync(user);
-        await context.SaveChangesAsync();
+        // Check if user exists
+        var user = await context.User
+                        .Include(u => u.ListsOwned)
+                        .FirstOrDefaultAsync(u => u.UserID == uid && u.Email == email);
 
-        user.ListsOwned.Add(new List(user, "Favorites")); // Add default list
+        // Otherwise create a new user
+        if (user == null) {
+            user = new User(uid, email);
+            context.User.Add(user);
+            user.ListsOwned.Add(new List(user, "Favorites")); // Add default list
+        }
 
         await context.SaveChangesAsync();
 
