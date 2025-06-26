@@ -41,7 +41,8 @@ export const handler = async () => {
                         uniqueContentMap.set(item.contentID, item);
                     }
                     count++;
-                    console.log("Current Count: " + count);
+                    console.log("Current API Request Count: " + count + " / 128");
+                    console.log("Content count in this request: " + results.length);
                     console.log("Content IDs just added: " + JSON.stringify(results.map(c => c.contentID)) + "\n");
                 } catch (error) {
                     console.error(`Failed for service=${service}, genre=${genre}, showType=${show_type}, order_by=${order_by}, order_direction=${order_direction}:`, error);

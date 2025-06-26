@@ -1,296 +1,125 @@
 import React, { useEffect, useState } from "react";
-import { StyleSheet, View, Text, ScrollView, FlatList, Image, TouchableOpacity, Pressable, Dimensions, Alert, Modal } from "react-native";
+import { StyleSheet, View, Text, ScrollView, FlatList, Image, TouchableOpacity, Pressable, Dimensions, Alert, Modal, ActivityIndicator } from "react-native";
 import { Card, Title } from "react-native-paper";
 import { MaterialIcons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { router, useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { appStyles, RalewayFont } from "@/styles/appStyles";
-// import { WatchList } from "./types/listsType";
 import { useUserDataStore } from "./stores/userDataStore";
 import { Review } from "./types/reviewType";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/firebaseConfig";
 import { StarRating } from "./components/starRatingComponent";
+import { MoveModal } from "./components/moveModalComponent";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
 const LIBRARY_OVERLAY_HEIGHT = screenHeight*.095;
 
 export default function LandingPage () {
-    // const pathname = usePathname();
-
-    const [user, setUser] = useState<User | null>();
-    const { userData, fetchUserData } = useUserDataStore();
-
-    // const [tabs, setTabs] = useState<WatchList>(DEFAULT_TABS);
-    const [heartColors, setHeartColors] = useState<{ [key: string]: string }>({});  
-    const [isLoading, setIsLoading] = useState(true);
-    // const [selectedContent, setSelectedContent] = useState<PosterContent>(null);
-    const [listModalVisible, setListModalVisible] = useState(false);
-
-    // State to manage the currently displayed movie
-    const [carouselIndex, setCarouselIndex] = useState(0);
-    // const [carouselContent, setCarouselContent] = useState<PosterContent[]>([]);
-    // const [moviesAndShows, setMoviesAndShows] = useState<PosterContent[]>([]);    
+    const router = useRouter();
     
-    // Array of reviews
-    const [reviews, setReviews] = useState<Review[]>([
-      {
-        id: "1",
-        user: "@larryjustice",
-        text: "The movie made me shed so many tears.",
-        rating: 5,
-        avatar: "https://via.placeholder.com/50",
-        contentID: "110",
-        contentTitle: ""
-      },
-      {
-        id: "2",
-        user: "@janedoe",
-        text: "A fantastic emotional journey.",
-        rating: 4.33,
-        avatar: "https://via.placeholder.com/50",
-        contentID: "146",
-        contentTitle: ""
-      },
-      {
-        id: "3",
-        user: "@movielover",
-        text: "A must-watch for everyone!",
-        rating: 3.167,
-        avatar: "https://via.placeholder.com/50",
-        contentID: "396",
-        contentTitle: ""
-      },
-      {
-        id: "4",
-        user: "@cinemafan",
-        text: "Visually stunning and heartfelt.",
-        rating: 4,
-        avatar: "https://via.placeholder.com/50",
-        contentID: "462",
-        contentTitle: ""
-      },
-    ]);
+    const [user, setUser] = useState<User | null>();
+    const { userData } = useUserDataStore();
 
-//     useEffect(() => {
-//       const fetchProfile = () => {
-//           if (pathname === "/LandingPage") {
-//               setName(Global.name);
-//               Global.backPressLoadSearch = false;
-//           }
-//       };  
-//       fetchProfile();
-//   }, [Global.name]);
-
-    // useEffect(() => {
-    //   setListModalVisible(false);
-    //   const loadContent = async () => {
-    //     if (pathname === "/LandingPage" && Global.justSignedIn) {
-    //       try {
-    //         setSelectedContent(null);
-    //         // Load saved tabs from AsyncStorage
-    //         // console.log('LandingPage: Loading async storage ');
-    //         const savedTabs = await AsyncStorage.getItem(STORAGE_KEY);
-    //         if (savedTabs) {
-    //           const parsedTabs: WatchList = savedTabs
-    //                   ? sortTabs({ ...DEFAULT_TABS, ...JSON.parse(savedTabs) }) // Ensure tabs are sorted
-    //                   : DEFAULT_TABS;
-    //           setTabs(parsedTabs);
-
-    //           // Extract only favorites initially
-    //           const savedHeartColors = (parsedTabs.Favorite || []).reduce((acc, content) => {
-    //             acc[content.id] = Colors.selectedHeartColor;
-    //             // console.log(
-    //             //   `Setting Heart Color: ID=${content.id}, Title="${content.title}", HeartColor=${selectedHeartColor}`
-    //             // );
-    //             return acc;
-    //           }, {});
-    //           setHeartColors(savedHeartColors || {});
-    //         }
-    //       } catch (error) {
-    //         console.error('Error loading library content:', error);
-    //       } finally {
-    //         setIsLoading(false);
-    //       }
-    //     }
-    //   };
-  
-    //   loadContent();
-    // }, [pathname]);
-
-    // // Function to handle the Next button
-    // const handleNextMovie = () => {
-    //   setCarouselIndex((prevIndex) => (prevIndex + 1) % carouselContent.length); // Loop back to the first movie
-    // };
-  
-    // // Function to handle the Previous button
-    // const handlePreviousMovie = () => {
-    //   setCarouselIndex((prevIndex) =>
-    //     prevIndex === 0 ? carouselContent.length - 1 : prevIndex - 1
-    //   );
-    // };
-
-    // useEffect(() => {
-    //   const fetchRecommendedContent  = async () => {
-    //     if (pathname === "/LandingPage") {
-    //       if (!moviesAndShows || moviesAndShows.length === 0) {
-
-    //           const randomContent: PosterContent[] = await getRandomContent(10);
-    //           if (randomContent) {
-    //             const middle = Math.floor(randomContent.length / 2);
-    //             setMoviesAndShows(randomContent.slice(0, middle));
-    //             setCarouselContent(randomContent.slice(middle));
-    //           }
-              
-    //           const updatedReviews = await Promise.all(
-    //             reviews.map(async (review) => {
-    //               const content = await getContentById(review.contentID);
-    //               // console.log(`review id: ${review.id} has title ${content.title}`);
-    //               return {
-    //                 ...review,
-    //                 contentTitle: content?.title || "Unknown",
-    //               };
-    //             })
-    //           );
-    //           setReviews(updatedReviews);
-    //       }
-    //     }
-    //   }
-    //   fetchRecommendedContent();
-    // }, []);     
-
-    // Testing
-    // useEffect(() => {
-    //     const fetchInitialUserData = async () => {
-    //         if (user) {
-    //             const token = await user.getIdToken();
-                                
-    //             // // TEST
-    //             console.log(token);
-
-    //             // const data = await getUserData(token);
-    //             // console.log(data);
-
-    //             // await testSendingContent(token);
-    //         }
-    //     };
-    //     fetchInitialUserData();
-    // }, [user]);
-
-  useEffect(() => {
-      const unsubscribe = onAuthStateChanged(auth, (user) => {
-          const fetchUserData = async () => {
-              if (user) {
-                  setUser(user);
-              }
-          };
-          fetchUserData();
-      });
-      return () => unsubscribe();
-  }, []);
-
-    // Render function for reviews
-    const renderReview = ({ item }: {item: Review}) => {
-
-      return (
-        <View style={appStyles.reviewCard}>
-          <Image source={{ uri: item.avatar }} style={appStyles.avatar} />
-          <View style={appStyles.reviewTextContainer}>
-            <Text style={appStyles.reviewUser}>{item.user}</Text>
-            <Text style={appStyles.reviewText}>{item.text}</Text>
-            <Text style={appStyles.reviewMovie}>
-              Movie: {item.contentTitle.length > 0 ? item.contentTitle : "Unknown"}
-            </Text>
-            <StarRating rating={item.rating} />
-          </View>
-        </View>
-      );
-    };
+    const [isLoading, setIsLoading] = useState(false);  
 
     return (
         <View style={styles.container} >
-        <ScrollView style={{ marginBottom: LIBRARY_OVERLAY_HEIGHT}} showsVerticalScrollIndicator={false}>
-            <Text style={styles.welcomeText}>WELCOME BACK {userData ? userData.firstName.length > 0 ? userData.firstName.toUpperCase() : "USER" : "USER"}!</Text>
-            {/* Trending Section */}
-            <View style={styles.section}>
-            <Text style={styles.sectionTitle}>TRENDING</Text>
-            {/* <Pressable onPress={() => router.push({
-                                        pathname: '/InfoPage',
-                                        params: { id: carouselContent[carouselIndex]?.id || "10" },
-                        })}>
-                <Card style={styles.trendingCard}>
-                <Image source={{ uri: carouselContent[carouselIndex] && carouselContent[carouselIndex].posters.horizontal }} style={styles.trendingImage} />
-                <Card.Content>
-                    <Title style={styles.trendingTitle}>
-                    {carouselContent && carouselContent[carouselIndex] && carouselContent[carouselIndex].title}
-                    </Title>
-                </Card.Content>
-                </Card>
-            </Pressable> */}
+            <ScrollView style={{ marginBottom: LIBRARY_OVERLAY_HEIGHT}} showsVerticalScrollIndicator={false}>
+                <Text style={styles.welcomeText}>WELCOME BACK {userData && userData.firstName.length > 0 && userData.firstName.toUpperCase()}!</Text>
+                {/* Trending Section */}
+                <View style={styles.section}>
+                    <Text style={styles.sectionTitle}>TRENDING</Text>
+                    {/* <Pressable onPress={() => router.push({
+                                                pathname: '/InfoPage',
+                                                params: { id: carouselContent[carouselIndex]?.id || "10" },
+                                })}>
+                        <Card style={styles.trendingCard}>
+                        <Image source={{ uri: carouselContent[carouselIndex] && carouselContent[carouselIndex].posters.horizontal }} style={styles.trendingImage} />
+                        <Card.Content>
+                            <Title style={styles.trendingTitle}>
+                            {carouselContent && carouselContent[carouselIndex] && carouselContent[carouselIndex].title}
+                            </Title>
+                        </Card.Content>
+                        </Card>
+                    </Pressable> */}
 
-            {/* Circular Navigation Buttons */}
-            <View style={styles.navigationButtons}>
-                <TouchableOpacity
-                //   onPress={handlePreviousMovie}
-                style={styles.circleButton}
-                >
-                <MaterialIcons name="arrow-back" size={24} color="#fff" />
-                </TouchableOpacity>
-                <TouchableOpacity 
-                    // onPress={handleNextMovie} 
-                    style={styles.circleButton}
-                >
-                    <MaterialIcons name="arrow-forward" size={24} color="#fff" />
-                </TouchableOpacity>
-            </View>
-            </View>
+                    {/* Circular Navigation Buttons */}
+                    <View style={styles.navigationButtons}>
+                        <TouchableOpacity
+                        //   onPress={handlePreviousMovie}
+                        style={styles.circleButton}
+                        >
+                        <MaterialIcons name="arrow-back" size={24} color="#fff" />
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                            // onPress={handleNextMovie} 
+                            style={styles.circleButton}
+                        >
+                            <MaterialIcons name="arrow-forward" size={24} color="#fff" />
+                        </TouchableOpacity>
+                    </View>
+                </View>
 
-            {/* Most Recommended Section */}
-            {/* <View style={[styles.section, { height: 200 }]}>
-            <Text style={styles.sectionTitle}>MOST RECOMMENDED</Text>
-            <FlatList
-                data={moviesAndShows}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                nestedScrollEnabled
-                keyExtractor={(item) => item.id}
-                renderItem={({ item }) => (
-                <Pressable
-                    style={styles.movieCard}
-                    onPress={() => router.push({
-                            pathname: '/InfoPage',
-                            params: { id: item.id },
-                        })}
-                    onLongPress={() => {
-                    setSelectedContent(item);
-                    setListModalVisible(true);
-                    }}
-                >
-                    <Image
-                    source={{ uri: item && item.posters.vertical }}
-                    style={styles.movieImage}
-                    />
-                    <Text style={styles.movieTitle}>{item.title}</Text>
-                </Pressable>
-                )}
-            />
-            </View> */}
+                {/* Movie Cards */}
+                {/* {(!movies || movies.length <= 0) ? (
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 16 }}>
+                        <Text style={{ fontSize: 16, color: 'gray', textAlign: 'center', marginTop: -80 }}>
+                        {searchText.length > 0 && showNoResults && !isSearching ? "No Results :(" : "Try Searching for a Show or Movie!"}
+                        </Text>
+                    </View>
+                ) : (
+                <FlatList<Movie>
+                    ref={flatListRef}
+                    data={movies}
+                    keyExtractor={(item) => item.tmdbID}
+                    showsVerticalScrollIndicator={false}
+                    renderItem={({ item: movie }) => (
+                    <Pressable
+                        onPress={() => {
+                        //   Global.backPressLoadSearch = true;
+                            router.push({
+                                pathname: '/InfoPage',
+                                params: { tmdbID: movie.tmdbID, title: movie.title, year: movie.year, media_type: movie.mediaType, verticalPoster: movie.verticalPoster, horizontalPoster: movie.horizontalPoster },
+                            });
+                        }}
+                        onLongPress={() => {setSelectedMovie(movie); setMoveModalVisible(true);}}
+                    >
+                        <View style={[appStyles.cardContainer, {marginHorizontal: 16}]}>
+                            <Image source={{ uri: movie.verticalPoster }} style={appStyles.cardPoster} />
+                            <View style={appStyles.cardContent}>
+                                <Text style={appStyles.cardTitle}>{movie.title}</Text>
+                                <Text style={appStyles.cardDescription} numberOfLines={4}>{movie.content.overview}</Text>
+                                <StarRating rating={movie.rating}/>
+                            </View>
+                            <Heart 
+                                heartColor={isTMDBItemInList(lists, FAVORITE_TAB, movie.fullTMDBID) ? Colors.selectedHeartColor : Colors.unselectedHeartColor}
+                                size={40}
+                                onPress={async () => await delayedMoveTMDBItemToList(movie, FAVORITE_TAB, lists, setLists, setIsSearching, setMoveModalVisible)}
+                            />
+                        </View>
+                    </Pressable>
+                    )}
+                />
+                )} */}
 
-            {/* Reviews Section */}
-            <View style={styles.section}>
-            <Text style={styles.sectionTitle}>TOP REVIEWS</Text>
-            <FlatList
-                data={reviews}
-                renderItem={renderReview}
-                scrollEnabled={false}
-                keyExtractor={(item) => item.id}
-            />
-            </View>
+            </ScrollView>
 
-        </ScrollView>
-
-        {/* Move Modal */}
+            {/* Move Modal */}
+            {/* <MoveModal
+                dataType={MOVE_MODAL_DATA_ENUM.TMDB}
+                selectedItem={selectedMovie}
+                lists={lists}
+                showHeart={false}
+                visibility={moveModalVisible}
+                setVisibilityFunc={setMoveModalVisible}
+                setIsLoadingFunc={setIsSearching}
+                moveItemFunc={delayedMoveTMDBItemToList}
+                isItemInListFunc={isTMDBItemInList}
+                setListsFunc={setLists}
+            /> */}
+        
 
             <View style={styles.libraryOverlay}>
                 <TouchableOpacity
@@ -300,6 +129,13 @@ export default function LandingPage () {
                     <Text style={styles.libraryButtonText}>Library</Text>
                 </TouchableOpacity>
             </View>
+
+            {/* Loading Overlay */}
+            {isLoading && (
+                <View style={appStyles.overlay}>
+                    <ActivityIndicator size="large" color="#fff" />
+                </View>
+            )}
         </View>
     );
 }
@@ -343,6 +179,8 @@ const styles = StyleSheet.create({
     fontFamily: RalewayFont,
     textAlign: "center",
   },
+
+  
   navigationButtons: {
     flexDirection: "row",
     justifyContent: "space-between",

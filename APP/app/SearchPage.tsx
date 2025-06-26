@@ -2,7 +2,7 @@ import { Colors } from '@/constants/Colors';
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TextInput, FlatList, Image, StyleSheet, Pressable, Keyboard, Dimensions, ActivityIndicator } from 'react-native';
 import Heart from './components/heartComponent';
-import { router } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { appStyles } from '@/styles/appStyles';
 import { Feather } from '@expo/vector-icons';
 import { TMDBSearch } from './helpers/contentAPIHelper';
@@ -28,6 +28,8 @@ export type Movie = {
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
 export default function SearchPage() {    
+    const router = useRouter();
+    
     const { userData } = useUserDataStore();
 
     const flatListRef = useRef<FlatList>(null);
@@ -134,7 +136,6 @@ export default function SearchPage() {
                             <View style={appStyles.cardContent}>
                                 <Text style={appStyles.cardTitle}>{movie.title}</Text>
                                 <Text style={appStyles.cardDescription} numberOfLines={4}>{movie.content.overview}</Text>
-                                {/* <Text style={appStyles.cardRating}>⭐ {movie.rating}</Text> */}
                                 <StarRating rating={movie.rating}/>
                             </View>
                             <Heart 

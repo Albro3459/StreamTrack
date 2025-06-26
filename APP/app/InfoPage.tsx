@@ -1,6 +1,6 @@
 import { Colors } from '@/constants/Colors';
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, Button, TouchableOpacity, Dimensions, Pressable, Modal, FlatList, TextInput, Linking, ActivityIndicator } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, Button, TouchableOpacity, Dimensions, Pressable, Modal, FlatList, Linking, ActivityIndicator } from 'react-native';
 import Heart from './components/heartComponent';
 import { useLocalSearchParams } from 'expo-router/build/hooks';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -336,11 +336,6 @@ const styles = StyleSheet.create({
         fontFamily: RalewayFont,
         paddingBottom: 10,
     },
-    rating: {
-      fontSize: 16,
-      color: Colors.reviewTextColor,
-      marginTop: 4,
-    },
     buttonContainer: {
       flexDirection: "row",
       justifyContent: "space-around",
@@ -390,11 +385,6 @@ const styles = StyleSheet.create({
       marginVertical: 4,
       paddingBottom: 10,
     },
-    castContainer: {
-      flexDirection: 'row',
-      justifyContent: 'space-around',
-      marginTop: 8,
-    },
     button: {
       backgroundColor: Colors.selectedColor,
       paddingHorizontal: 20,
@@ -408,70 +398,5 @@ const styles = StyleSheet.create({
       color: "white",
       fontSize: 16,
       fontWeight: "bold",
-    },
-    modalOverlay: {
-      flex: 1,
-      backgroundColor: "rgba(0, 0, 0, 0.5)",
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    modalContent: {
-      backgroundColor: Colors.altBackgroundColor,
-      borderRadius: 10,
-      padding: 20,
-      width: screenWidth*0.8,
-      alignItems: "center",
-      ...appStyles.shadow
-    },
-    optionPressable: {
-      backgroundColor: Colors.selectedColor,
-      width: "90%",
-      borderRadius: 10,
-      margin: 5
-    },
-    selectedOptionPressable: {
-      backgroundColor: Colors.selectedColor,
-    },
-    optionText: {
-      fontSize: 16,
-      color: "white",
-      paddingVertical: 10,
-      textAlign: "center",
-      width: "100%",
-    },
-    textInput: {
-      backgroundColor: '#333',
-      color: '#fff',
-      padding: 10,
-      borderRadius: 8,
-      marginBottom: 20,
-      width: "100%",
-      minHeight: 50,
-    },
-    ratingLabel: {
-      color: '#fff',
-      fontSize: 16,
-      marginBottom: 10,
-    },
-    ratingInput: {
-      flexDirection: 'row',
-      justifyContent: 'center',
-      marginBottom: 20,
-    },
-    ratingStar: {
-      fontSize: 30,
-      marginHorizontal: 5,
-    },
-    modalButtons: {
-      flexDirection: 'row',
-      justifyContent: 'space-around',
-      width: '100%',
-    },
-    modalTitle: {
-      fontSize: 20,
-      fontWeight: 'bold',
-      color: '#fff', // Adjust this to match your color scheme
-      marginBottom: 15,
-      textAlign: 'center',
     },
 });
