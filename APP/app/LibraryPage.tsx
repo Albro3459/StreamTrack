@@ -111,11 +111,11 @@ export default function LibraryPage() {
                 }}
             >
                 <Image
-                source={{
-                    uri: content.verticalPoster || 
-                        (console.log(`Library poster missing for: ${content.title} | poster: ${content.verticalPoster}`), "")
-                    }}
-                style={styles.movieImage}
+                    source={{
+                        uri: content.verticalPoster || 
+                            (console.log(`Library poster missing for: ${content.title} | poster: ${content.verticalPoster}`), "")
+                        }}
+                    style={styles.movieImage}
                 />
                 <Text style={styles.movieTitle}>{content.title}</Text>
             </TouchableOpacity>
@@ -136,8 +136,8 @@ export default function LibraryPage() {
                     keyExtractor={(listName, index) => listName}
                     renderItem={({ item: listName }) => (
                         <TouchableOpacity
-                        style={[styles.tabItem, activeTab === listName && styles.activeTabItem, {paddingHorizontal:8}, (lists && lists.length <= 4) && {paddingHorizontal: 12}]}
-                        onPress={async () => handleTabPress(listName)}
+                            style={[styles.tabItem, activeTab === listName && styles.activeTabItem, {paddingHorizontal:8}, (lists && lists.length <= 4) && {paddingHorizontal: 12}]}
+                            onPress={async () => handleTabPress(listName)}
                         >
                         { listName === FAVORITE_TAB ? (
                             <Heart 
@@ -180,18 +180,18 @@ export default function LibraryPage() {
                         onChangeText={setNewListName}
                     />
                     <View style={styles.buttonRow}>
-                    <Pressable
-                        style={styles.cancelButton}
-                        onPress={() => setCreateNewListModal(false)}
-                    >
-                        <Text style={styles.cancelButtonText}>Cancel</Text>
-                    </Pressable>
-                    <Pressable
-                        style={styles.addButton}
-                        onPress={async () => await handelCreateNewTab(newListName) }
-                    >
-                        <Text style={styles.addButtonText}>Add</Text>
-                    </Pressable>
+                        <Pressable
+                            style={styles.cancelButton}
+                            onPress={() => setCreateNewListModal(false)}
+                        >
+                            <Text style={styles.cancelButtonText}>Cancel</Text>
+                        </Pressable>
+                        <Pressable
+                            style={styles.button}
+                            onPress={async () => await handelCreateNewTab(newListName) }
+                        >
+                            <Text style={styles.buttonText}>Add</Text>
+                        </Pressable>
                     </View>
                 </View>
                 </Pressable>
@@ -248,35 +248,47 @@ const styles = StyleSheet.create({
     tabBar: {
         flexDirection: 'row',
         backgroundColor: Colors.backgroundColor,
-        // justifyContent: 'center',
-        // alignItems: "center",
         paddingVertical: 15,
         paddingLeft: 15,
         paddingRight: "3.5%",
     },
     tabItem: {
-        // minWidth: 10,
-        // minHeight: 10,
         paddingVertical: 5,
         paddingHorizontal: 8,
         borderRadius: 5,
         alignItems: "center",
         justifyContent: "center",
     },
-    activeTabItem: { backgroundColor: Colors.altBackgroundColor },
+    activeTabItem: { 
+        backgroundColor: Colors.altBackgroundColor,
+        //  ...appStyles.shadow
+    },
     tabText: { 
         color: Colors.reviewTextColor, 
         fontSize: 14,
         textAlign: "center",
     },
     activeTabText: { color: 'white', fontWeight: 'bold' },
-    movieCard: { flex: 1, margin: 5, alignItems: 'center', paddingBottom: 10 },
-    movieImage: { aspectRatio: 11/16, minWidth: screenWidth/3.3, minHeight: screenWidth / 2.2,  borderRadius: 10 },
+
+    movieCard: { 
+        flex: 1, 
+        margin: 5, 
+        alignItems: 'center', 
+        paddingBottom: 10
+    },
+    movieImage: { 
+        aspectRatio: 11/16, 
+        minWidth: screenWidth/3.3, 
+        minHeight: screenWidth / 2.2, 
+        borderRadius: 10,
+        ...appStyles.shadow,
+    },
     movieTitle: {
         color: 'white',
         textAlign: 'center',
         fontSize: 14,
         marginTop: 5,
+        ...appStyles.shadow,
     },
 
     modalOverlay: {
@@ -291,11 +303,7 @@ const styles = StyleSheet.create({
         padding: 20,
         width: '67%',
         alignItems: 'center',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        elevation: 5,
+        ...appStyles.shadow
     },
     modalTitle: {
         color: '#fff',
@@ -317,33 +325,25 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'space-between',
         width: '100%',
+        columnGap: 10
     },
     cancelButton: {
-        backgroundColor: Colors.selectedTabColor,
-        padding: 10,
-        borderRadius: 5,
-        flex: 1,
-        marginRight: 10,
-        alignItems: 'center',
-        height: 40,
+        ...appStyles.button,
+        ...appStyles.secondaryButton,
+        width: undefined,
+        flex: 1
     },
     cancelButtonText: {
-        color: '#fff',
-        fontWeight: 'bold',
-        fontSize: 16,
+        ...appStyles.buttonText,
+        ...appStyles.secondaryButtonText,
     },
-    addButton: {
-        backgroundColor: Colors.selectedColor,
-        padding: 10,
-        borderRadius: 5,
-        flex: 1,
-        alignItems: 'center',
-        height: 40,
+    button: {
+        ...appStyles.button,
+        width: undefined,
+        flex: 1
     },
-    addButtonText: {
-        color: '#fff',
-        fontWeight: 'bold',
-        fontSize: 16,
+    buttonText: {
+       ...appStyles.buttonText,
     },
 
 });

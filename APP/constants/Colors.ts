@@ -1,39 +1,21 @@
-const backgroundColor = "#1c2237";
-const altBackgroundColor = "#2a2f45";
-
-const tabBarColor = "#4f4f77";
-const selectedTabColor = '#6c6c91';
-
-const grayCell = "#dcdde0";
-
-const selectedColor = "#65709D";
-const selectedTextColor = "#FFFFFF";
-
-const reviewTextColor = "#ccc";
-const italicTextColor = "#bbb";
-
-const goldColor = "#FFD700";
-
-const selectedHeartColor = "#FF2452";
-const unselectedHeartColor = "#ECE6F0";
 
 export const Colors = {
-  backgroundColor: backgroundColor,
-  altBackgroundColor: altBackgroundColor,
-  tabBarColor: tabBarColor,
-  selectedTabColor: selectedTabColor,
-  buttonColor: selectedColor,
+    backgroundColor: "#1c2237",
+    altBackgroundColor: "#2a2f45",
 
-  grayCell: grayCell,
+    tabBarColor: "#4f4f77",
+    selectedTabColor: '#6c6c91',
 
-  selectedColor: selectedColor,
-  selectedTextColor: selectedTextColor,
-  
-  reviewTextColor: reviewTextColor,
-  italicTextColor: italicTextColor,
+    grayCell: "#dcdde0",
 
-  goldColor: goldColor,
+    selectedColor: "#65709D",
+    selectedTextColor: "#FFFFFF",
 
-  selectedHeartColor: selectedHeartColor,
-  unselectedHeartColor: unselectedHeartColor,
+    reviewTextColor: "#ccc",
+    italicTextColor: "#bbb",
+
+    goldColor: "#FFD700",
+
+    selectedHeartColor: "#FF2452",
+    unselectedHeartColor: "#ECE6F0",
 };

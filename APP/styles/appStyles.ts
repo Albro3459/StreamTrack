@@ -5,6 +5,14 @@ export const RalewayFont = 'Raleway_800ExtraBold';
 // export const KuraleFont = "Kurale_400Regular";
 
 
+const shadow = {
+    shadowColor: "black",
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.3,
+    shadowRadius: 10,
+    elevation: 5,
+};
+
 export const appStyles = StyleSheet.create({
     overlay: {
         ...StyleSheet.absoluteFillObject,
@@ -13,98 +21,110 @@ export const appStyles = StyleSheet.create({
         alignItems: 'center',
         zIndex: 100,
     },
+    shadow: {
+        ...shadow
+    },
     movieCard: {
         width: 11*7,
         marginRight: 15,
         overflow: "hidden"
     },
-        movieImage: {
+    movieImage: {
         height: 16*7,
         aspectRatio: 11 / 16,
         borderRadius: 8,
     },
-        movieTitle: {
-        color: "#fff",
+    movieTitle: {
+        color: Colors.selectedTextColor,
         fontSize: 14,
         marginTop: 5,
         textAlign: "center",
     },
-    
-    reviewCard: {
-        flexDirection: "row",
-        backgroundColor: Colors.altBackgroundColor,
-        borderRadius: 10,
-        padding: 10,
-        marginBottom: 10,
-      },
-      avatar: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        marginRight: 10,
-      },
-      reviewTextContainer: {
-        flex: 1,
-      },
-      reviewUser: {
-        fontSize: 16,
-        fontWeight: "bold",
-        color: "#fff",
-      },
-      reviewText: {
-        fontSize: 14,
-        color: Colors.reviewTextColor,
-        marginVertical: 5,
-      },
-      ratingContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-      },
-      reviewMovie: {
-        fontSize: 14,
-        color: Colors.italicTextColor,
-        marginBottom: 5,
-        fontStyle: "italic",
-      },
 
-      cardContainer: {
+    inputContainer: {
+        backgroundColor: Colors.altBackgroundColor,
+        borderRadius: 15,
+        ...shadow
+    },
+    textInput: {
+        height: 50,
+        borderRadius: 10,
+        backgroundColor: Colors.grayCell,
+       
+        fontSize: 16,
+        color: Colors.altBackgroundColor,
+
+        paddingHorizontal: 15,
+        marginBottom: 15,
+    },
+
+    buttonContainer: {
+        alignItems: "center",
+    },
+    button: {
+        backgroundColor: Colors.selectedColor,
+        width: 140,
+        borderRadius: 10,
+        paddingVertical: 14,
+        alignItems: "center",
+        ...shadow
+    },
+    buttonText: {
+        color: Colors.selectedTextColor,
+        fontSize: 18,
+        fontWeight: "600",
+        textAlign: "center",
+    },
+    secondaryButton: {
+        backgroundColor: Colors.altBackgroundColor,
+        borderWidth: 1,
+        borderColor: Colors.selectedColor,
+    },
+    secondaryButtonText: {
+        color: Colors.selectedColor
+    },
+
+    cardContainer: {
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: Colors.altBackgroundColor,
         borderRadius: 10,
         marginBottom: 15,
         padding: 10,
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-        elevation: 2,
-      },
-      cardPoster: {
+        ...shadow
+    },
+    cardPoster: {
         height: 80,
         width: 60,
         borderRadius: 5,
         marginRight: 10,
-      },
-      cardContent: {
+         ...shadow
+    },
+    cardContent: {
         flex: 1,
         paddingHorizontal: 10
-      },
-      cardTitle: {
+    },
+    cardTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#FFFFFF',
+        color: Colors.selectedTextColor,
         marginBottom: 5,
-      },
-      cardDescription: {
+    },
+    cardDescription: {
         fontSize: 14,
         color: '#AAAAAA',
         marginBottom: 5,
-      },
-      cardRating: {
+    },
+    cardRating: {
         fontSize: 14,
-        color: '#FFD700', // Gold star color
-      },
+        color: Colors.goldColor,
+    },
+
+    ratingContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+    },
+
     modalOverlay: {
         flex: 1,
         backgroundColor: "rgba(0, 0, 0, 0.5)",
@@ -117,14 +137,10 @@ export const appStyles = StyleSheet.create({
         padding: 20,
         width: "67%",
         alignItems: "center",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        elevation: 5,
+        ...shadow
     },
     modalTitle: {
-        color: "#fff",
+        color: Colors.selectedTextColor,
         fontSize: 16,
         fontWeight: "bold",
         marginBottom: 10,
@@ -140,7 +156,7 @@ export const appStyles = StyleSheet.create({
     },
     optionText: {
         fontSize: 16,
-        color: "white",
+        color: Colors.selectedTextColor,
         paddingVertical: 10,
         textAlign: "center",
         width: "100%",
@@ -162,8 +178,44 @@ export const appStyles = StyleSheet.create({
         fontSize: 16,
     },
     selectedModalButtonText: {
-        color: "white",
+        color: Colors.selectedTextColor,
         fontWeight: "600",
         fontSize: 16,
+    },
+    
+
+
+    // OLD but can't delete just yet
+    reviewCard: {
+        flexDirection: "row",
+        backgroundColor: Colors.altBackgroundColor,
+        borderRadius: 10,
+        padding: 10,
+        marginBottom: 10,
+    },
+    avatar: {
+        width: 50,
+        height: 50,
+        borderRadius: 25,
+        marginRight: 10,
+    },
+    reviewTextContainer: {
+        flex: 1,
+    },
+    reviewUser: {
+        fontSize: 16,
+        fontWeight: "bold",
+        color: "#fff",
+    },
+    reviewText: {
+        fontSize: 14,
+        color: Colors.reviewTextColor,
+        marginVertical: 5,
+    },
+    reviewMovie: {
+        fontSize: 14,
+        color: Colors.italicTextColor,
+        marginBottom: 5,
+        fontStyle: "italic",
     },
 });

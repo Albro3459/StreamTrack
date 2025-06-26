@@ -13,6 +13,7 @@ import { ContentData, ListData, StreamingOptionData, StreamingServiceData } from
 import { useUserDataStore } from './stores/userDataStore';
 import { FAVORITE_TAB, isItemInList, moveItemToListWithFuncs } from './helpers/StreamTrack/listHelper';
 import { MOVE_MODAL_DATA_ENUM, MoveModal } from './components/moveModalComponent';
+import { StarRating } from './components/starRatingComponent';
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -107,20 +108,7 @@ export default function InfoPage() {
             <View style={styles.content}>
                 <View style={{flexDirection: "row", justifyContent: "flex-start", alignItems: "center"}}>
                     <Text style={styles.sectionTitle}>Rating  </Text>
-                    {Array.from({ length: 5 }).map((_, index) => {
-                        const rating = !content ? 0 : parseFloat((content.rating / 20).toFixed(2)); // Calculate the rating on a 5-star scale
-                        const isFullStar = index < Math.floor(rating); // Full star if index is less than integer part of rating
-                        const isHalfStar = index >= Math.floor(rating) && index < rating; // Half star if index is fractional
-
-                        return (
-                        <MaterialIcons
-                            key={index}
-                            name={isFullStar ? 'star' : isHalfStar ? 'star-half' : 'star-border'}
-                            size={16}
-                            color="#FFD700"
-                        />
-                        );
-                    })}
+                    {content && <StarRating rating={parseFloat((content.rating / 20).toFixed(2))}/> }
                 </View>
 
                 <View style={{flexDirection: "row", justifyContent: "flex-start", alignItems: "center"}}>
@@ -321,16 +309,10 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.backgroundColor,
     },
     movieContainer: {
-      // backgroundColor: "white",
-      paddingVertical: "4%",
-      borderRadius: 15,
-      marginVertical: "5%",
-      alignItems: "center",
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.2,
-      shadowRadius: 4,
-      elevation: 5, // For Android shadow
+        paddingVertical: "4%",
+        borderRadius: 15,
+        marginVertical: "5%",
+        alignItems: "center",
     },
     attributeContainer: {
         flexDirection: 'row', 
@@ -414,7 +396,7 @@ const styles = StyleSheet.create({
       marginTop: 8,
     },
     button: {
-      backgroundColor: Colors.buttonColor,
+      backgroundColor: Colors.selectedColor,
       paddingHorizontal: 20,
       borderRadius: 10,
       width: 150,
@@ -439,11 +421,7 @@ const styles = StyleSheet.create({
       padding: 20,
       width: screenWidth*0.8,
       alignItems: "center",
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.2,
-      shadowRadius: 4,
-      elevation: 5,
+      ...appStyles.shadow
     },
     optionPressable: {
       backgroundColor: Colors.selectedColor,

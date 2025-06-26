@@ -79,7 +79,7 @@ export default function ProfilePage() {
                             <Text style={styles.labelText}>First Name</Text>
                         </View>
                         <TextInput
-                            style={styles.textField}
+                            style={styles.textInput}
                             value={firstNameText || ""}
                             onChangeText={(newText) => {setFirstNameText(newText); setIsEditing(true);}}
                         />
@@ -87,7 +87,7 @@ export default function ProfilePage() {
                             <Text style={styles.labelText}>Last Name</Text>
                         </View>
                         <TextInput
-                            style={styles.textField}
+                            style={styles.textInput}
                             value={lastNameText || ""}
                             onChangeText={(newText) => {setLastNameText(newText); setIsEditing(true);}}
                         />
@@ -125,12 +125,12 @@ export default function ProfilePage() {
                     <View style={styles.buttonContainer} >
                         {/* Button */}
                         { isEditing ? (
-                            <Pressable style={styles.button} onPress={async () => await saveProfile(firstNameText, lastNameText, selectedGenres, selectedStreamingServices)}>
-                                <Text style={styles.buttonText}>Save</Text>
+                            <Pressable style={appStyles.button} onPress={async () => await saveProfile(firstNameText, lastNameText, selectedGenres, selectedStreamingServices)}>
+                                <Text style={appStyles.buttonText}>Save</Text>
                             </Pressable>
                         ) : (
-                            <Pressable style={styles.button} onPress={async () => { await LogOut(auth); router.push('/LoginPage');}}>
-                                <Text style={styles.buttonText}>Logout</Text>
+                            <Pressable style={appStyles.button} onPress={async () => { await LogOut(auth); router.push('/LoginPage');}}>
+                                <Text style={appStyles.buttonText}>Logout</Text>
                             </Pressable>
                         )}
                     </View>
@@ -154,16 +154,10 @@ const styles = StyleSheet.create({
         padding: "5%",
     },
     container: {
-        backgroundColor: Colors.altBackgroundColor,
+        ...appStyles.inputContainer,
         paddingVertical: "3%",
-        borderRadius: 10,
         marginVertical: "5%",
         marginTop: "8%",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        elevation: 5,
     },
     labelContainer: {
         flexDirection: "row",
@@ -178,18 +172,11 @@ const styles = StyleSheet.create({
         columnGap: 5,
         paddingLeft: 20,
         paddingRight: 16,
-        marginBottom: 20,
+        marginBottom: 15,
     },
-    textField: {
-        backgroundColor: Colors.grayCell,
+    textInput: {
+        ...appStyles.textInput,
         width: "90%",
-        height: 50,
-        borderRadius: 10,
-        marginBottom: 20,
-        fontSize: 16,
-        color: Colors.altBackgroundColor,
-        padding: 10,
-        textAlign: "left",
         alignSelf: "center",
     },
     textBox: {
@@ -211,13 +198,7 @@ const styles = StyleSheet.create({
         paddingBottom: 5,
         paddingLeft: "7%",
     },
-    separatorLine: {
-        width: "90%",
-        height: 1,
-        backgroundColor: "black",
-        marginVertical: 10,
-        alignSelf: "center",
-    },
+
     pressableBubble: {
         height: 45,
         minWidth: 45*1.5,
@@ -233,41 +214,16 @@ const styles = StyleSheet.create({
     },
     selectedBubble: {
         backgroundColor: Colors.selectedColor,
-        shadowColor: "black",
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 4,
-        elevation: 5, // for Android
+        ...appStyles.shadow
     },
     selectedBubbleText: {
         color: "white",
         fontWeight: "600"
     },
     buttonContainer: {
+        ...appStyles.buttonContainer,
         flex: 1,
         justifyContent: "flex-end",
         marginBottom: 75,
-        alignItems: "center",
-    },
-    button: {
-        backgroundColor: Colors.selectedColor,
-        padding: 10,
-        borderRadius: 10,
-        marginTop: 10,
-        width: 140,
-        paddingVertical: 14,
-        justifyContent: "center",
-        alignContent: "center",
-        shadowColor: "black",
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.2,
-        shadowRadius: 4,
-        elevation: 5,
-    },
-    buttonText: {
-        color: "#fff",
-        fontSize: 18,
-        fontWeight: "600",
-        textAlign:"center",
     },
 });

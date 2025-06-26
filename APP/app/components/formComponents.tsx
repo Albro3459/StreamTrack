@@ -46,7 +46,7 @@ export const PressableBubblesGroup: React.FC<PressableBubbleGroupProps> = ({ lab
         <Pressable 
             key={label} 
             onPress={() => {toggleSelection(label, setLabelState); onChange(true);}} 
-            style={[styles.pressableBubble, selectedLabels.has(label) && styles.selectedBubble]}
+            style={[styles.pressableBubble, selectedLabels.has(label) ? styles.selectedBubble : {paddingHorizontal: "4.33%",}]}
         >
             <Text style={[styles.pressableText, selectedLabels.has(label) && styles.selectedBubbleText]}>{label}</Text>
         </Pressable>

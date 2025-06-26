@@ -11,6 +11,7 @@ import { useUserDataStore } from './stores/userDataStore';
 import { ListData } from './types/dataTypes';
 import { delayedMoveTMDBItemToList, FAVORITE_TAB, isTMDBItemInList, PartialListData } from './helpers/StreamTrack/listHelper';
 import { MOVE_MODAL_DATA_ENUM, MoveModal } from './components/moveModalComponent';
+import { StarRating } from './components/starRatingComponent';
 
 export type Movie = {
     fullTMDBID: string;
@@ -80,9 +81,9 @@ export default function SearchPage() {
         <Pressable style={{height: screenHeight-70}} onPress={Keyboard.dismiss}>
             <View style={[styles.container]}>
                 {/* Search Bar */}
-                <View style={{flexDirection: "row", columnGap: 10, justifyContent: "center"}} >
+                <View style={[styles.searchBarContainer, {paddingHorizontal: 16}]} >
                     <Pressable 
-                        style={{paddingTop: 5}} 
+                        style={{paddingTop: 5,  ...appStyles.shadow}} 
                         onPress={async () => await search(searchText)}
                     >
                         <Feather name="search" size={28} color="white" />
@@ -106,7 +107,7 @@ export default function SearchPage() {
 
                 {/* Movie Cards */}
                 {(!movies || movies.length <= 0) ? (
-                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 16 }}>
                         <Text style={{ fontSize: 16, color: 'gray', textAlign: 'center', marginTop: -80 }}>
                         {searchText.length > 0 && showNoResults && !isSearching ? "No Results :(" : "Try Searching for a Show or Movie!"}
                         </Text>
@@ -128,12 +129,13 @@ export default function SearchPage() {
                         }}
                         onLongPress={() => {setSelectedMovie(movie); setMoveModalVisible(true);}}
                     >
-                        <View style={appStyles.cardContainer}>
+                        <View style={[appStyles.cardContainer, {marginHorizontal: 16}]}>
                             <Image source={{ uri: movie.verticalPoster }} style={appStyles.cardPoster} />
                             <View style={appStyles.cardContent}>
                                 <Text style={appStyles.cardTitle}>{movie.title}</Text>
                                 <Text style={appStyles.cardDescription} numberOfLines={4}>{movie.content.overview}</Text>
-                                <Text style={appStyles.cardRating}>⭐ {movie.rating}</Text>
+                                {/* <Text style={appStyles.cardRating}>⭐ {movie.rating}</Text> */}
+                                <StarRating rating={movie.rating}/>
                             </View>
                             <Heart 
                                 heartColor={isTMDBItemInList(lists, FAVORITE_TAB, movie.fullTMDBID) ? Colors.selectedHeartColor : Colors.unselectedHeartColor}
@@ -174,9 +176,15 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: Colors.backgroundColor,
-        padding: 16,
+        // paddingHorizontal: 16, // Let the children handle this themselves because otherwise the shadow gets cutoff
         paddingTop: 35,
         paddingBottom: 70
+    },
+    searchBarContainer: { 
+        flexDirection: "row", 
+        columnGap: 10, 
+        justifyContent: "center",
+        ...appStyles.shadow 
     },
     searchBar: {
         backgroundColor: Colors.altBackgroundColor,

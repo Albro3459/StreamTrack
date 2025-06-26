@@ -3,7 +3,7 @@ import {Dimensions, SafeAreaView, StyleSheet, Text, View, Image, TouchableOpacit
 import { GestureHandlerRootView, TouchableWithoutFeedback} from 'react-native-gesture-handler';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { Spinner } from './components/spinnerComponent';
-import { Content, PosterContent, Posters } from './types/contentType';
+// import { Content, PosterContent, Posters } from './types/contentType';
 // import { getContentById, getPostersFromContent, searchByKeywords } from './helpers/fetchHelper';
 import { router, SplashScreen, usePathname } from 'expo-router';
 import { Colors } from '@/constants/Colors';
@@ -27,10 +27,10 @@ export default function SpinnerPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [isSearching, setIsSearching] = useState(false);
 
-    const [moviesAndShows, setMoviesAndShows] = useState<PosterContent[]>([]);   
-    const [searchedContent, setSearchedContent] = useState<PosterContent[]>([]);
+    // const [moviesAndShows, setMoviesAndShows] = useState<PosterContent[]>([]);   
+    // const [searchedContent, setSearchedContent] = useState<PosterContent[]>([]);
 
-    const [winner, setWinner] = useState<PosterContent | null>(null);
+    // const [winner, setWinner] = useState<PosterContent | null>(null);
     const [showOverlay, setShowOverlay] = useState(false);
 
     const [inputText, setInputText] = useState<string>("");
@@ -159,11 +159,11 @@ export default function SpinnerPage() {
     
 
     // Function to remove a movie from the wheel
-    const removeSegment = (content: PosterContent) => {
-      setSearchedContent((prev) => prev.filter((item) => item.id !== content.id));
-      setMoviesAndShows((prev) => prev.filter((item) => item.id !== content.id));
-      setSearchModalVisible(false);
-    };
+    // const removeSegment = (content: PosterContent) => {
+    //   setSearchedContent((prev) => prev.filter((item) => item.id !== content.id));
+    //   setMoviesAndShows((prev) => prev.filter((item) => item.id !== content.id));
+    //   setSearchModalVisible(false);
+    // };
 
     // useEffect(() => {
     //   const fetchListData = async () => {
@@ -275,11 +275,11 @@ export default function SpinnerPage() {
                 /> */}
             </View>
 
-            <Spinner 
+            {/* <Spinner 
                 list={moviesAndShows} 
                 // onFinish={handleWinner} 
                 onFinish={() => {}}
-            />
+            /> */}
 
             {/* Input Section */}
             <View>
@@ -298,18 +298,18 @@ export default function SpinnerPage() {
                     >
                     <Text style={styles.addButtonText}>Add</Text>
                 </TouchableOpacity> */}
-                {moviesAndShows && moviesAndShows.length > 0 && (
+                {/* {moviesAndShows && moviesAndShows.length > 0 && (
                 <TouchableOpacity style={styles.addButton} 
                     onPress={() => {setDropDownOpen(false); setEditModalVisible(true);}}
                     // onPress={async () => await addSegment(inputText)}
                     >
                     <Text style={styles.addButtonText}>Edit</Text>
                 </TouchableOpacity>
-                )}
+                )} */}
                 </Pressable>
             </View>
 
-            {winner && showOverlay && (
+            {/* {winner && showOverlay && (
                 <View style={styles.overlay}>
                     <View style={styles.winnerContainer}>
                         <View style={{flexDirection: "row", alignItems: "center"}}>
@@ -349,7 +349,7 @@ export default function SpinnerPage() {
                         </Pressable>
                     </View>
                 </View>
-            )}
+            )} */}
 
             {/* Move Modal */}
             {/* {winner && (
@@ -445,7 +445,7 @@ export default function SpinnerPage() {
             </Modal>
 
 
-            {moviesAndShows && moviesAndShows.length > 0 && (
+            {/* {moviesAndShows && moviesAndShows.length > 0 && (
               <Modal
                 visible={isEditModalVisible}
                 transparent
@@ -457,7 +457,7 @@ export default function SpinnerPage() {
                         <View style={[styles.modalContainer, { height: 65*(moviesAndShows.length) + 100 }]}>
 
                         <View style={{marginTop: -8, zIndex: 1000}}>
-                          <Entypo name='circle-with-cross' size={30} color={Colors.buttonColor}
+                          <Entypo name='circle-with-cross' size={30} color={Colors.selectedColor}
                                   style={{
                                       position: "absolute",
                                       padding: 0,
@@ -494,7 +494,7 @@ export default function SpinnerPage() {
                     </View>
                   </View>    
               </Modal>
-            )}  
+            )}   */}
         </GestureHandlerRootView>
     );
 };
@@ -616,10 +616,7 @@ const styles = StyleSheet.create({
         backgroundColor: "#fff",
         padding: 20,
         borderRadius: 10,
-        shadowColor: "#000",
-        shadowOpacity: 0.2,
-        shadowRadius: 10,
-        elevation: 5,
+        ...appStyles.shadow,
       },
 
       loadingOverlay: {

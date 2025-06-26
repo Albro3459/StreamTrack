@@ -63,14 +63,14 @@ export default function LoginPage() {
             
             <View style={[styles.inputContainer, { paddingBottom: isSignUp ? 4 : 10 } ]}>
                 <TextInput
-                    style={styles.input}
+                    style={appStyles.textInput}
                     placeholder="Email"
                     value={email}
                     onChangeText={setEmail}
                     autoCapitalize="none"
                 />
                 <TextInput
-                    style={styles.input}
+                    style={appStyles.textInput}
                     placeholder="Password"
                     value={password}
                     onChangeText={setPassword}
@@ -79,7 +79,7 @@ export default function LoginPage() {
                 />
                 {isSignUp ? (
                     <TextInput
-                        style={styles.input}
+                        style={appStyles.textInput}
                         placeholder="Confirm Password"
                         value={confirmPassword}
                         onChangeText={setConfirmPassword}
@@ -97,15 +97,15 @@ export default function LoginPage() {
                     </View>
                 )}
             </View>
-            <View style={styles.buttonContainer}>
-                <TouchableOpacity style={styles.button} onPress={handleAuth}>
-                    <Text style={styles.buttonText}>{isSignUp ? "Sign Up" : "Sign In"}</Text>
+            <View style={appStyles.buttonContainer}>
+                <TouchableOpacity style={[appStyles.button, {marginBottom: 15}]} onPress={handleAuth}>
+                    <Text style={appStyles.buttonText}>{isSignUp ? "Sign Up" : "Sign In"}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
-                    style={[styles.button, styles.secondaryButton]}
+                    style={[appStyles.button, appStyles.secondaryButton]}
                     onPress={() => setIsSignUp(!isSignUp)}
                 >
-                    <Text style={[styles.buttonText, styles.secondaryButtonText]}>
+                    <Text style={[appStyles.buttonText, appStyles.secondaryButtonText]}>
                         {isSignUp ? "Sign In" : "Sign Up"}
                     </Text>
                 </TouchableOpacity>
@@ -136,24 +136,9 @@ const styles = StyleSheet.create({
         color: Colors.grayCell,
     },
     inputContainer: {
+        ...appStyles.inputContainer,
         marginBottom: 32,
-        backgroundColor: Colors.altBackgroundColor,
-        borderRadius: 15,
         padding: 18,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 5 },
-        shadowOpacity: 0.1,
-        shadowRadius: 10,
-        elevation: 5,
-    },
-    input: {
-        height: 50,
-        borderRadius: 10,
-        backgroundColor: Colors.grayCell,
-        paddingHorizontal: 15,
-        marginBottom: 15,
-        fontSize: 16,
-        color: Colors.tabBarColor
     },
     row: {
         flexDirection: "row",
@@ -167,33 +152,4 @@ const styles = StyleSheet.create({
         fontStyle: "italic",
         textDecorationLine: "underline"
     },
-    buttonContainer: {
-        alignItems: "center",
-    },
-    button: {
-        backgroundColor: Colors.buttonColor,
-        width: 140,
-        borderRadius: 10,
-        paddingVertical: 14,
-        alignItems: "center",
-        marginBottom: 15,
-        shadowRadius: 10,
-        shadowColor: "black",
-        shadowOpacity: 0.3,
-        shadowOffset: { width: 0, height: 5 },
-        elevation: 5,
-    },
-    buttonText: {
-        color: Colors.selectedTextColor,
-        fontSize: 18,
-        fontWeight: "600"
-    },
-    secondaryButton: {
-        backgroundColor: Colors.altBackgroundColor,
-        borderWidth: 1,
-        borderColor: Colors.buttonColor,
-    },
-    secondaryButtonText: {
-        color: Colors.buttonColor
-    }
 });

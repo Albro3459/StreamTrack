@@ -10,6 +10,7 @@ import { useUserDataStore } from "./stores/userDataStore";
 import { Review } from "./types/reviewType";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/firebaseConfig";
+import { StarRating } from "./components/starRatingComponent";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -47,7 +48,7 @@ export default function LandingPage () {
         id: "2",
         user: "@janedoe",
         text: "A fantastic emotional journey.",
-        rating: 4,
+        rating: 4.33,
         avatar: "https://via.placeholder.com/50",
         contentID: "146",
         contentTitle: ""
@@ -56,7 +57,7 @@ export default function LandingPage () {
         id: "3",
         user: "@movielover",
         text: "A must-watch for everyone!",
-        rating: 5,
+        rating: 3.167,
         avatar: "https://via.placeholder.com/50",
         contentID: "396",
         contentTitle: ""
@@ -201,16 +202,7 @@ export default function LandingPage () {
             <Text style={appStyles.reviewMovie}>
               Movie: {item.contentTitle.length > 0 ? item.contentTitle : "Unknown"}
             </Text>
-            <View style={appStyles.ratingContainer}>
-              {Array.from({ length: 5 }).map((_, index) => (
-                <MaterialIcons
-                  key={index}
-                  name={index < item.rating ? "star" : "star-border"}
-                  size={16}
-                  color={Colors.goldColor}
-                />
-              ))}
-            </View>
+            <StarRating rating={item.rating} />
           </View>
         </View>
       );
@@ -359,10 +351,11 @@ const styles = StyleSheet.create({
   circleButton: {
     width: 50,
     height: 50,
-    backgroundColor: Colors.buttonColor,
+    backgroundColor: Colors.selectedColor,
     borderRadius: 25,
     justifyContent: "center",
     alignItems: "center",
+    ...appStyles.shadow
   },
   movieCard: {
     width: 11*7,
@@ -395,7 +388,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   filterButton: {
-    backgroundColor: Colors.buttonColor,
+    backgroundColor: Colors.selectedColor,
     width: 125,
     height: 50,
     borderRadius: 10,
@@ -426,7 +419,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: Colors.selectedColor,
     alignContent: "center",
-    justifyContent: "center"
+    justifyContent: "center",
+    ...appStyles.shadow
   },
   libraryButtonText: {
     color: '#fff',
