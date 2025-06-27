@@ -14,17 +14,17 @@ import {
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import * as SplashScreen from "expo-splash-screen";
-import { router, usePathname } from 'expo-router';
+import { useRouter } from 'expo-router';
 import Heart from './components/heartComponent';
 import { appStyles } from '@/styles/appStyles';
 import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { setUserData, useUserDataStore } from './stores/userDataStore';
-import { ContentData, ContentMinimalData, ListData, ListMinimalData } from './types/dataTypes';
+import { ContentMinimalData, ListMinimalData } from './types/dataTypes';
 import { createNewUserList, FAVORITE_TAB, getContentsInList, isItemInListMinimal, moveItemToListWithFuncs, sortLists } from './helpers/StreamTrack/listHelper';
 import { User } from 'firebase/auth';
 import { auth } from '@/firebaseConfig';
-import { MOVE_MODAL_DATA_ENUM, MoveModal } from './components/moveModalComponent';
+import { MoveModal } from './components/moveModalComponent';
 import { API } from './types/APIType';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
@@ -33,6 +33,7 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 SplashScreen.preventAutoHideAsync();
 
 export default function LibraryPage() {
+    const router = useRouter();
     const pagerViewRef = useRef(null);
 
     const { userData } = useUserDataStore();
@@ -91,9 +92,9 @@ export default function LibraryPage() {
         if (!contents || contents.length === 0) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-            <Text style={{ fontSize: 16, color: 'gray', textAlign: 'center' }}>
-                Your list is empty. Start adding content!
-            </Text>
+                <Text style={{ fontSize: 16, color: 'gray', textAlign: 'center' }}>
+                    Your list is empty. Start adding content!
+                </Text>
             </View>
         );
         }

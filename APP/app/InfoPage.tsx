@@ -17,6 +17,7 @@ import { StarRating } from './components/starRatingComponent';
 import { API } from './types/APIType';
 import { getContentByTMDBID } from './helpers/StreamTrack/contentHelper';
 import { auth } from '@/firebaseConfig';
+import { getRecentContent, useContentDataStore } from './stores/contentDataStore';
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -36,6 +37,7 @@ export default function InfoPage() {
     const { api, tmdbID, title, year, media_type, verticalPoster, horizontalPoster } = useLocalSearchParams() as InfoPageParams;
 
     const { userData } = useUserDataStore();
+    const { recentContent, addRecentContent } = useContentDataStore();
 
     const [lists, setLists] = useState<ListMinimalData[] | null>([...userData.user.listsOwned, ...userData.user.listsSharedWithMe]);
 
@@ -85,12 +87,18 @@ export default function InfoPage() {
 
             const token = await auth.currentUser.getIdToken();
 
-            let content: ContentData | null;
-            if (api === API.STREAM_TRACK) {
-                content = await getContentByTMDBID(token, tmdbID);
-            }
-            else if (api === API.RAPID) {
-                content = await RapidAPIGetByTMDBID(tmdbID, verticalPoster ?? "", horizontalPoster ?? "");
+            let content: ContentData | null = getRecentContent(tmdbID);
+            if (!content) {
+                if (api === API.STREAM_TRACK) {
+                    content = await getContentByTMDBID(token, tmdbID);
+                }
+                else if (api === API.RAPID) {
+                    content = await RapidAPIGetByTMDBID(tmdbID, verticalPoster ?? "", horizontalPoster ?? "");
+                }
+
+                if (content) {
+                    addRecentContent(content);
+                }
             }
 
             if (content) {
@@ -101,7 +109,7 @@ export default function InfoPage() {
         }
 
         fetchContent();
-    }, [tmdbID, media_type, verticalPoster, horizontalPoster]);
+    }, [api, tmdbID, verticalPoster, horizontalPoster]);
 
     const renderTabContent = () => {
         switch (activeTab) {
