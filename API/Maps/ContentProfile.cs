@@ -5,8 +5,10 @@ using API.DTOs;
 
 public class ContentProfile : Profile {
     public ContentProfile() {
-        CreateMap<Content, ContentDTO>().ReverseMap();
+        CreateMap<Content, ContentDTO>();
 
-        CreateMap<Genre, GenreDTO>().ReverseMap();
+        CreateMap<Content, ContentMinimalDTO>();
+
+        CreateMap<Genre, GenreDTO>();
     }
 }

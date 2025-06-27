@@ -7,6 +7,7 @@ using API.DTOs;
 using API.Infrastructure;
 using API.Models;
 using API.Services;
+using System.Net.NetworkInformation;
 
 namespace API.Controllers;
 
@@ -40,21 +41,59 @@ public class UserController : ControllerBase {
 
     // GET: API/User/Get
     [HttpGet("Get")]
-    public async Task<ActionResult<UserDataDTO>> GetUserData() {
-        // Get the user's auth token to get the firebase uuid to get the correct user's data
-        // User's can only get their own data
+    public async Task<ActionResult<UserMinimalDataDTO>> GetUserData() {
+        // Used on app load to get their profile data and the lists with content IDs
 
         string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (string.IsNullOrEmpty(uid))
             return Unauthorized();
 
-        User? user = await service.GetFullUserByID(uid);
+        // User? user = await service.GetFullUserByID(uid);
+        User? user = await context.User
+                .Include(u => u.ListsOwned)
+                    .ThenInclude(l => l.Contents)
+                .Include(u => u.ListShares)
+                    .ThenInclude(ls => ls.List)
+                        .ThenInclude(l => l.Contents)
+                .Include(u => u.Genres)
+                .Include(u => u.StreamingServices)
+                .FirstOrDefaultAsync(u => u.UserID.Equals(uid));
+
         if (user == null) {
             return NotFound();
         }
 
-        return await service.MapUserToUserDTO(user);
+        return await service.MapUserToMinimalDTO(user);
+    }
+
+    // GET: API/User/GetContents
+    [HttpGet("GetContents")]
+    public async Task<ActionResult<List<ContentMinimalDTO>>> GetUserContents() {
+        // Used to get all the contents in any of the User's lists.
+        // Client will use the lists and content IDs from GetUserData() to know what's in each list
+
+        string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(uid))
+            return Unauthorized();
+
+        // User? user = await service.GetFullUserByID(uid); // I dont need the streaming options for contents
+        User? user = await context.User
+                .Include(u => u.ListsOwned)
+                    .ThenInclude(l => l.Contents)
+                .Include(u => u.ListShares)
+                    .ThenInclude(ls => ls.List)
+                        .ThenInclude(l => l.Contents)
+                .FirstOrDefaultAsync(u => u.UserID.Equals(uid));
+
+        if (user == null) {
+            return NotFound();
+        }
+
+        List<ContentMinimalDTO> contents = service.GetUsersContentMinimalDTOs(user);
+
+        return contents;
     }
 
     // POST: API/User/Create
@@ -132,6 +171,6 @@ public class UserController : ControllerBase {
 
         await context.SaveChangesAsync();
 
-        return await service.MapUserToUserDTO(user);
+        return await service.MapUserToFullUserDTO(user);
     }
 }

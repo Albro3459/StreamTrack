@@ -41,7 +41,7 @@ public class ListController : ControllerBase {
             return NotFound();
         }
 
-        UserDataDTO userDTO = await service.MapUserToUserDTO(user);
+        UserDataDTO userDTO = await service.MapUserToFullUserDTO(user);
 
         ListsAllDTO allLists = new ListsAllDTO {
             ListsOwned = userDTO.ListsOwned,
@@ -128,7 +128,7 @@ public class ListController : ControllerBase {
             return NotFound();
         }
 
-        UserDataDTO userDTO = await service.MapUserToUserDTO(user);
+        UserDataDTO userDTO = await service.MapUserToFullUserDTO(user);
 
         return userDTO;
     }

@@ -7,6 +7,10 @@ public class UserProfile : Profile {
     public UserProfile() {
         CreateMap<User, UserDataDTO>().ReverseMap();
 
-        CreateMap<List, ListDTO>().ReverseMap();
+        CreateMap<User, UserMinimalDataDTO>()
+            .ForMember(
+                dest => dest.Genres,
+                opt => opt.MapFrom(src => src.Genres.Select(g => g.Name).ToList())
+            );
     }
 }

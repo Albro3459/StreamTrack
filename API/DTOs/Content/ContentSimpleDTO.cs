@@ -1,0 +1,22 @@
+
+using System.Text.Json.Serialization;
+
+namespace API.DTOs;
+
+// Landing Page
+public class ContentSimpleDTO {
+    public string ContentID { get; set; } = string.Empty;
+
+    public string Title { get; set; } = string.Empty;
+
+    public string ShowType { get; set; } = string.Empty;
+
+    public List<string> GenreNames { get; set; } = new();
+
+    public List<string> StreamingServiceNames { get; set; } = new();
+
+    public string VerticalPoster { get; set; } = string.Empty;
+
+    public string HorizontalPoster { get; set; } = string.Empty;
+
+}

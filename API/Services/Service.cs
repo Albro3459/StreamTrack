@@ -51,19 +51,51 @@ public class Service {
                     .ToListAsync();
     }
 
-    public async Task<UserDataDTO> MapUserToUserDTO(User user) {
+    public async Task<UserDataDTO> MapUserToFullUserDTO(User user) {
         UserDataDTO userDataDTO = mapper.Map<User, UserDataDTO>(user);
 
         userDataDTO.ListsOwned.ForEach(l => l.IsOwner = true);
 
         List<List> listsSharedWithMe = await GetListsSharedToUser(user.UserID);
         userDataDTO.ListsSharedWithMe = mapper.Map<List<List>, List<ListDTO>>(listsSharedWithMe);
+        userDataDTO.ListsSharedWithMe.ForEach(l => l.IsOwner = false);
 
         List<List> listSharedWithOthers = await GetListsSharedByAndOwnedByUser(user.UserID);
         userDataDTO.ListsSharedWithOthers = mapper.Map<List<List>, List<ListDTO>>(listSharedWithOthers);
         userDataDTO.ListsSharedWithOthers.ForEach(l => l.IsOwner = true);
 
         return userDataDTO;
+    }
+
+    public async Task<UserMinimalDataDTO> MapUserToMinimalDTO(User user) {
+        UserMinimalDataDTO minimalDTO = mapper.Map<User, UserMinimalDataDTO>(user);
+
+        minimalDTO.ListsOwned.ForEach(l => l.IsOwner = true);
+
+        var listsSharedWithMe = await GetListsSharedToUser(user.UserID);
+        minimalDTO.ListsSharedWithMe = mapper.Map<List<List>, List<ListMinimalDTO>>(listsSharedWithMe);
+        minimalDTO.ListsSharedWithMe.ForEach(l => l.IsOwner = false);
+
+        var listsSharedWithOthers = await GetListsSharedByAndOwnedByUser(user.UserID);
+        minimalDTO.ListsSharedWithOthers = mapper.Map<List<List>, List<ListMinimalDTO>>(listsSharedWithOthers);
+        minimalDTO.ListsSharedWithOthers.ForEach(l => l.IsOwner = true);
+
+        return minimalDTO;
+    }
+
+    public List<ContentMinimalDTO> GetUsersContentMinimalDTOs(User user) {
+
+        HashSet<ContentMinimalDTO> set = new();
+
+        user.ListsOwned.ToList().ForEach(l => mapper.Map<ICollection<Content>, List<ContentMinimalDTO>>(l.Contents).ForEach(c => set.Add(c)));
+
+        var listsSharedWithMe = GetListsSharedToUser(user);
+        listsSharedWithMe.ForEach(l => mapper.Map<ICollection<Content>, List<ContentMinimalDTO>>(l.Contents).ForEach(c => set.Add(c)));
+
+        var listsSharedWithOthers = GetListsSharedByAndOwnedByUser(user);
+        listsSharedWithOthers.ForEach(l => mapper.Map<ICollection<Content>, List<ContentMinimalDTO>>(l.Contents).ForEach(c => set.Add(c)));
+
+        return set.ToList();
     }
 
     public async Task<List<List>> GetListsSharedToUser(string userID) {
@@ -78,6 +110,15 @@ public class Service {
         return lists;
 
     }
+    public List<List> GetListsSharedToUser(User user) {
+        List<List> lists = user.ListShares
+                            .Select(ls => ls.List)
+                            .Distinct()
+                            .ToList();
+
+        return lists;
+
+    }
 
     public async Task<List<List>> GetListsSharedByAndOwnedByUser(string userID) {
         List<List> lists = await context.ListShares
@@ -87,6 +128,14 @@ public class Service {
                             .Select(ls => ls.List)
                             .Distinct()
                             .ToListAsync();
+
+        return lists;
+    }
+    public List<List> GetListsSharedByAndOwnedByUser(User user) {
+        List<List> lists = user.ListShares
+                            .Select(ls => ls.List)
+                            .Distinct()
+                            .ToList();
 
         return lists;
     }

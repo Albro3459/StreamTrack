@@ -11,6 +11,8 @@ select * from Genre;
 
 select * from StreamingService;
 
+select * from StreamingOption;
+
 
 SELECT 
     u.UserID,
