@@ -1,4 +1,4 @@
-import { ContentData, ListData, UserData } from "@/app/types/dataTypes";
+import { ContentData, ContentMinimalData, ListData, ListMinimalData, UserData, UserMinimalData } from "@/app/types/dataTypes";
 import { DataAPIURL } from "@/secrets/DataAPIUrl";
 import { User } from "firebase/auth";
 import { auth } from "@/firebaseConfig";
@@ -18,28 +18,26 @@ export const sortLists = <T extends { listName: string }>(lists: T[]): T[] => {
     });
 };
 
-export const isItemInList = (lists: ListData[], listName: string, contentID: string) => {
-    const list: ListData = lists.find(l => l.listName === listName);
+export const getContentsInList = (contents: ContentMinimalData[], lists: ListMinimalData[], listName: string): ContentMinimalData[] => {
+    const list: ListMinimalData = lists.find(l => l.listName === listName);
+    return (list && contents) 
+                ? contents.filter(c => list.tmdbIDs.includes(c.tmdbID)) 
+                : [];
+};
+
+export const isItemInListMinimal = (lists: ListMinimalData[], listName: string, tmdbID: string) => {
+    const list: ListMinimalData = lists.find(l => l.listName === listName);
     if (!list) return false;
 
-    return list.contents.some(c => c.contentID === contentID);
+    return list.tmdbIDs.includes(tmdbID);
 };
 
-export const isTMDBItemInList = (lists: ListData[] | PartialListData[], listName: string, fullTMDBID: string): boolean => {
-    const list: ListData | PartialListData = lists.find(l => l.listName === listName);
-    if (!list) return false;
-    return list.contents.some(c => c.tmdb_ID === fullTMDBID);
+export const isItemInAnyList = (lists: ListMinimalData[], tmdbID: string) => {
+    return lists.flatMap(l => l.tmdbIDs).includes(tmdbID);
 };
 
-export type PartialListData = {
-    isOwner: boolean;
-    listName: string;
-    contents: ContentData[] | Partial<ContentData>[];
-    // permission: string;
-};
-
-export const delayedMoveTMDBItemToList = async (movie: Movie, listName: string, lists: PartialListData[], 
-                                setLists: React.Dispatch<React.SetStateAction<PartialListData[]>>,
+export const delayedMoveTMDBItemToList = async (movie: Movie, listName: string, lists: ListMinimalData[], 
+                                setLists: React.Dispatch<React.SetStateAction<ListMinimalData[]>>,
                                 setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
                                 setMoveModalVisible: React.Dispatch<React.SetStateAction<boolean>>        
 ) => {
@@ -50,7 +48,7 @@ export const delayedMoveTMDBItemToList = async (movie: Movie, listName: string, 
 
     try {
         setIsLoading(true);
-        let list: PartialListData = lists.find(l => l.listName === listName);
+        let list: ListMinimalData = lists.find(l => l.listName === listName);
         if (!list) {
             return;
         }
@@ -58,29 +56,33 @@ export const delayedMoveTMDBItemToList = async (movie: Movie, listName: string, 
         if (!user) {
             return;
         }
-        const fakeContent: Partial<ContentData> = {
-            tmdb_ID: movie.fullTMDBID
-        };
         
-        let contents: Partial<ContentData>[] = [];
-        if (list.contents.some(c => c.tmdb_ID === movie.fullTMDBID)) {
+        let tmdbIDs: string[] = [];
+        if (list.tmdbIDs.includes(movie.tmdbID)) {
             // Remove
-            contents = list.contents.filter(c => c.tmdb_ID !== movie.fullTMDBID);
+            tmdbIDs = list.tmdbIDs.filter(t => t !== movie.tmdbID);
         }
         else { // Add
-            contents = [...list.contents, fakeContent];
+            tmdbIDs = [...list.tmdbIDs, movie.tmdbID];
         }
 
-        const partialList: PartialListData = {
+        const updatedList: ListMinimalData = {
             ...list,
-            contents: contents
+            tmdbIDs: tmdbIDs
         };
 
-        if (partialList) {
+        if (updatedList) {
             setLists(prev => {
-                const newLists = prev.map(l => l.listName === listName ? partialList : l);
+                const newLists = prev.map(l => l.listName === listName ? updatedList : l);
                 return sortLists(newLists);
             });
+            const userData: UserData = useUserDataStore.getState().userData;
+            userData.user.listsOwned = userData.user.listsOwned.map(l => l.listName === list.listName ? list : l);
+            if (!userData.contents.some(c => c.tmdbID === movie.tmdbID)) {
+                userData.contents.push({tmdbID: movie.tmdbID, title: movie.title, releaseYear: parseInt(movie.year) || 0, verticalPoster: movie.verticalPoster, horizontalPoster: movie.horizontalPoster} as ContentMinimalData);
+
+            }
+            setUserData(userData, true);
             
             findAndMoveTMDBItemToList(movie, listName, lists); // Fire and forget :)
         }
@@ -92,16 +94,15 @@ export const delayedMoveTMDBItemToList = async (movie: Movie, listName: string, 
     }
 };
 
-export const findAndMoveTMDBItemToList = async (movie: Movie, listName: string, lists: PartialListData[]) => {
-    const content: ContentData = await RapidAPIGetByTMDBID(movie.tmdbID, movie.mediaType, movie.verticalPoster, movie.horizontalPoster);
+export const findAndMoveTMDBItemToList = async (movie: Movie, listName: string, lists: ListMinimalData[]) => {
+    const content: ContentData = await RapidAPIGetByTMDBID(movie.tmdbID, movie.verticalPoster, movie.horizontalPoster);
     await moveItemToList(content, listName, lists);
 };
 
-export const moveItemToList = async (content: ContentData, listName: string, lists: PartialListData[]) => {
-    // console.log("Moving!");
+export const moveItemToList = async (content: ContentData, listName: string, lists: ListMinimalData[]) => {
     // Only works for user owned lists for now
-    let partialList: PartialListData = lists.find(l => l.listName === listName);
-    if (!partialList) {
+    let list: ListMinimalData = lists.find(l => l.listName === listName);
+    if (!list) {
         return;
     }
     const user: User | null = auth.currentUser;
@@ -109,20 +110,28 @@ export const moveItemToList = async (content: ContentData, listName: string, lis
         return;
     }
     const token = await user.getIdToken();
-    const list: ListData | null = partialList.contents.some(c => c.contentID === content.contentID) ? 
-            await removeContentFromUserList(token, partialList.listName, content.contentID)
-            :
-            await addContentToUserList(token, partialList.listName, content);
+
+    const shouldRemove: boolean = list.tmdbIDs.includes(content.tmdbID);
+    list = shouldRemove 
+            ? await removeContentFromUserList(token, list.listName, content.tmdbID)
+            : await addContentToUserList(token, list.listName, content);
     if (list) {
-        const userData: UserData = useUserDataStore.getState().userData;
-        userData.listsOwned = userData.listsOwned.filter(l => l.listName !== list.listName);
-        userData.listsOwned.push(list);
-        setUserData(userData, true);
+        const userData: UserData = { ...useUserDataStore.getState().userData };
+        userData.user.listsOwned = userData.user.listsOwned.map(l => l.listName === list.listName ? list : l);
+
+        const isInOtherList = lists.some(l => l.listName !== listName && l.tmdbIDs.includes(content.tmdbID));
+        let contents = [...userData.contents];
+        if (shouldRemove && !isInOtherList) {
+            contents = contents.filter(c => c.tmdbID !== content.tmdbID);
+        } else if (!contents.some(c => c.tmdbID === content.tmdbID)) {
+            contents.push({ tmdbID: content.tmdbID, title: content.title, releaseYear: content.releaseYear, verticalPoster: content.verticalPoster, horizontalPoster: content.horizontalPoster } as ContentMinimalData);
+        }
+        setUserData({...userData, contents} as UserData, true);
     }
 };
 
-export const moveItemToListWithFuncs = async (content: ContentData, listName: string, lists: ListData[], 
-                                setLists: React.Dispatch<React.SetStateAction<ListData[]>>,
+export const moveItemToListWithFuncs = async (content: ContentData, listName: string, lists: ListMinimalData[], 
+                                setLists: React.Dispatch<React.SetStateAction<ListMinimalData[]>>,
                                 setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
                                 setMoveModalVisible: React.Dispatch<React.SetStateAction<boolean>>        
 ) => {
@@ -130,7 +139,7 @@ export const moveItemToListWithFuncs = async (content: ContentData, listName: st
 
     try {
         setIsLoading(true);
-        let list: ListData = lists.find(l => l.listName === listName);
+        let list: ListMinimalData = lists.find(l => l.listName === listName);
         if (!list) {
             return;
         }
@@ -139,16 +148,24 @@ export const moveItemToListWithFuncs = async (content: ContentData, listName: st
             return;
         }
         const token = await user.getIdToken();
-        list = list.contents.some(c => c.contentID === content.contentID) ? 
-                await removeContentFromUserList(token, list.listName, content.contentID)
-                :
-                await addContentToUserList(token, list.listName, content);
+
+        const shouldRemove: boolean = list.tmdbIDs.includes(content.tmdbID);
+        list = shouldRemove 
+                ? await removeContentFromUserList(token, list.listName, content.tmdbID)
+                : await addContentToUserList(token, list.listName, content);
         if (list) {
-            const userData: UserData = useUserDataStore.getState().userData;
-            userData.listsOwned = userData.listsOwned.filter(l => l.listName !== list.listName);
-            userData.listsOwned.push(list);
-            setLists(sortLists([...userData.listsOwned, ...userData.listsSharedWithMe]));
-            setUserData(userData, true);
+            const userData: UserData = { ...useUserDataStore.getState().userData };
+            userData.user.listsOwned = userData.user.listsOwned.map(l => l.listName === list.listName ? list : l);
+            setLists(sortLists([...userData.user.listsOwned, ...userData.user.listsSharedWithMe]));
+
+            const isInOtherList = lists.some(l => l.listName !== listName && l.tmdbIDs.includes(content.tmdbID));
+            let contents = [...userData.contents];
+            if (shouldRemove && !isInOtherList) {
+                contents = contents.filter(c => c.tmdbID !== content.tmdbID);
+            } else if (!contents.some(c => c.tmdbID === content.tmdbID)) {
+                contents.push({ tmdbID: content.tmdbID, title: content.title, releaseYear: content.releaseYear, verticalPoster: content.verticalPoster, horizontalPoster: content.horizontalPoster } as ContentMinimalData);
+            }
+            setUserData({...userData, contents} as UserData, true);
         }
     } catch (e: any) {
         console.log("Error move item func: ", e);
@@ -158,7 +175,7 @@ export const moveItemToListWithFuncs = async (content: ContentData, listName: st
     }
 };
 
-export const addContentToUserList = async (token: string | null, listName: string, content: ContentData): Promise<ListData | null> => {
+export const addContentToUserList = async (token: string | null, listName: string, content: ContentData): Promise<ListMinimalData | null> => {
     try {
         if (!token) return null;
 
@@ -184,7 +201,7 @@ export const addContentToUserList = async (token: string | null, listName: strin
             return null;
         }
 
-        const data: ListData = await result.json();
+        const data: ListMinimalData = await result.json();
         
         return data;
 
@@ -194,11 +211,11 @@ export const addContentToUserList = async (token: string | null, listName: strin
     }
 };
 
-export const removeContentFromUserList = async (token: string | null, listName: string, contentID: string): Promise<ListData | null> => {
+export const removeContentFromUserList = async (token: string | null, listName: string, tmdbID: string): Promise<ListMinimalData | null> => {
     try {
         if (!token) return null;
 
-        const url = DataAPIURL + `API/List/${listName}/Remove/${contentID}`;
+        const url = DataAPIURL + `API/List/${listName}/Remove/${tmdbID}`;
 
         const options = {
             method: 'DELETE',
@@ -217,7 +234,7 @@ export const removeContentFromUserList = async (token: string | null, listName: 
             return null;
         }
 
-        const data: ListData = await result.json();
+        const data: ListMinimalData = await result.json();
         
         return data;
 
@@ -227,7 +244,7 @@ export const removeContentFromUserList = async (token: string | null, listName: 
     }
 };
 
-export const createNewUserList = async (token: string | null, listName: string): Promise<ListData | null> => {
+export const createNewUserList = async (token: string | null, listName: string): Promise<ListMinimalData | null> => {
     try {
         if (!token) return null;
 
@@ -250,7 +267,7 @@ export const createNewUserList = async (token: string | null, listName: string):
             return null;
         }
 
-        const data: ListData = await result.json();
+        const data: ListMinimalData = await result.json();
         
         return data;
 

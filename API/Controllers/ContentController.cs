@@ -24,9 +24,9 @@ public class ContentController : ControllerBase {
         mapper = _mapper;
     }
 
-    // GET: API/Content/{contentID}/Get
-    [HttpGet("{contentID}/Get")]
-    public async Task<ActionResult<ContentDTO>> GetContentByID(string contentID) {
+    // GET: API/Content/Get/{tmdbID}
+    [HttpGet("Get/{*tmdbID}")]
+    public async Task<ActionResult<ContentDTO>> GetContentByID(string tmdbID) {
         // Get the user's auth token to get the firebase uuid to get the correct user's data
         // User's can only get their own data
 
@@ -35,11 +35,13 @@ public class ContentController : ControllerBase {
         if (string.IsNullOrEmpty(uid))
             return Unauthorized();
 
+        tmdbID = Uri.UnescapeDataString(tmdbID);
+
         Content? content = await context.Content
                 .Include(c => c.Genres)
                 .Include(c => c.StreamingOptions)
                     .ThenInclude(s => s.StreamingService)
-                .FirstOrDefaultAsync(c => c.ContentID == contentID);
+                .FirstOrDefaultAsync(c => c.TMDB_ID == tmdbID);
         if (content == null) return NotFound();
 
         return mapper.Map<Content, ContentDTO>(content);
@@ -76,7 +78,7 @@ public class ContentController : ControllerBase {
 
         List<Content> contents = new();
         foreach (var dto in dtos) {
-            Content? content = await context.Content.FirstOrDefaultAsync(c => c.ContentID == dto.ContentID);
+            Content? content = await context.Content.FirstOrDefaultAsync(c => c.TMDB_ID == dto.TMDB_ID);
             if (content == null) {
                 content = await service.ContentDTOToContent(dto);
                 if (content != null) {

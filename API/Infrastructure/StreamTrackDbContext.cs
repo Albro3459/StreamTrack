@@ -63,7 +63,7 @@ public class StreamTrackDbContext : DbContext {
                 .HasForeignKey(ls => ls.ListID);
 
         modelBuilder.Entity<StreamingOption>()
-            .HasKey(so => new { so.ContentID, so.ServiceID });
+            .HasKey(so => new { so.TMDB_ID, so.ServiceID });
 
         modelBuilder.Entity<ListShares>()
             .HasKey(ls => new { ls.ListID, ls.UserID });

@@ -143,12 +143,12 @@ public class Service {
     public async Task<Content?> ContentDTOToContent(ContentDTO dto) {
 
         var content = new Content { // leaving out Genres, StreamingOptions, and Lists
-            ContentID = dto.ContentID,
+            TMDB_ID = dto.TMDB_ID,
             Title = dto.Title,
             Overview = dto.Overview,
             ReleaseYear = dto.ReleaseYear,
+            RapidID = dto.RapidID,
             IMDB_ID = dto.IMDB_ID,
-            TMDB_ID = dto.TMDB_ID,
             ShowType = dto.ShowType,
             Cast = dto.Cast,
             Directors = dto.Directors,
@@ -206,11 +206,11 @@ public class Service {
     }
 
     public async Task<StreamingOption?> StreamingOptionDTOToStreamingOption(StreamingOptionDTO dto, Content content) {
-        StreamingOption? streamingOption = await context.StreamingOption.FirstOrDefaultAsync(s => s.ContentID == content.ContentID && s.StreamingService.Name == dto.StreamingService.Name);
+        StreamingOption? streamingOption = await context.StreamingOption.FirstOrDefaultAsync(s => s.TMDB_ID == content.TMDB_ID && s.StreamingService.Name == dto.StreamingService.Name);
         if (streamingOption != null) return streamingOption;
 
         // Check if it was already added in the LOCAL context (Local is in this current transaction in RAM, not the DB). This is a pretty big optimization.
-        streamingOption = context.StreamingOption.Local.FirstOrDefault(s => s.ContentID == content.ContentID && s.StreamingService.Name == dto.StreamingService.Name);
+        streamingOption = context.StreamingOption.Local.FirstOrDefault(s => s.TMDB_ID == content.TMDB_ID && s.StreamingService.Name == dto.StreamingService.Name);
         if (streamingOption != null) { return streamingOption; }
 
         StreamingService service = await StreamingServiceDTOToStreamingService(dto.StreamingService);

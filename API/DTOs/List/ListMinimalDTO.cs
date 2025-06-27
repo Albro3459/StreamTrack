@@ -1,3 +1,4 @@
+using System.Text.Json.Serialization;
 
 namespace API.DTOs;
 
@@ -7,7 +8,8 @@ public class ListMinimalDTO {
 
     public string ListName { get; set; } = string.Empty;
 
-    public List<string> ContentIDs { get; set; } = new();
+    [JsonPropertyName("tmdbIDs")]
+    public List<string> TMDB_IDs { get; set; } = new();
 
     // public string Permission { get; set; } = string.Empty;
 

@@ -20,8 +20,8 @@ export const EyeToggle: React.FC<EyeToggleProps> = ({ icon, onPress, styles }) =
 
 
 // function to toggle selecting an attribute or bubble
-const toggleSelection = (attribute: any, setState: Dispatch<SetStateAction<any>>) => {
-    setState((prevSelected: any) => {
+const toggleSelection = (attribute: string, setState: Dispatch<SetStateAction<Set<string>>>) => {
+    setState((prevSelected: Set<string>) => {
         const updatedSelected = new Set(prevSelected);
         if (updatedSelected.has(attribute)) {
             updatedSelected.delete(attribute); // Unselect

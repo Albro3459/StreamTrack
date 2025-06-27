@@ -5,7 +5,7 @@ namespace API.Models;
 public class Content : SoftDeletableEntity {
     [Key]
     [Required]
-    public string ContentID { get; set; } = string.Empty;
+    public string TMDB_ID { get; set; } = string.Empty;
 
     [Required]
     public string Title { get; set; } = string.Empty;
@@ -17,10 +17,10 @@ public class Content : SoftDeletableEntity {
     public int ReleaseYear { get; set; }
 
     [Required]
-    public string IMDB_ID { get; set; } = string.Empty;
+    public string RapidID { get; set; } = string.Empty;
 
     [Required]
-    public string TMDB_ID { get; set; } = string.Empty;
+    public string IMDB_ID { get; set; } = string.Empty;
 
     [Required]
     public string ShowType { get; set; } = string.Empty;

@@ -19,7 +19,7 @@ namespace StreamTrack.Migrations
 
             modelBuilder.Entity("API.Models.Content", b =>
                 {
-                    b.Property<string>("ContentID")
+                    b.Property<string>("TMDB_ID")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Cast")
@@ -48,6 +48,10 @@ namespace StreamTrack.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("RapidID")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<int>("Rating")
                         .HasColumnType("INTEGER");
 
@@ -64,10 +68,6 @@ namespace StreamTrack.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<string>("TMDB_ID")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("Title")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -76,7 +76,7 @@ namespace StreamTrack.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.HasKey("ContentID");
+                    b.HasKey("TMDB_ID");
 
                     b.ToTable("Content");
                 });
@@ -205,7 +205,7 @@ namespace StreamTrack.Migrations
 
             modelBuilder.Entity("API.Models.StreamingOption", b =>
                 {
-                    b.Property<string>("ContentID")
+                    b.Property<string>("TMDB_ID")
                         .HasColumnType("TEXT")
                         .HasColumnOrder(0);
 
@@ -224,7 +224,7 @@ namespace StreamTrack.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.HasKey("ContentID", "ServiceID");
+                    b.HasKey("TMDB_ID", "ServiceID");
 
                     b.HasIndex("ServiceID");
 
@@ -352,13 +352,13 @@ namespace StreamTrack.Migrations
 
             modelBuilder.Entity("ContentGenre", b =>
                 {
-                    b.Property<string>("ContentsContentID")
+                    b.Property<string>("ContentsTMDB_ID")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("GenresGenreID")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("ContentsContentID", "GenresGenreID");
+                    b.HasKey("ContentsTMDB_ID", "GenresGenreID");
 
                     b.HasIndex("GenresGenreID");
 
@@ -367,13 +367,13 @@ namespace StreamTrack.Migrations
 
             modelBuilder.Entity("ContentList", b =>
                 {
-                    b.Property<string>("ContentsContentID")
+                    b.Property<string>("ContentsTMDB_ID")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ListsListID")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("ContentsContentID", "ListsListID");
+                    b.HasKey("ContentsTMDB_ID", "ListsListID");
 
                     b.HasIndex("ListsListID");
 
@@ -442,15 +442,15 @@ namespace StreamTrack.Migrations
 
             modelBuilder.Entity("API.Models.StreamingOption", b =>
                 {
-                    b.HasOne("API.Models.Content", "Content")
-                        .WithMany("StreamingOptions")
-                        .HasForeignKey("ContentID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("API.Models.StreamingService", "StreamingService")
                         .WithMany("StreamingOptions")
                         .HasForeignKey("ServiceID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("API.Models.Content", "Content")
+                        .WithMany("StreamingOptions")
+                        .HasForeignKey("TMDB_ID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -463,7 +463,7 @@ namespace StreamTrack.Migrations
                 {
                     b.HasOne("API.Models.Content", null)
                         .WithMany()
-                        .HasForeignKey("ContentsContentID")
+                        .HasForeignKey("ContentsTMDB_ID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -478,7 +478,7 @@ namespace StreamTrack.Migrations
                 {
                     b.HasOne("API.Models.Content", null)
                         .WithMany()
-                        .HasForeignKey("ContentsContentID")
+                        .HasForeignKey("ContentsTMDB_ID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

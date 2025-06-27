@@ -211,7 +211,7 @@ export default function OldLandingPage () {
     return (
         <View style={styles.container} >
         <ScrollView style={{ marginBottom: LIBRARY_OVERLAY_HEIGHT}} showsVerticalScrollIndicator={false}>
-            <Text style={styles.welcomeText}>WELCOME BACK {userData ? userData.firstName.length > 0 ? userData.firstName.toUpperCase() : "USER" : "USER"}!</Text>
+            <Text style={styles.welcomeText}>WELCOME BACK {userData ? userData.user.firstName.length > 0 ? userData.user.firstName.toUpperCase() : "USER" : "USER"}!</Text>
             {/* Trending Section */}
             <View style={styles.section}>
             <Text style={styles.sectionTitle}>TRENDING</Text>

@@ -1,14 +1,14 @@
-import { MEDIA_TYPE } from "./tmdbType";
+import { SHOW_TYPE } from "./contentType";
+import { TMDB_MEDIA_TYPE } from "./tmdbType";
 
 // Send
 export type ListsUpdateData = {
-    ContentID: string;
+    tmdbID: string;
     AddToLists: string[];
     RemoveFromLists: string[];
 };
 
 export type UpdateUserProfileData = {
-    Email?: string;
     FirstName?: string;
     LastName?: string;
     Genres?: string[];
@@ -17,16 +17,27 @@ export type UpdateUserProfileData = {
 
 // Receive
 export type UserData = {
+    user: UserMinimalData;
+    contents: ContentMinimalData[];
+};
+
+export type UserMinimalData = {
     email: string;
     firstName: string;
     lastName: string;
-    listsOwned: ListData[];
-    listsSharedWithMe: ListData[];
-    listsSharedWithOthers: ListData[];
-    genres: GenreData[];
+    listsOwned: ListMinimalData[];
+    listsSharedWithMe: ListMinimalData[];
+    listsSharedWithOthers: ListMinimalData[];
+    genreNames: string[];
     streamingServices: StreamingServiceData[];
 };
 
+export type ListMinimalData = {
+    isOwner: boolean;
+    listName: string;
+    tmdbIDs: string[];
+    // permission: string;
+};
 
 export type ListData = {
     isOwner: boolean;
@@ -36,14 +47,22 @@ export type ListData = {
 };
 
 
+export type ContentMinimalData = {
+    tmdbID: string;
+    title: string;
+    releaseYear: number;
+    verticalPoster: string;
+    horizontalPoster: string;
+};
+
 export type ContentData = {
-    contentID: string;
+    tmdbID: string;
     title: string;
     overview: string;
     releaseYear: number;
-    imdb_ID: string;
-    tmdb_ID: string;
-    showType: MEDIA_TYPE;
+    rapidID: string;
+    imdbID: string;
+    showType: SHOW_TYPE;
     genres: GenreData[];
     cast: string[];
     directors: string[];

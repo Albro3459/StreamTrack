@@ -16,7 +16,7 @@ public class UserMinimalDataDTO {
 
     public List<ListMinimalDTO> ListsSharedWithOthers { get; set; } = new();
 
-    public List<string> Genres { get; set; } = new();
+    public List<string> GenreNames { get; set; } = new();
 
     public List<StreamingServiceDTO> StreamingServices { get; set; } = new();
 

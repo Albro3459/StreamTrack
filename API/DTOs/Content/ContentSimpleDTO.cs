@@ -5,7 +5,9 @@ namespace API.DTOs;
 
 // Landing Page
 public class ContentSimpleDTO {
-    public string ContentID { get; set; } = string.Empty;
+
+    [JsonPropertyName("tmdbID")]
+    public string TMDB_ID { get; set; } = string.Empty;
 
     public string Title { get; set; } = string.Empty;
 

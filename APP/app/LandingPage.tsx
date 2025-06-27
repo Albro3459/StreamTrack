@@ -24,10 +24,15 @@ export default function LandingPage () {
 
     const [isLoading, setIsLoading] = useState(false);  
 
+    // (async () => {
+    //     const token = await auth.currentUser.getIdToken();
+    //     console.log(token);
+    // })();
+
     return (
         <View style={styles.container} >
             <ScrollView style={{ marginBottom: LIBRARY_OVERLAY_HEIGHT}} showsVerticalScrollIndicator={false}>
-                <Text style={styles.welcomeText}>WELCOME BACK {userData && userData.firstName.length > 0 && userData.firstName.toUpperCase()}!</Text>
+                <Text style={styles.welcomeText}>WELCOME BACK{userData?.user?.firstName?.length > 0 && " "+userData.user.firstName.toUpperCase()}!</Text>
                 {/* Trending Section */}
                 <View style={styles.section}>
                     <Text style={styles.sectionTitle}>TRENDING</Text>
@@ -108,7 +113,6 @@ export default function LandingPage () {
 
             {/* Move Modal */}
             {/* <MoveModal
-                dataType={MOVE_MODAL_DATA_ENUM.TMDB}
                 selectedItem={selectedMovie}
                 lists={lists}
                 showHeart={false}

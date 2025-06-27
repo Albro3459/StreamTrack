@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 import { RAPIDAPI_KEY, TMDB_BEARER_TOKEN } from '@/secrets/API_keys';
-import { MEDIA_TYPE, TMDB } from '../types/tmdbType';
+import { TMDB_MEDIA_TYPE, TMDB } from '../types/tmdbType';
 import { Content } from '../types/contentType';
 import { ContentData } from '../types/dataTypes';
 import { convertContentToContentData } from './StreamTrack/contentHelper';
@@ -36,7 +36,7 @@ export const TMDBSearch = async (keyword: string): Promise<TMDB> => {
     const data: TMDB = await result.json();
 
     // data.results = data.results.filter(x => x.poster_path && (x.media_type === "tv" || x.media_type === "movie"));
-    data.results = data.results.filter(x => x.media_type === MEDIA_TYPE.TV || x.media_type === MEDIA_TYPE.MOVIE);
+    data.results = data.results.filter(x => x.media_type === TMDB_MEDIA_TYPE.TV || x.media_type === TMDB_MEDIA_TYPE.MOVIE);
     data.results = data.results.map(x => ({
         ...x,
         backdrop_path: x.backdrop_path ? "https://image.tmdb.org/t/p/w1280" + x.backdrop_path : null,
@@ -46,9 +46,9 @@ export const TMDBSearch = async (keyword: string): Promise<TMDB> => {
     return data;
 }
 
-export const RapidAPIGetByTMDBID = async (tmdbID: string, media_type: MEDIA_TYPE, vertical: string, horizontal: string): Promise<ContentData> => {
+export const RapidAPIGetByTMDBID = async (tmdbID: string, vertical: string, horizontal: string): Promise<ContentData> => {
 
-    const url = RapidAPI_Base_Url + media_type + "/" + tmdbID + RapidAPI_Ending;
+    const url = RapidAPI_Base_Url + tmdbID + RapidAPI_Ending;
 
     const options = {
         method: 'GET',

@@ -6,9 +6,9 @@ namespace API.Models;
 public class StreamingOption {
     [Key, Column(Order = 0)]
     [Required]
-    public string ContentID { get; set; } = string.Empty;
+    public string TMDB_ID { get; set; } = string.Empty;
 
-    [ForeignKey(nameof(ContentID))]
+    [ForeignKey(nameof(TMDB_ID))]
     public Content Content { get; set; } = null!;
 
     [Key, Column(Order = 1)]
@@ -28,7 +28,7 @@ public class StreamingOption {
 
     public StreamingOption() { }
     public StreamingOption(Content Content, StreamingService StreamingService, string Type, string? Price, string DeepLink) {
-        this.ContentID = Content.ContentID;
+        this.TMDB_ID = Content.TMDB_ID;
         this.Content = Content;
         this.ServiceID = StreamingService.ServiceID;
         this.StreamingService = StreamingService;

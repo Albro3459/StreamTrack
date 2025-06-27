@@ -1,3 +1,8 @@
+export enum SHOW_TYPE {
+    MOVIE = "movie",
+    SERIES = "series"
+}
+
 type Genre = {
     id: string;
     name: string;
@@ -82,7 +87,7 @@ type ImageSet = {
 
 export type Content = {
     itemType: 'show';
-    showType: 'movie' | 'series';
+    showType: SHOW_TYPE;
     id: string;
     imdbId: string;
     tmdbId: string;

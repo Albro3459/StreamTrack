@@ -6,19 +6,19 @@ import { useRouter } from 'expo-router';
 import { appStyles } from '@/styles/appStyles';
 import { Feather } from '@expo/vector-icons';
 import { TMDBSearch } from './helpers/contentAPIHelper';
-import { TMDB_Content, TMDB, MEDIA_TYPE } from './types/tmdbType';
+import { TMDB_Content, TMDB, TMDB_MEDIA_TYPE } from './types/tmdbType';
 import { useUserDataStore } from './stores/userDataStore';
-import { ListData } from './types/dataTypes';
-import { delayedMoveTMDBItemToList, FAVORITE_TAB, isTMDBItemInList, PartialListData } from './helpers/StreamTrack/listHelper';
+import { ListData, ListMinimalData } from './types/dataTypes';
+import { delayedMoveTMDBItemToList, FAVORITE_TAB, isItemInAnyList, isItemInListMinimal, sortLists } from './helpers/StreamTrack/listHelper';
 import { MOVE_MODAL_DATA_ENUM, MoveModal } from './components/moveModalComponent';
 import { StarRating } from './components/starRatingComponent';
+import { API } from './types/APIType';
 
 export type Movie = {
-    fullTMDBID: string;
     tmdbID: string;
     title: string;
     year: string;
-    mediaType: MEDIA_TYPE;
+    mediaType: TMDB_MEDIA_TYPE;
     rating: number;
     verticalPoster: string; 
     horizontalPoster: string;
@@ -44,7 +44,7 @@ export default function SearchPage() {
 
     const [moveModalVisible, setMoveModalVisible] = useState(false);
 
-    const [lists, setLists] = useState<PartialListData[] | null>([...userData.listsOwned, ...userData.listsSharedWithMe]);
+    const [lists, setLists] = useState<ListMinimalData[] | null>([...userData?.user?.listsOwned, ...userData?.user?.listsSharedWithMe]);
 
     const [selectedMovie, setSelectedMovie] = useState<Movie>(null);
 
@@ -58,10 +58,9 @@ export default function SearchPage() {
                 const contents: TMDB = await TMDBSearch(searchText);
                 const movies: Movie[] = contents.results.map(content => {
                     return {
-                        fullTMDBID: content.media_type+"/"+content.id.toString(),
-                        tmdbID: content.id.toString(),
+                        tmdbID: content.media_type+"/"+content.id.toString(),
                         title: content.media_type === "movie" ? content.title : content.name,
-                        year: content.release_date ? content.release_date.split("-")[0] : "1999",
+                        year: content.release_date ? content.release_date.split("-")[0] : "",
                         mediaType: content.media_type,
                         rating:  parseFloat((content.vote_average/2).toFixed(2)), // rating is on 10 pt scale so this converts to 5 star scale
                         verticalPoster: content.poster_path, 
@@ -78,6 +77,12 @@ export default function SearchPage() {
             }
         }
     };
+
+    useEffect(() => {
+        if (userData) {
+            setLists([...userData?.user?.listsOwned, ...userData?.user?.listsSharedWithMe]);
+        }
+    }, [userData]);
 
     return (
         <Pressable style={{height: screenHeight-70}} onPress={Keyboard.dismiss}>
@@ -126,7 +131,10 @@ export default function SearchPage() {
                         //   Global.backPressLoadSearch = true;
                             router.push({
                                 pathname: '/InfoPage',
-                                params: { tmdbID: movie.tmdbID, title: movie.title, year: movie.year, media_type: movie.mediaType, verticalPoster: movie.verticalPoster, horizontalPoster: movie.horizontalPoster },
+                                    // Can't do this because I do a delayed add, so imaging the user hits the heart then immediately clicks the movie.
+                                        // It would say to pull contents which would fail
+                                // params: { api: isItemInAnyList(lists, movie.tmdbID) ? API.STREAM_TRACK : API.RAPID, tmdbID: movie.tmdbID, title: movie.title, year: movie.year, media_type: movie.mediaType, verticalPoster: movie.verticalPoster, horizontalPoster: movie.horizontalPoster },
+                                params: { api: API.RAPID, tmdbID: movie.tmdbID, title: movie.title, year: movie.year, media_type: movie.mediaType, verticalPoster: movie.verticalPoster, horizontalPoster: movie.horizontalPoster },
                             });
                         }}
                         onLongPress={() => {setSelectedMovie(movie); setMoveModalVisible(true);}}
@@ -139,7 +147,7 @@ export default function SearchPage() {
                                 <StarRating rating={movie.rating}/>
                             </View>
                             <Heart 
-                                heartColor={isTMDBItemInList(lists, FAVORITE_TAB, movie.fullTMDBID) ? Colors.selectedHeartColor : Colors.unselectedHeartColor}
+                                heartColor={isItemInListMinimal(lists, FAVORITE_TAB, movie.tmdbID) ? Colors.selectedHeartColor : Colors.unselectedHeartColor}
                                 size={40}
                                 onPress={async () => await delayedMoveTMDBItemToList(movie, FAVORITE_TAB, lists, setLists, setIsSearching, setMoveModalVisible)}
                             />
@@ -150,7 +158,6 @@ export default function SearchPage() {
                 )}
 
                 <MoveModal
-                    dataType={MOVE_MODAL_DATA_ENUM.TMDB}
                     selectedItem={selectedMovie}
                     lists={lists}
                     showHeart={false}
@@ -158,7 +165,7 @@ export default function SearchPage() {
                     setVisibilityFunc={setMoveModalVisible}
                     setIsLoadingFunc={setIsSearching}
                     moveItemFunc={delayedMoveTMDBItemToList}
-                    isItemInListFunc={isTMDBItemInList}
+                    isItemInListFunc={isItemInListMinimal}
                     setListsFunc={setLists}
                 />
 

@@ -20,11 +20,12 @@ import { appStyles } from '@/styles/appStyles';
 import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { setUserData, useUserDataStore } from './stores/userDataStore';
-import { ContentData, ListData } from './types/dataTypes';
-import { createNewUserList, FAVORITE_TAB, isItemInList, moveItemToListWithFuncs, sortLists } from './helpers/StreamTrack/listHelper';
+import { ContentData, ContentMinimalData, ListData, ListMinimalData } from './types/dataTypes';
+import { createNewUserList, FAVORITE_TAB, getContentsInList, isItemInListMinimal, moveItemToListWithFuncs, sortLists } from './helpers/StreamTrack/listHelper';
 import { User } from 'firebase/auth';
 import { auth } from '@/firebaseConfig';
 import { MOVE_MODAL_DATA_ENUM, MoveModal } from './components/moveModalComponent';
+import { API } from './types/APIType';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -36,7 +37,7 @@ export default function LibraryPage() {
 
     const { userData } = useUserDataStore();
 
-    const [lists, setLists] = useState<ListData[] | null>(sortLists([...userData.listsOwned, ...userData.listsSharedWithMe]));
+    const [lists, setLists] = useState<ListMinimalData[] | null>(sortLists([...userData?.user?.listsOwned, ...userData?.user?.listsSharedWithMe]));
 
     const [activeTab, setActiveTab] = useState<string | null>(lists[0].listName);
 
@@ -44,7 +45,7 @@ export default function LibraryPage() {
     const [createNewListModal, setCreateNewListModal] = useState(false);
 
     const [isLoading, setIsLoading] = useState(true);
-    const [selectedContentData, setSelectedContentData] = useState<ContentData | null>(null);
+    const [selectedContentData, setSelectedContentData] = useState<ContentMinimalData | null>(null);
     const [moveModalVisible, setMoveModalVisible] = useState(false);
 
     const handelCreateNewTab = async (listName: string) => {
@@ -56,11 +57,11 @@ export default function LibraryPage() {
                 return;
             }
             const token = await user.getIdToken();
-            const newList: ListData = await createNewUserList(token, listName);
+            const newList: ListMinimalData = await createNewUserList(token, listName);
             setNewListName("");
             setCreateNewListModal(false);
             setLists(prev => sortLists([...prev, newList]));
-            userData.listsOwned.push(newList);
+            userData.user.listsOwned.push(newList);
             setUserData(userData);
             setActiveTab(listName);
             pagerViewRef.current?.setPage(lists.map(l => l.listName).indexOf(listName));
@@ -75,12 +76,18 @@ export default function LibraryPage() {
     };
 
     useEffect(() => {
+        if (userData) {
+            setLists(sortLists([...userData?.user?.listsOwned, ...userData?.user?.listsSharedWithMe]));
+        }
+    }, [userData]);
+
+    useEffect(() => {
         if (lists && isLoading) {
             setIsLoading(false);
         }
     }, [lists, isLoading]);
 
-    const renderTabContent = (contents: ContentData[], list: string) => {
+    const renderTabContent = (contents: ContentMinimalData[], list: string) => {
         if (!contents || contents.length === 0) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -92,17 +99,18 @@ export default function LibraryPage() {
         }
   
         return (
-        <FlatList<ContentData>
-            data={lists.find(l => l.listName === activeTab).contents}
+        <FlatList<ContentMinimalData>
+            // data={(lists.find(l => l.listName === activeTab) && userData.contents) ? userData.contents.filter(c => lists.find(l => l.listName === activeTab).tmdbIDs.includes(c.tmdbID)) : []}
+            data={userData?.contents && getContentsInList(userData.contents, lists, activeTab)}
             numColumns={2}
-            keyExtractor={(content, index) => `${content.contentID}-${index}-${list}`}
+            keyExtractor={(content, index) => `${content.tmdbID}-${index}-${list}`}
             renderItem={({ item: content }) => (
             <TouchableOpacity
                 style={styles.movieCard}
                 onPress={() => {
                     router.push({
                         pathname: '/InfoPage',
-                        params: { listName: activeTab, contentID: content.contentID },
+                        params: { api: API.STREAM_TRACK, tmdbID: content.tmdbID, title: content.title, year: content.releaseYear, media_type: content.tmdbID.split('/')[0], verticalPoster: content.verticalPoster, horizontalPoster: content.horizontalPoster },
                     });
                 }}
                 onLongPress={() => {
@@ -178,6 +186,8 @@ export default function LibraryPage() {
                         placeholderTextColor={"darkgrey"}
                         value={newListName}
                         onChangeText={setNewListName}
+                        onSubmitEditing={async () => await handelCreateNewTab(newListName)}
+                        autoFocus={true}
                     />
                     <View style={styles.buttonRow}>
                         <Pressable
@@ -188,7 +198,7 @@ export default function LibraryPage() {
                         </Pressable>
                         <Pressable
                             style={styles.button}
-                            onPress={async () => await handelCreateNewTab(newListName) }
+                            onPress={async () => await handelCreateNewTab(newListName)}
                         >
                             <Text style={styles.buttonText}>Add</Text>
                         </Pressable>
@@ -205,13 +215,12 @@ export default function LibraryPage() {
                 ref={pagerViewRef}
                 onPageSelected={(e) => setActiveTab(lists[e.nativeEvent.position].listName)}
             >
-                {lists.map((list) => (
-                <View key={list.listName}>{renderTabContent(list.contents, list.listName)}</View>
+                {lists.map(l => ({listName: l.listName, contents: userData?.contents && getContentsInList(userData.contents, lists, l.listName)})).map((list) => (
+                    <View key={list.listName}>{renderTabContent(list.contents, list.listName)}</View>
                 ))}
             </PagerView>
 
             <MoveModal
-                dataType={MOVE_MODAL_DATA_ENUM.CONTENT_DATA}
                 selectedItem={selectedContentData}
                 lists={lists}
                 showLabel={false}
@@ -219,7 +228,7 @@ export default function LibraryPage() {
                 setVisibilityFunc={setMoveModalVisible}
                 setIsLoadingFunc={setIsLoading}
                 moveItemFunc={moveItemToListWithFuncs}
-                isItemInListFunc={isItemInList}
+                isItemInListFunc={isItemInListMinimal}
                 setListsFunc={setLists}
             />
 

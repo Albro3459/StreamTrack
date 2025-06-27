@@ -1,9 +1,12 @@
 
+using System.Text.Json.Serialization;
+
 namespace API.DTOs;
 
 public class ListsUpdateDTO {
 
-    public string ContentID { get; set; } = string.Empty;
+    [JsonPropertyName("tmdbID")]
+    public string TMDB_ID { get; set; } = string.Empty;
 
     public List<string> AddToLists { get; set; } = new();
 

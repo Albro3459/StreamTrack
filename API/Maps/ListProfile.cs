@@ -7,10 +7,10 @@ public class ListProfile : Profile {
     public ListProfile() {
         CreateMap<List, ListDTO>();
 
-        CreateMap<ListDTO, ListMinimalDTO>()
+        CreateMap<List, ListMinimalDTO>()
             .ForMember(
-                dest => dest.ContentIDs,
-                opt => opt.MapFrom(src => src.Contents.Select(c => c.ContentID).ToList())
+                dest => dest.TMDB_IDs,
+                opt => opt.MapFrom(src => src.Contents.Select(c => c.TMDB_ID).ToList())
             );
 
     }

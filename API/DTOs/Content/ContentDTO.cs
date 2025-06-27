@@ -4,7 +4,9 @@ using System.Text.Json.Serialization;
 namespace API.DTOs;
 
 public class ContentDTO {
-    public string ContentID { get; set; } = string.Empty;
+
+    [JsonPropertyName("tmdbID")]
+    public string TMDB_ID { get; set; } = string.Empty;
 
     public string Title { get; set; } = string.Empty;
 
@@ -12,11 +14,10 @@ public class ContentDTO {
 
     public int ReleaseYear { get; set; }
 
-    [JsonPropertyName("imdb_ID")]
-    public string IMDB_ID { get; set; } = string.Empty;
+    public string RapidID { get; set; } = string.Empty;
 
-    [JsonPropertyName("tmdb_ID")]
-    public string TMDB_ID { get; set; } = string.Empty;
+    [JsonPropertyName("imdbID")]
+    public string IMDB_ID { get; set; } = string.Empty;
 
     public string ShowType { get; set; } = string.Empty;
 

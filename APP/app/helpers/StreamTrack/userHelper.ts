@@ -1,5 +1,5 @@
 import { DataAPIURL } from "@/secrets/DataAPIUrl";
-import { UpdateUserProfileData, UserData } from "../../types/dataTypes";
+import { ContentMinimalData, UpdateUserProfileData, UserData, UserMinimalData } from "../../types/dataTypes";
 
 export const checkIfUserExists = async (token: string): Promise<boolean> => {
     try {
@@ -31,7 +31,7 @@ export const checkIfUserExists = async (token: string): Promise<boolean> => {
     }
 };
 
-export const getUserData = async (token: string): Promise<UserData | null> => {
+export const getUserMinimalData = async (token: string): Promise<UserMinimalData | null> => {
     try {
         const url = DataAPIURL + "API/User/Get";
 
@@ -48,15 +48,45 @@ export const getUserData = async (token: string): Promise<UserData | null> => {
 
         if (!result.ok) {
             const text = await result.text();
-            console.error(`Error getting user data ${result.status}: ${text}`);
+            console.error(`Error getting user minimal data ${result.status}: ${text}`);
             return null;
         }
 
-        const data: UserData = await result.json();
+        const data: UserMinimalData = await result.json();
         
         return data;
     } catch (err) {
-        console.error('Fetch user data failed:', err);
+        console.error('Fetch user minimal data failed:', err);
+        return null;
+    }
+};
+
+export const getUserContents = async (token: string): Promise<ContentMinimalData[] | null> => {
+    try {
+        const url = DataAPIURL + "API/User/GetContents";
+
+        const options = {
+            method: 'GET',
+            headers: {
+                accept: 'application/json',
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+            }
+        };
+
+        const result = await fetch(url, options);
+
+        if (!result.ok) {
+            const text = await result.text();
+            console.error(`Error getting user contents ${result.status}: ${text}`);
+            return null;
+        }
+
+        const data: ContentMinimalData[] = await result.json();
+        
+        return data;
+    } catch (err) {
+        console.error('Fetch user contents failed:', err);
         return null;
     }
 };
@@ -89,7 +119,7 @@ export const createUser = async (token: string | null) => {
     }
 };
 
-export const updateUserProfile = async (token: string | null, firstName: string | null, lastName: string | null, genres: Set<string>, streamingServices: Set<string>) : Promise<UserData | null> => {
+export const updateUserProfile = async (token: string | null, firstName: string | null, lastName: string | null, genres: Set<string>, streamingServices: Set<string>) : Promise<UserMinimalData | null> => {
     try {
         if (!token) return null;
 
@@ -116,16 +146,16 @@ export const updateUserProfile = async (token: string | null, firstName: string 
 
         if (!result.ok) {
             const text = await result.text();
-            console.error(`Error creating user ${result.status}: ${text}`);
+            console.error(`Error updating user ${result.status}: ${text}`);
             return null;
         }
 
-        const data: UserData = await result.json();
+        const data: UserMinimalData = await result.json();
                 
         return data;
 
     } catch (err) {
-        console.error('Create user failed:', err);
+        console.error('Updating user failed:', err);
     }
 };
 

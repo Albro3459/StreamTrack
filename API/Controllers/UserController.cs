@@ -137,7 +137,7 @@ public class UserController : ControllerBase {
 
     // Patch: API/User/Update
     [HttpPatch("Update")]
-    public async Task<ActionResult<UserDataDTO>> UpdateUser([FromBody] UserUpdateProfileDataDTO data) {
+    public async Task<ActionResult<UserMinimalDataDTO>> UpdateUser([FromBody] UserUpdateProfileDataDTO data) {
 
         string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -171,6 +171,6 @@ public class UserController : ControllerBase {
 
         await context.SaveChangesAsync();
 
-        return await service.MapUserToFullUserDTO(user);
+        return await service.MapUserToMinimalDTO(user);
     }
 }

@@ -16,12 +16,12 @@ namespace StreamTrack.Migrations
                 name: "Content",
                 columns: table => new
                 {
-                    ContentID = table.Column<string>(type: "TEXT", nullable: false),
+                    TMDB_ID = table.Column<string>(type: "TEXT", nullable: false),
                     Title = table.Column<string>(type: "TEXT", nullable: false),
                     Overview = table.Column<string>(type: "TEXT", nullable: false),
                     ReleaseYear = table.Column<int>(type: "INTEGER", nullable: false),
+                    RapidID = table.Column<string>(type: "TEXT", nullable: false),
                     IMDB_ID = table.Column<string>(type: "TEXT", nullable: false),
-                    TMDB_ID = table.Column<string>(type: "TEXT", nullable: false),
                     ShowType = table.Column<string>(type: "TEXT", nullable: false),
                     Cast = table.Column<string>(type: "TEXT", nullable: false),
                     Directors = table.Column<string>(type: "TEXT", nullable: false),
@@ -35,7 +35,7 @@ namespace StreamTrack.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Content", x => x.ContentID);
+                    table.PrimaryKey("PK_Content", x => x.TMDB_ID);
                 });
 
             migrationBuilder.CreateTable(
@@ -85,17 +85,17 @@ namespace StreamTrack.Migrations
                 name: "ContentGenre",
                 columns: table => new
                 {
-                    ContentsContentID = table.Column<string>(type: "TEXT", nullable: false),
+                    ContentsTMDB_ID = table.Column<string>(type: "TEXT", nullable: false),
                     GenresGenreID = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ContentGenre", x => new { x.ContentsContentID, x.GenresGenreID });
+                    table.PrimaryKey("PK_ContentGenre", x => new { x.ContentsTMDB_ID, x.GenresGenreID });
                     table.ForeignKey(
-                        name: "FK_ContentGenre_Content_ContentsContentID",
-                        column: x => x.ContentsContentID,
+                        name: "FK_ContentGenre_Content_ContentsTMDB_ID",
+                        column: x => x.ContentsTMDB_ID,
                         principalTable: "Content",
-                        principalColumn: "ContentID",
+                        principalColumn: "TMDB_ID",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_ContentGenre_Genre_GenresGenreID",
@@ -109,7 +109,7 @@ namespace StreamTrack.Migrations
                 name: "StreamingOption",
                 columns: table => new
                 {
-                    ContentID = table.Column<string>(type: "TEXT", nullable: false),
+                    TMDB_ID = table.Column<string>(type: "TEXT", nullable: false),
                     ServiceID = table.Column<string>(type: "TEXT", nullable: false),
                     Type = table.Column<string>(type: "TEXT", nullable: false),
                     Price = table.Column<string>(type: "TEXT", nullable: true),
@@ -117,12 +117,12 @@ namespace StreamTrack.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_StreamingOption", x => new { x.ContentID, x.ServiceID });
+                    table.PrimaryKey("PK_StreamingOption", x => new { x.TMDB_ID, x.ServiceID });
                     table.ForeignKey(
-                        name: "FK_StreamingOption_Content_ContentID",
-                        column: x => x.ContentID,
+                        name: "FK_StreamingOption_Content_TMDB_ID",
+                        column: x => x.TMDB_ID,
                         principalTable: "Content",
-                        principalColumn: "ContentID",
+                        principalColumn: "TMDB_ID",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_StreamingOption_StreamingService_ServiceID",
@@ -205,17 +205,17 @@ namespace StreamTrack.Migrations
                 name: "ListContent",
                 columns: table => new
                 {
-                    ContentsContentID = table.Column<string>(type: "TEXT", nullable: false),
+                    ContentsTMDB_ID = table.Column<string>(type: "TEXT", nullable: false),
                     ListsListID = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ListContent", x => new { x.ContentsContentID, x.ListsListID });
+                    table.PrimaryKey("PK_ListContent", x => new { x.ContentsTMDB_ID, x.ListsListID });
                     table.ForeignKey(
-                        name: "FK_ListContent_Content_ContentsContentID",
-                        column: x => x.ContentsContentID,
+                        name: "FK_ListContent_Content_ContentsTMDB_ID",
+                        column: x => x.ContentsTMDB_ID,
                         principalTable: "Content",
-                        principalColumn: "ContentID",
+                        principalColumn: "TMDB_ID",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
                         name: "FK_ListContent_List_ListsListID",

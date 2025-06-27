@@ -9,7 +9,7 @@ public class UserProfile : Profile {
 
         CreateMap<User, UserMinimalDataDTO>()
             .ForMember(
-                dest => dest.Genres,
+                dest => dest.GenreNames,
                 opt => opt.MapFrom(src => src.Genres.Select(g => g.Name).ToList())
             );
     }

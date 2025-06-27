@@ -7,7 +7,7 @@ import { LogOut } from "./helpers/authHelper";
 import { auth } from "@/firebaseConfig";
 import { appStyles } from "@/styles/appStyles";
 import { setUserData, useUserDataStore } from "./stores/userDataStore";
-import { UserData } from "./types/dataTypes";
+import { UserData, UserMinimalData } from "./types/dataTypes";
 import { updateUserProfile } from "./helpers/StreamTrack/userHelper";
 import { useStreamingServiceDataStore } from "./stores/streamingServiceDataStore";
 import { useGenreDataStore } from "./stores/genreDataStore";
@@ -28,16 +28,16 @@ export default function ProfilePage() {
     const { genreData } = useGenreDataStore();
 
     // State for text inputs
-    const [firstNameText, setFirstNameText] = useState<string | null>(userData?.firstName ?? null);
-    const [lastNameText, setLastNameText] = useState<string | null>(userData?.lastName ?? null);
+    const [firstNameText, setFirstNameText] = useState<string | null>(userData?.user?.firstName ?? null);
+    const [lastNameText, setLastNameText] = useState<string | null>(userData?.user?.lastName ?? null);
     
     const [selectedGenres, setSelectedGenres] = useState<Set<string>>(
-        userData?.genres ? new Set(userData.genres.map(g => g.name)) // Objects work weird in sets. Use the strings
+        userData?.user?.genreNames ? new Set(userData.user.genreNames) // Objects work weird in sets. Use the strings
             : new Set()
     );
 
     const [selectedStreamingServices, setSelectedStreamingServices] = useState<Set<string>>(
-        userData?.streamingServices ? new Set(userData.streamingServices.map(s => s.name)) // Objects work weird in sets. Use the strings
+        userData?.user?.streamingServices ? new Set(userData.user.streamingServices.map(s => s.name)) // Objects work weird in sets. Use the strings
             : new Set()
     );
 
@@ -45,8 +45,15 @@ export default function ProfilePage() {
         setSaving(true);
         const user = auth.currentUser;
         const token = await user?.getIdToken() ?? null;
-        const userData: UserData = await updateUserProfile(token, firstName, lastName, genres, streamingServices);
-        if (userData) setUserData(userData);
+
+        const userMinimalData: UserMinimalData = await updateUserProfile(token, firstName, lastName, genres, streamingServices);
+        if (userMinimalData) {
+            const newUserData: UserData = {
+                user: userMinimalData,
+                contents: userData.contents
+            }
+            setUserData(newUserData);
+        }
         setIsEditing(false);
         setSaving(false);
 
