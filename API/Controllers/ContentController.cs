@@ -24,9 +24,9 @@ public class ContentController : ControllerBase {
         mapper = _mapper;
     }
 
-    // GET: API/Content/Get/{tmdbID}
-    [HttpGet("Get/{*tmdbID}")]
-    public async Task<ActionResult<ContentDTO>> GetContentByID(string tmdbID) {
+    // GET: API/Content/GetDetails/{tmdbID}
+    [HttpGet("GetDetails/{*tmdbID}")]
+    public async Task<ActionResult<ContentDTO>> GetContentDetailsByID(string tmdbID) {
         // Get the user's auth token to get the firebase uuid to get the correct user's data
         // User's can only get their own data
 
@@ -37,37 +37,34 @@ public class ContentController : ControllerBase {
 
         tmdbID = Uri.UnescapeDataString(tmdbID);
 
-        Content? content = await context.Content
+        ContentDetail? content = await context.ContentDetail
                 .Include(c => c.Genres)
                 .Include(c => c.StreamingOptions)
                     .ThenInclude(s => s.StreamingService)
                 .FirstOrDefaultAsync(c => c.TMDB_ID == tmdbID);
         if (content == null) return NotFound();
 
-        return mapper.Map<Content, ContentDTO>(content);
+        return mapper.Map<ContentDetail, ContentDTO>(content);
     }
 
     // GET: API/Content/GetAll
     [HttpGet("GetAll")]
-    public async Task<ActionResult<List<ContentDTO>>> GetAllContent() {
+    public async Task<ActionResult<List<ContentPartialDTO>>> GetAllContent() {
 
         string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
         if (string.IsNullOrEmpty(uid))
             return Unauthorized();
 
-        List<Content> contents = await context.Content
-                .Include(c => c.Genres)
-                .Include(c => c.StreamingOptions)
-                    .ThenInclude(s => s.StreamingService)
-                .ToListAsync();
+        List<ContentPartial> contents = await context.ContentPartial
+                                    .ToListAsync();
 
-        return mapper.Map<List<Content>, List<ContentDTO>>(contents);
+        return mapper.Map<List<ContentPartial>, List<ContentPartialDTO>>(contents);
     }
 
-    // POST: API/Content/BulkUpdate
-    [HttpPost("BulkUpdate")]
-    public async Task<ActionResult<ContentDTO>> BulkUpdate(List<ContentDTO> dtos) {
+    // POST: API/Content/BulkPopularUpdate
+    [HttpPost("BulkPopularUpdate")]
+    public async Task<ActionResult<ContentDTO>> BulkPopularUpdate(List<ContentDTO> dtos) {
         // Only the lambda user will be sending the content
 
         string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -76,20 +73,33 @@ public class ContentController : ControllerBase {
             return Unauthorized();
         }
 
-        List<Content> contents = new();
+        var tmdbIds = dtos.Select(d => d.TMDB_ID).ToList();
+
+        // Find popular and NOT in a list (to delete :) )
+        List<ContentDetail> previouslyPopular = await context.ContentDetail
+                                .Include(c => c.Partial).ThenInclude(p => p.Lists).ThenInclude(l => l.ContentPartials).ThenInclude(p => p.Detail)
+                                .Where(c => c.IsPopular && !tmdbIds.Contains(c.TMDB_ID)).ToListAsync();
+
+        var existingContents = await context.ContentDetail.Where(c => tmdbIds.Contains(c.TMDB_ID)).ToListAsync();
+
+        List<ContentDetail> contents = new();
         foreach (var dto in dtos) {
-            Content? content = await context.Content.FirstOrDefaultAsync(c => c.TMDB_ID == dto.TMDB_ID);
+            ContentDetail? content = await context.ContentDetail.FirstOrDefaultAsync(c => c.TMDB_ID == dto.TMDB_ID);
             if (content == null) {
                 content = await service.ContentDTOToContent(dto);
                 if (content != null) {
+                    content.IsPopular = true; // POPULAR
                     contents.Add(content);
                 }
             }
+            else {
+                content.IsPopular = true; // POPULAR
+            }
         }
 
-        if (contents.Count == 0) return Ok();
-
-        await context.Content.AddRangeAsync(contents);
+        if (contents.Count > 0) {
+            await context.ContentDetail.AddRangeAsync(contents);
+        }
 
         await context.SaveChangesAsync();
 

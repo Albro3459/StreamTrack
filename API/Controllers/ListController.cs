@@ -17,11 +17,13 @@ public class ListController : ControllerBase {
 
     private readonly StreamTrackDbContext context;
     private readonly Service service;
+    private readonly RapidAPIService rapidAPIService;
     private readonly IMapper mapper;
 
-    public ListController(StreamTrackDbContext _context, Service _service, IMapper _mapper) {
+    public ListController(StreamTrackDbContext _context, Service _service, RapidAPIService _rapidAPIService, IMapper _mapper) {
         context = _context;
         service = _service;
+        rapidAPIService = _rapidAPIService;
         mapper = _mapper;
     }
 
@@ -135,7 +137,7 @@ public class ListController : ControllerBase {
 
     // POST: API/List/{listName}/Add
     [HttpPost("{listName}/Add")]
-    public async Task<ActionResult<ListMinimalDTO>> AddToUserList(string listName, [FromBody] ContentDTO contentDTO) {
+    public async Task<ActionResult<ListMinimalDTO>> AddToUserList(string listName, [FromBody] ContentPartialDTO contentDTO) {
         // Right now only works for user owned lists
         string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -147,16 +149,32 @@ public class ListController : ControllerBase {
         List? list = lists.Where(l => l.ListName.ToLower().Trim().Equals(listName.ToLower().Trim())).FirstOrDefault();
         if (list == null) return NotFound();
 
-        Content? content = await context.Content.Where(c => c.TMDB_ID == contentDTO.TMDB_ID).FirstOrDefaultAsync();
-        if (content == null) {
-            content = await service.ContentDTOToContent(contentDTO);
-            if (content == null) {
+        ContentPartial? partial = await context.ContentPartial
+                                        .Include(c => c.Detail)
+                                        .FirstOrDefaultAsync(c => c.TMDB_ID == contentDTO.TMDB_ID);
+        if (partial == null) {
+            ContentDetail? detail = await rapidAPIService.FetchByTMDBIDAsync(contentDTO.TMDB_ID, contentDTO.VerticalPoster, contentDTO.HorizontalPoster);
+            if (detail == null) {
                 return BadRequest();
+            }
+            else {
+                context.ContentDetail.Add(detail);
+                partial = mapper.Map<ContentDetail, ContentPartial>(detail);
+                context.ContentPartial.Add(partial);
+            }
+        }
+        else if (partial.Detail == null) {
+            partial.Detail = await rapidAPIService.FetchByTMDBIDAsync(contentDTO.TMDB_ID, contentDTO.VerticalPoster, contentDTO.HorizontalPoster);
+            if (partial.Detail == null) {
+                return BadRequest();
+            }
+            else {
+                context.ContentDetail.Add(partial.Detail);
             }
         }
 
-        if (!list.Contents.Any(c => c.TMDB_ID == content.TMDB_ID)) {
-            list.Contents.Add(content);
+        if (!list.ContentPartials.Any(c => c.TMDB_ID == contentDTO.TMDB_ID)) {
+            list.ContentPartials.Add(partial);
         }
 
         await context.SaveChangesAsync();
@@ -185,14 +203,18 @@ public class ListController : ControllerBase {
         List? list = lists.Where(l => l.ListName.ToLower().Trim().Equals(listName.ToLower().Trim())).FirstOrDefault();
         if (list == null) return NotFound();
 
-        Content? content = await context.Content.Where(c => c.TMDB_ID == tmdbID).FirstOrDefaultAsync();
-        if (content == null) {
+        ContentPartial? partial = await context.ContentPartial
+                                        .Include(c => c.Detail)
+                                        .FirstOrDefaultAsync(c => c.TMDB_ID == tmdbID);
+        if (partial == null) {
             return BadRequest();
         }
 
-        if (list.Contents.Any(c => c.TMDB_ID == content.TMDB_ID)) {
-            list.Contents.Remove(content);
+        // If the detail exists and is NOT in any other lists, then remove from the DB.
+        if (partial.Detail is ContentDetail detail && !await context.List.AnyAsync(l => l.ContentPartials.Any(p => p.Detail != null && p.Detail.TMDB_ID == detail.TMDB_ID))) {
+            context.ContentDetail.Remove(detail);
         }
+        list.ContentPartials.Remove(partial); // Will NOT error
 
         await context.SaveChangesAsync();
 

@@ -60,7 +60,7 @@ export default function SearchPage() {
                     return {
                         tmdbID: content.media_type+"/"+content.id.toString(),
                         title: content.media_type === "movie" ? content.title : content.name,
-                        year: content.release_date ? content.release_date.split("-")[0] : "",
+                        year: content.release_date ? content.release_date.split("-")[0] : "0",
                         mediaType: content.media_type,
                         rating:  parseFloat((content.vote_average/2).toFixed(2)), // rating is on 10 pt scale so this converts to 5 star scale
                         verticalPoster: content.poster_path, 

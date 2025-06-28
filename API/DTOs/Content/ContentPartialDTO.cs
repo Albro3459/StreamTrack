@@ -2,13 +2,17 @@ using System.Text.Json.Serialization;
 
 namespace API.DTOs;
 
-// Used for Library Page and lists
-public class ContentMinimalDTO {
+// Used for Library Page and lists. Everything from TMDB and exactly what ContentPartial has
+public class ContentPartialDTO {
 
     [JsonPropertyName("tmdbID")]
     public string TMDB_ID { get; set; } = string.Empty;
 
     public string Title { get; set; } = string.Empty;
+
+    public string Overview { get; set; } = string.Empty;
+
+    public int Rating { get; set; }
 
     public int ReleaseYear { get; set; }
 
@@ -17,7 +21,7 @@ public class ContentMinimalDTO {
     public string HorizontalPoster { get; set; } = string.Empty;
 
     public override bool Equals(object? obj) =>
-        obj is ContentMinimalDTO other && TMDB_ID == other.TMDB_ID;
+        obj is ContentPartialDTO other && TMDB_ID == other.TMDB_ID;
 
     public override int GetHashCode() =>
         TMDB_ID.GetHashCode();

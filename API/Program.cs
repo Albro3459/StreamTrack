@@ -69,7 +69,9 @@ builder.Services.AddAuthorization(options => {
 
 builder.Services.AddAutoMapper(typeof(Program)); // All profiles in this project
 
+// Services
 builder.Services.AddScoped<Service>();
+builder.Services.AddHttpClient<RapidAPIService>();
 
 var app = builder.Build();
 

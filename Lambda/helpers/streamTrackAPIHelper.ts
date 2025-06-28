@@ -5,7 +5,7 @@ export const bulkUpdateContents = async (token: string | null, contents: Content
     try {
         if (!token) return null;
 
-        const url = DataAPIURL + `API/Content/BulkUpdate`;
+        const url = DataAPIURL + `API/Content/BulkPopularUpdate`;
                 
         const options = {
             method: 'POST',

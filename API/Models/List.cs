@@ -20,7 +20,7 @@ public class List : SoftDeletableEntity {
 
     public ICollection<ListShares> ListShares { get; set; } = new List<ListShares>();
 
-    public ICollection<Content> Contents { get; set; } = new List<Content>();
+    public ICollection<ContentPartial> ContentPartials { get; set; } = new List<ContentPartial>();
 
     [Timestamp] // Token for concurrency with EF Core
     public byte[]? Version { get; set; }

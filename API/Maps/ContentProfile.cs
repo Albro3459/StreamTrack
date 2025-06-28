@@ -5,9 +5,17 @@ using API.DTOs;
 
 public class ContentProfile : Profile {
     public ContentProfile() {
-        CreateMap<Content, ContentDTO>();
+        CreateMap<ContentDetail, ContentPartial>()
+            .ForMember(dest => dest.Detail, opt => opt.Ignore())  // Prevent cycle
+            .ForMember(dest => dest.Lists, opt => opt.Ignore());  // Detail has no lists anyway
 
-        CreateMap<Content, ContentMinimalDTO>();
+        CreateMap<ContentDetail, ContentDTO>();
+
+        CreateMap<ContentDetail, ContentPartialDTO>();
+
+        // CreateMap<ContentDetail, ContentSimpleDTO>();
+
+        CreateMap<ContentPartial, ContentPartialDTO>().ReverseMap();
 
         CreateMap<Genre, GenreDTO>();
     }

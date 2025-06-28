@@ -13,7 +13,8 @@ public class StreamTrackDbContext : DbContext {
     public DbSet<User> User { get; set; }
     public DbSet<List> List { get; set; }
     public DbSet<ListShares> ListShares { get; set; }
-    public DbSet<Content> Content { get; set; }
+    public DbSet<ContentPartial> ContentPartial { get; set; }
+    public DbSet<ContentDetail> ContentDetail { get; set; }
     public DbSet<Genre> Genre { get; set; }
     public DbSet<StreamingOption> StreamingOption { get; set; }
     public DbSet<StreamingService> StreamingService { get; set; }
@@ -47,20 +48,24 @@ public class StreamTrackDbContext : DbContext {
             .WithMany(s => s.Users)
             .UsingEntity(j => j.ToTable("UserService"));
 
-        modelBuilder.Entity<Content>()
-            .HasMany(c => c.Lists)
-            .WithMany(l => l.Contents)
-            .UsingEntity(j => j.ToTable("ListContent"));
+        modelBuilder.Entity<ContentPartial>()
+            .HasOne(p => p.Detail)
+            .WithOne(d => d.Partial);
 
-        modelBuilder.Entity<Content>()
+        modelBuilder.Entity<ContentDetail>()
             .HasMany(c => c.Genres)
-            .WithMany(g => g.Contents)
+            .WithMany(g => g.ContentDetails)
             .UsingEntity(j => j.ToTable("ContentGenre"));
 
         modelBuilder.Entity<List>()
             .HasMany(l => l.ListShares)
             .WithOne(ls => ls.List)
                 .HasForeignKey(ls => ls.ListID);
+
+        modelBuilder.Entity<List>()
+            .HasMany(l => l.ContentPartials)
+            .WithMany(c => c.Lists)
+            .UsingEntity(j => j.ToTable("ListContent"));
 
         modelBuilder.Entity<StreamingOption>()
             .HasKey(so => new { so.TMDB_ID, so.ServiceID });
@@ -78,14 +83,14 @@ public class StreamTrackDbContext : DbContext {
             c => c == null ? new List<string>() : c.ToList()
         );
 
-        modelBuilder.Entity<Content>()
+        modelBuilder.Entity<ContentDetail>()
             .Property(e => e.Cast)
             .HasConversion(
                 x => JsonSerializer.Serialize(x, null as JsonSerializerOptions),
                 x => JsonSerializer.Deserialize<List<string>>(x, null as JsonSerializerOptions) ?? new()
             ).Metadata.SetValueComparer(stringListComparer); // It needs to know how to compare the string arrays
 
-        modelBuilder.Entity<Content>()
+        modelBuilder.Entity<ContentDetail>()
             .Property(e => e.Directors)
             .HasConversion(
                 x => JsonSerializer.Serialize(x, null as JsonSerializerOptions),
@@ -95,14 +100,15 @@ public class StreamTrackDbContext : DbContext {
 
         modelBuilder.Entity<User>().HasQueryFilter(u => !u.IsDeleted);
         modelBuilder.Entity<List>().HasQueryFilter(l => !l.IsDeleted);
-        modelBuilder.Entity<Content>().HasQueryFilter(c => !c.IsDeleted);
+        modelBuilder.Entity<ContentPartial>().HasQueryFilter(c => !c.IsDeleted);
+        modelBuilder.Entity<ContentDetail>().HasQueryFilter(c => !c.IsDeleted);
         modelBuilder.Entity<Genre>().HasQueryFilter(g => !g.IsDeleted);
         modelBuilder.Entity<StreamingService>().HasQueryFilter(s => !s.IsDeleted);
 
         modelBuilder.Entity<ListShares>()
             .HasQueryFilter(ls => !ls.List.IsDeleted && !ls.User.IsDeleted);
         modelBuilder.Entity<StreamingOption>()
-            .HasQueryFilter(so => !so.Content.IsDeleted);
+            .HasQueryFilter(so => !so.ContentDetails.IsDeleted);
 
         // ... seed data
 

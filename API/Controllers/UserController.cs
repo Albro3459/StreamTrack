@@ -52,10 +52,10 @@ public class UserController : ControllerBase {
         // User? user = await service.GetFullUserByID(uid);
         User? user = await context.User
                 .Include(u => u.ListsOwned)
-                    .ThenInclude(l => l.Contents)
+                    .ThenInclude(l => l.ContentPartials)
                 .Include(u => u.ListShares)
                     .ThenInclude(ls => ls.List)
-                        .ThenInclude(l => l.Contents)
+                        .ThenInclude(l => l.ContentPartials)
                 .Include(u => u.Genres)
                 .Include(u => u.StreamingServices)
                 .FirstOrDefaultAsync(u => u.UserID.Equals(uid));
@@ -69,7 +69,7 @@ public class UserController : ControllerBase {
 
     // GET: API/User/GetContents
     [HttpGet("GetContents")]
-    public async Task<ActionResult<List<ContentMinimalDTO>>> GetUserContents() {
+    public async Task<ActionResult<List<ContentPartialDTO>>> GetUserContents() {
         // Used to get all the contents in any of the User's lists.
         // Client will use the lists and content IDs from GetUserData() to know what's in each list
 
@@ -81,17 +81,17 @@ public class UserController : ControllerBase {
         // User? user = await service.GetFullUserByID(uid); // I dont need the streaming options for contents
         User? user = await context.User
                 .Include(u => u.ListsOwned)
-                    .ThenInclude(l => l.Contents)
+                    .ThenInclude(l => l.ContentPartials)
                 .Include(u => u.ListShares)
                     .ThenInclude(ls => ls.List)
-                        .ThenInclude(l => l.Contents)
+                        .ThenInclude(l => l.ContentPartials)
                 .FirstOrDefaultAsync(u => u.UserID.Equals(uid));
 
         if (user == null) {
             return NotFound();
         }
 
-        List<ContentMinimalDTO> contents = service.GetUsersContentMinimalDTOs(user);
+        List<ContentPartialDTO> contents = service.GetUsersContentMinimalDTOs(user);
 
         return contents;
     }

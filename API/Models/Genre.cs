@@ -10,7 +10,7 @@ public class Genre : SoftDeletableEntity {
     [Required]
     public string Name { get; set; } = string.Empty;
 
-    public ICollection<Content> Contents { get; set; } = new List<Content>();
+    public ICollection<ContentDetail> ContentDetails { get; set; } = new List<ContentDetail>();
     public ICollection<User> Users { get; set; } = new List<User>();
 
     public Genre() { }

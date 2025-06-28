@@ -5,7 +5,7 @@ import { DataAPIURL } from "@/secrets/DataAPIUrl";
 
 export const getContentByTMDBID = async (token: string, tmdbID: string): Promise<ContentData | null> => {
     try {
-        const url = DataAPIURL + `API/Content/Get/${tmdbID}`;
+        const url = DataAPIURL + `API/Content/GetDetails/${tmdbID}`;
 
         const options = {
             method: 'GET',

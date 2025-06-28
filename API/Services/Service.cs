@@ -20,32 +20,42 @@ public class Service {
 
     public async Task<User?> GetFullUserByID(string userID) {
         return await context.User
-                .Include(u => u.ListsOwned)
-                    .ThenInclude(l => l.Contents)
-                        .ThenInclude(c => c.Genres)
-                    .ThenInclude(l => l.Contents)
-                        .ThenInclude(c => c.StreamingOptions)
+            .Include(u => u.ListsOwned)
+                .ThenInclude(l => l.ContentPartials)
+                    .ThenInclude(p => p.Detail)
+                        .ThenInclude(d => d.Genres)
+            .Include(u => u.ListsOwned)
+                .ThenInclude(l => l.ContentPartials)
+                    .ThenInclude(p => p.Detail)
+                        .ThenInclude(d => d.StreamingOptions)
                             .ThenInclude(s => s.StreamingService)
-                .Include(u => u.ListShares)
-                    .ThenInclude(ls => ls.List)
-                        .ThenInclude(l => l.Contents)
-                            .ThenInclude(c => c.Genres)
-                        .ThenInclude(l => l.Contents)
-                            .ThenInclude(c => c.StreamingOptions)
+            .Include(u => u.ListShares)
+                .ThenInclude(ls => ls.List)
+                    .ThenInclude(l => l.ContentPartials)
+                        .ThenInclude(p => p.Detail)
+                            .ThenInclude(d => d.Genres)
+            .Include(u => u.ListShares)
+                .ThenInclude(ls => ls.List)
+                    .ThenInclude(l => l.ContentPartials)
+                        .ThenInclude(p => p.Detail)
+                            .ThenInclude(d => d.StreamingOptions)
                                 .ThenInclude(s => s.StreamingService)
-                .Include(u => u.Genres)
-                .Include(u => u.StreamingServices)
-                .FirstOrDefaultAsync(u => u.UserID.Equals(userID));
+            .Include(u => u.Genres)
+            .Include(u => u.StreamingServices)
+            .FirstOrDefaultAsync(u => u.UserID == userID);
     }
+
 
     public async Task<List<List>> GetFullListsOwnedByUserID(string userID) {
         return await context.List
                     .Include(l => l.Owner)
-                    .Include(l => l.Contents)
-                        .ThenInclude(c => c.Genres)
-                    .Include(l => l.Contents)
-                        .ThenInclude(c => c.StreamingOptions)
-                            .ThenInclude(s => s.StreamingService)
+                    .Include(l => l.ContentPartials)
+                        .ThenInclude(p => p.Detail)
+                            .ThenInclude(d => d.Genres)
+                    .Include(l => l.ContentPartials)
+                        .ThenInclude(p => p.Detail)
+                            .ThenInclude(p => p.StreamingOptions)
+                                .ThenInclude(s => s.StreamingService)
                     .Include(l => l.ListShares)
                     .Where(l => l.OwnerUserID.Equals(userID))
                     .ToListAsync();
@@ -83,17 +93,17 @@ public class Service {
         return minimalDTO;
     }
 
-    public List<ContentMinimalDTO> GetUsersContentMinimalDTOs(User user) {
+    public List<ContentPartialDTO> GetUsersContentMinimalDTOs(User user) {
 
-        HashSet<ContentMinimalDTO> set = new();
+        HashSet<ContentPartialDTO> set = new();
 
-        user.ListsOwned.ToList().ForEach(l => mapper.Map<ICollection<Content>, List<ContentMinimalDTO>>(l.Contents).ForEach(c => set.Add(c)));
+        user.ListsOwned.ToList().ForEach(l => mapper.Map<ICollection<ContentPartial>, List<ContentPartialDTO>>(l.ContentPartials).ForEach(c => set.Add(c)));
 
         var listsSharedWithMe = GetListsSharedToUser(user);
-        listsSharedWithMe.ForEach(l => mapper.Map<ICollection<Content>, List<ContentMinimalDTO>>(l.Contents).ForEach(c => set.Add(c)));
+        listsSharedWithMe.ForEach(l => mapper.Map<ICollection<ContentPartial>, List<ContentPartialDTO>>(l.ContentPartials).ForEach(c => set.Add(c)));
 
         var listsSharedWithOthers = GetListsSharedByAndOwnedByUser(user);
-        listsSharedWithOthers.ForEach(l => mapper.Map<ICollection<Content>, List<ContentMinimalDTO>>(l.Contents).ForEach(c => set.Add(c)));
+        listsSharedWithOthers.ForEach(l => mapper.Map<ICollection<ContentPartial>, List<ContentPartialDTO>>(l.ContentPartials).ForEach(c => set.Add(c)));
 
         return set.ToList();
     }
@@ -101,7 +111,7 @@ public class Service {
     public async Task<List<List>> GetListsSharedToUser(string userID) {
         List<List> lists = await context.ListShares
                             .Include(ls => ls.List)
-                                .ThenInclude(l => l.Contents)
+                                .ThenInclude(l => l.ContentPartials)
                             .Where(ls => ls.UserID == userID)
                             .Select(ls => ls.List)
                             .Distinct()
@@ -123,7 +133,7 @@ public class Service {
     public async Task<List<List>> GetListsSharedByAndOwnedByUser(string userID) {
         List<List> lists = await context.ListShares
                             .Include(ls => ls.List)
-                                .ThenInclude(l => l.Contents)
+                                .ThenInclude(l => l.ContentPartials)
                             .Where(ls => ls.List.OwnerUserID == userID)
                             .Select(ls => ls.List)
                             .Distinct()
@@ -140,9 +150,10 @@ public class Service {
         return lists;
     }
 
-    public async Task<Content?> ContentDTOToContent(ContentDTO dto) {
+    // Used by the bulk update controller
+    public async Task<ContentDetail?> ContentDTOToContent(ContentDTO dto) {
 
-        var content = new Content { // leaving out Genres, StreamingOptions, and Lists
+        var content = new ContentDetail { // leaving out Genres, StreamingOptions, and Lists
             TMDB_ID = dto.TMDB_ID,
             Title = dto.Title,
             Overview = dto.Overview,
@@ -163,9 +174,7 @@ public class Service {
         var genreTasks = dto.Genres.Select(g => GenreDTOToGenre(g)).ToList();
         content.Genres = (await Task.WhenAll(genreTasks)).ToList();
 
-        // await context.Content.AddAsync(content);
-        context.Content.Add(content);
-        // await context.SaveChangesAsync();
+        context.ContentDetail.Add(content);
 
         var streamingOptionTasks = dto.StreamingOptions.Select(s => StreamingOptionDTOToStreamingOption(s, content)).ToList();
         var streamingOptions = await Task.WhenAll(streamingOptionTasks);
@@ -176,10 +185,6 @@ public class Service {
                                     .Where(s => s != null)
                                     .Cast<StreamingOption>()
                                     .ToList();
-
-        // await context.SaveChangesAsync();
-
-        // Skip Lists now because this is being called by the AddToUserList in ListController
 
         return content;
     }
@@ -198,14 +203,12 @@ public class Service {
         }
 
         genre = new Genre(dto.Name);
-        // await context.Genre.AddAsync(genre);
         context.Genre.Add(genre);
-        // await context.SaveChangesAsync();
 
         return genre;
     }
 
-    public async Task<StreamingOption?> StreamingOptionDTOToStreamingOption(StreamingOptionDTO dto, Content content) {
+    public async Task<StreamingOption?> StreamingOptionDTOToStreamingOption(StreamingOptionDTO dto, ContentDetail content) {
         StreamingOption? streamingOption = await context.StreamingOption.FirstOrDefaultAsync(s => s.TMDB_ID == content.TMDB_ID && s.StreamingService.Name == dto.StreamingService.Name);
         if (streamingOption != null) return streamingOption;
 
@@ -217,9 +220,7 @@ public class Service {
 
         streamingOption = new StreamingOption(content, service, dto.Type, dto.Price, dto.DeepLink);
 
-        // await context.StreamingOption.AddAsync(streamingOption);
         context.StreamingOption.Add(streamingOption);
-        // await context.SaveChangesAsync();
 
         return streamingOption;
 
@@ -234,9 +235,7 @@ public class Service {
         if (service != null) { return service; }
 
         service = new StreamingService(dto.Name, dto.LightLogo, dto.DarkLogo);
-        // await context.StreamingService.AddAsync(service);
         context.StreamingService.Add(service);
-        // await context.SaveChangesAsync();
 
         return service;
     }

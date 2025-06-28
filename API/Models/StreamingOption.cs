@@ -9,7 +9,7 @@ public class StreamingOption {
     public string TMDB_ID { get; set; } = string.Empty;
 
     [ForeignKey(nameof(TMDB_ID))]
-    public Content Content { get; set; } = null!;
+    public ContentDetail ContentDetails { get; set; } = null!;
 
     [Key, Column(Order = 1)]
     [Required]
@@ -27,9 +27,9 @@ public class StreamingOption {
     public string DeepLink { get; set; } = string.Empty;
 
     public StreamingOption() { }
-    public StreamingOption(Content Content, StreamingService StreamingService, string Type, string? Price, string DeepLink) {
-        this.TMDB_ID = Content.TMDB_ID;
-        this.Content = Content;
+    public StreamingOption(ContentDetail ContentDetails, StreamingService StreamingService, string Type, string? Price, string DeepLink) {
+        this.TMDB_ID = ContentDetails.TMDB_ID;
+        this.ContentDetails = ContentDetails;
         this.ServiceID = StreamingService.ServiceID;
         this.StreamingService = StreamingService;
         this.Type = Type;
