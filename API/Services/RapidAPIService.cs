@@ -2,6 +2,8 @@ using System.Text.Json;
 using API.DTOs;
 using API.Infrastructure;
 using API.Models;
+using AutoMapper;
+using Microsoft.EntityFrameworkCore;
 
 namespace API.Services;
 
@@ -9,6 +11,7 @@ public class RapidAPIService {
 
     private readonly StreamTrackDbContext context;
     private readonly HttpClient httpClient;
+    private readonly IMapper mapper;
     private readonly string apiKey = RAPID_API.KEY;
     private const string RapidAPI_Base_Url = "https://streaming-availability.p.rapidapi.com/shows/";
     private const string RapidAPI_Ending = "?series_granularity=show&output_language=en&country=us";
@@ -16,14 +19,37 @@ public class RapidAPIService {
     private const string RapidApiHostHeader = "x-rapidapi-host";
     private const string RapidApiHostValue = "streaming-availability.p.rapidapi.com";
 
-    public RapidAPIService(StreamTrackDbContext _context, HttpClient _httpClient) {
+    public RapidAPIService(StreamTrackDbContext _context, HttpClient _httpClient, IMapper _mapper) {
         context = _context;
         httpClient = _httpClient;
+        mapper = _mapper;
+    }
+
+    // Does save because its ran in the background 
+    public async Task FetchAndSaveMissingContent(ContentPartialDTO partialDTO) {
+        try {
+            ContentPartial? partial = await context.ContentPartial
+                                                .Include(c => c.Detail)
+                                                .Where(c => c.TMDB_ID == partialDTO.TMDB_ID &&
+                                                            c.Detail == null
+                                                ).FirstOrDefaultAsync();
+
+            if (partial != null) {
+                partial.Detail = await FetchContentDetailsByTMDBIDAsync(partialDTO);
+                if (partial.Detail != null) {
+                    context.ContentDetail.Add(partial.Detail);
+                    await context.SaveChangesAsync();
+                }
+            }
+        }
+        catch (Exception ex) {
+            System.Console.WriteLine("Error in background content fetch (probably on save): " + ex);
+        }
     }
 
     // DOES NOT SAVE! It is up to the called to handle that.
-    public async Task<ContentDetail?> FetchByTMDBIDAsync(string tmdbID, string verticalPoster, string horizontalPoster) {
-        string url = $"{RapidAPI_Base_Url}{tmdbID}{RapidAPI_Ending}";
+    public async Task<ContentDetail?> FetchContentDetailsByTMDBIDAsync(ContentPartialDTO contentDTO) {
+        string url = $"{RapidAPI_Base_Url}{contentDTO.TMDB_ID}{RapidAPI_Ending}";
 
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.Add(RapidApiKeyHeader, apiKey);
@@ -36,7 +62,7 @@ public class RapidAPIService {
         APIContent? apiContent = JsonSerializer.Deserialize<APIContent>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         if (apiContent == null) return null;
 
-        return MapToContentDetail(apiContent, verticalPoster, horizontalPoster);
+        return MapToContentDetail(apiContent, contentDTO.VerticalPoster, contentDTO.HorizontalPoster);
     }
 
     private ContentDetail MapToContentDetail(APIContent content, string verticalPoster, string horizontalPoster) {

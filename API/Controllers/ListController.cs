@@ -18,13 +18,17 @@ public class ListController : ControllerBase {
     private readonly StreamTrackDbContext context;
     private readonly Service service;
     private readonly RapidAPIService rapidAPIService;
+    private readonly BackgroundTaskQueue taskQueue;
+    private readonly IServiceProvider serviceProvider;
     private readonly IMapper mapper;
 
-    public ListController(StreamTrackDbContext _context, Service _service, RapidAPIService _rapidAPIService, IMapper _mapper) {
+    public ListController(StreamTrackDbContext _context, Service _service, RapidAPIService _rapidAPIService, BackgroundTaskQueue _taskQueue, IServiceProvider _serviceProvider, IMapper _mapper) {
         context = _context;
         service = _service;
         rapidAPIService = _rapidAPIService;
+        taskQueue = _taskQueue;
         mapper = _mapper;
+        serviceProvider = _serviceProvider;
     }
 
     // GET: API/List/Get
@@ -152,25 +156,18 @@ public class ListController : ControllerBase {
         ContentPartial? partial = await context.ContentPartial
                                         .Include(c => c.Detail)
                                         .FirstOrDefaultAsync(c => c.TMDB_ID == contentDTO.TMDB_ID);
+
         if (partial == null) {
-            ContentDetail? detail = await rapidAPIService.FetchByTMDBIDAsync(contentDTO.TMDB_ID, contentDTO.VerticalPoster, contentDTO.HorizontalPoster);
-            if (detail == null) {
-                return BadRequest();
-            }
-            else {
-                context.ContentDetail.Add(detail);
-                partial = mapper.Map<ContentDetail, ContentPartial>(detail);
-                context.ContentPartial.Add(partial);
-            }
-        }
-        else if (partial.Detail == null) {
-            partial.Detail = await rapidAPIService.FetchByTMDBIDAsync(contentDTO.TMDB_ID, contentDTO.VerticalPoster, contentDTO.HorizontalPoster);
-            if (partial.Detail == null) {
-                return BadRequest();
-            }
-            else {
-                context.ContentDetail.Add(partial.Detail);
-            }
+            partial = new ContentPartial {
+                TMDB_ID = contentDTO.TMDB_ID,
+                Title = contentDTO.Title,
+                Overview = contentDTO.Overview,
+                Rating = contentDTO.Rating,
+                ReleaseYear = contentDTO.ReleaseYear,
+                VerticalPoster = contentDTO.VerticalPoster,
+                HorizontalPoster = contentDTO.HorizontalPoster
+            };
+            context.ContentPartial.Add(partial);
         }
 
         if (!list.ContentPartials.Any(c => c.TMDB_ID == contentDTO.TMDB_ID)) {
@@ -178,6 +175,13 @@ public class ListController : ControllerBase {
         }
 
         await context.SaveChangesAsync();
+
+        // send off background Task to fetch and save full content details
+        taskQueue.QueueBackgroundWorkItem(async (serviceProvider, token) => {
+            var rapidAPIService = serviceProvider.GetRequiredService<RapidAPIService>();
+            await rapidAPIService.FetchAndSaveMissingContent(contentDTO);
+        });
+
 
         var dto = mapper.Map<List, ListMinimalDTO>(list);
         if (list.OwnerUserID == uid) {
@@ -210,8 +214,10 @@ public class ListController : ControllerBase {
             return BadRequest();
         }
 
-        // If the detail exists and is NOT in any other lists, then remove from the DB.
-        if (partial.Detail is ContentDetail detail && !await context.List.AnyAsync(l => l.ContentPartials.Any(p => p.Detail != null && p.Detail.TMDB_ID == detail.TMDB_ID))) {
+        // If the detail exists and NOT popular and is NOT in any other lists, then remove from the DB.
+        if (partial.Detail is ContentDetail detail && !await context.List.AnyAsync(l => l.ContentPartials.Any(p => p.Detail != null &&
+                                                                                                                    !p.Detail.IsPopular &&
+                                                                                                                     p.Detail.TMDB_ID == detail.TMDB_ID))) {
             context.ContentDetail.Remove(detail);
         }
         list.ContentPartials.Remove(partial); // Will NOT error

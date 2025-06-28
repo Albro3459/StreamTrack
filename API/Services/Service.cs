@@ -151,6 +151,7 @@ public class Service {
     }
 
     // Used by the bulk update controller
+    // DOES NOT SAVE intentionally
     public async Task<ContentDetail?> ContentDTOToContent(ContentDTO dto) {
 
         var content = new ContentDetail { // leaving out Genres, StreamingOptions, and Lists
