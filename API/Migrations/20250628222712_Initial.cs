@@ -13,29 +13,21 @@ namespace StreamTrack.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "Content",
+                name: "ContentPartial",
                 columns: table => new
                 {
                     TMDB_ID = table.Column<string>(type: "TEXT", nullable: false),
                     Title = table.Column<string>(type: "TEXT", nullable: false),
                     Overview = table.Column<string>(type: "TEXT", nullable: false),
-                    ReleaseYear = table.Column<int>(type: "INTEGER", nullable: false),
-                    RapidID = table.Column<string>(type: "TEXT", nullable: false),
-                    IMDB_ID = table.Column<string>(type: "TEXT", nullable: false),
-                    ShowType = table.Column<string>(type: "TEXT", nullable: false),
-                    Cast = table.Column<string>(type: "TEXT", nullable: false),
-                    Directors = table.Column<string>(type: "TEXT", nullable: false),
                     Rating = table.Column<int>(type: "INTEGER", nullable: false),
-                    Runtime = table.Column<int>(type: "INTEGER", nullable: true),
-                    SeasonCount = table.Column<int>(type: "INTEGER", nullable: true),
-                    EpisodeCount = table.Column<int>(type: "INTEGER", nullable: true),
+                    ReleaseYear = table.Column<int>(type: "INTEGER", nullable: false),
                     VerticalPoster = table.Column<string>(type: "TEXT", nullable: false),
                     HorizontalPoster = table.Column<string>(type: "TEXT", nullable: false),
                     IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Content", x => x.TMDB_ID);
+                    table.PrimaryKey("PK_ContentPartial", x => x.TMDB_ID);
                 });
 
             migrationBuilder.CreateTable(
@@ -82,53 +74,35 @@ namespace StreamTrack.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "ContentGenre",
-                columns: table => new
-                {
-                    ContentsTMDB_ID = table.Column<string>(type: "TEXT", nullable: false),
-                    GenresGenreID = table.Column<string>(type: "TEXT", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_ContentGenre", x => new { x.ContentsTMDB_ID, x.GenresGenreID });
-                    table.ForeignKey(
-                        name: "FK_ContentGenre_Content_ContentsTMDB_ID",
-                        column: x => x.ContentsTMDB_ID,
-                        principalTable: "Content",
-                        principalColumn: "TMDB_ID",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_ContentGenre_Genre_GenresGenreID",
-                        column: x => x.GenresGenreID,
-                        principalTable: "Genre",
-                        principalColumn: "GenreID",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "StreamingOption",
+                name: "ContentDetail",
                 columns: table => new
                 {
                     TMDB_ID = table.Column<string>(type: "TEXT", nullable: false),
-                    ServiceID = table.Column<string>(type: "TEXT", nullable: false),
-                    Type = table.Column<string>(type: "TEXT", nullable: false),
-                    Price = table.Column<string>(type: "TEXT", nullable: true),
-                    DeepLink = table.Column<string>(type: "TEXT", nullable: false)
+                    IsPopular = table.Column<bool>(type: "INTEGER", nullable: false),
+                    Title = table.Column<string>(type: "TEXT", nullable: false),
+                    Overview = table.Column<string>(type: "TEXT", nullable: false),
+                    ReleaseYear = table.Column<int>(type: "INTEGER", nullable: false),
+                    RapidID = table.Column<string>(type: "TEXT", nullable: false),
+                    IMDB_ID = table.Column<string>(type: "TEXT", nullable: false),
+                    ShowType = table.Column<string>(type: "TEXT", nullable: false),
+                    Cast = table.Column<string>(type: "TEXT", nullable: false),
+                    Directors = table.Column<string>(type: "TEXT", nullable: false),
+                    Rating = table.Column<int>(type: "INTEGER", nullable: false),
+                    Runtime = table.Column<int>(type: "INTEGER", nullable: true),
+                    SeasonCount = table.Column<int>(type: "INTEGER", nullable: true),
+                    EpisodeCount = table.Column<int>(type: "INTEGER", nullable: true),
+                    VerticalPoster = table.Column<string>(type: "TEXT", nullable: false),
+                    HorizontalPoster = table.Column<string>(type: "TEXT", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_StreamingOption", x => new { x.TMDB_ID, x.ServiceID });
+                    table.PrimaryKey("PK_ContentDetail", x => x.TMDB_ID);
                     table.ForeignKey(
-                        name: "FK_StreamingOption_Content_TMDB_ID",
+                        name: "FK_ContentDetail_ContentPartial_TMDB_ID",
                         column: x => x.TMDB_ID,
-                        principalTable: "Content",
+                        principalTable: "ContentPartial",
                         principalColumn: "TMDB_ID",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_StreamingOption_StreamingService_ServiceID",
-                        column: x => x.ServiceID,
-                        principalTable: "StreamingService",
-                        principalColumn: "ServiceID",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -202,19 +176,70 @@ namespace StreamTrack.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "ContentGenre",
+                columns: table => new
+                {
+                    ContentDetailsTMDB_ID = table.Column<string>(type: "TEXT", nullable: false),
+                    GenresGenreID = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_ContentGenre", x => new { x.ContentDetailsTMDB_ID, x.GenresGenreID });
+                    table.ForeignKey(
+                        name: "FK_ContentGenre_ContentDetail_ContentDetailsTMDB_ID",
+                        column: x => x.ContentDetailsTMDB_ID,
+                        principalTable: "ContentDetail",
+                        principalColumn: "TMDB_ID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_ContentGenre_Genre_GenresGenreID",
+                        column: x => x.GenresGenreID,
+                        principalTable: "Genre",
+                        principalColumn: "GenreID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "StreamingOption",
+                columns: table => new
+                {
+                    TMDB_ID = table.Column<string>(type: "TEXT", nullable: false),
+                    ServiceID = table.Column<string>(type: "TEXT", nullable: false),
+                    Type = table.Column<string>(type: "TEXT", nullable: false),
+                    Price = table.Column<string>(type: "TEXT", nullable: true),
+                    DeepLink = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_StreamingOption", x => new { x.TMDB_ID, x.ServiceID });
+                    table.ForeignKey(
+                        name: "FK_StreamingOption_ContentDetail_TMDB_ID",
+                        column: x => x.TMDB_ID,
+                        principalTable: "ContentDetail",
+                        principalColumn: "TMDB_ID",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_StreamingOption_StreamingService_ServiceID",
+                        column: x => x.ServiceID,
+                        principalTable: "StreamingService",
+                        principalColumn: "ServiceID",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "ListContent",
                 columns: table => new
                 {
-                    ContentsTMDB_ID = table.Column<string>(type: "TEXT", nullable: false),
+                    ContentPartialsTMDB_ID = table.Column<string>(type: "TEXT", nullable: false),
                     ListsListID = table.Column<string>(type: "TEXT", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ListContent", x => new { x.ContentsTMDB_ID, x.ListsListID });
+                    table.PrimaryKey("PK_ListContent", x => new { x.ContentPartialsTMDB_ID, x.ListsListID });
                     table.ForeignKey(
-                        name: "FK_ListContent_Content_ContentsTMDB_ID",
-                        column: x => x.ContentsTMDB_ID,
-                        principalTable: "Content",
+                        name: "FK_ListContent_ContentPartial_ContentPartialsTMDB_ID",
+                        column: x => x.ContentPartialsTMDB_ID,
+                        principalTable: "ContentPartial",
                         principalColumn: "TMDB_ID",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -348,7 +373,7 @@ namespace StreamTrack.Migrations
                 name: "List");
 
             migrationBuilder.DropTable(
-                name: "Content");
+                name: "ContentDetail");
 
             migrationBuilder.DropTable(
                 name: "Genre");
@@ -358,6 +383,9 @@ namespace StreamTrack.Migrations
 
             migrationBuilder.DropTable(
                 name: "User");
+
+            migrationBuilder.DropTable(
+                name: "ContentPartial");
         }
     }
 }

@@ -1,17 +1,12 @@
 import { appStyles } from "@/styles/appStyles";
-import { Modal, Pressable, TouchableOpacity, View, Text } from "react-native";
+import { Modal, Pressable, View, Text } from "react-native";
 import Heart from "./heartComponent";
 import { FAVORITE_TAB, sortLists } from "../helpers/StreamTrack/listHelper";
 import { Colors } from "@/constants/Colors";
-import { ListData, ListMinimalData } from "../types/dataTypes";
-
-export enum MOVE_MODAL_DATA_ENUM {
-    TMDB,
-    CONTENT_DATA
-};
+import { ContentPartialData, ListMinimalData } from "../types/dataTypes";
 
 interface MoveModalProps {
-    selectedItem: any;
+    selectedContent: ContentPartialData;
     lists: ListMinimalData[];
 
     showLabel?: boolean;
@@ -26,14 +21,14 @@ interface MoveModalProps {
                     setIsLoadingFunc: React.Dispatch<React.SetStateAction<boolean>>,
                     setVisibilityFunc: React.Dispatch<React.SetStateAction<boolean>>
     ) => Promise<void>;
-    isItemInListFunc: (lists: ListMinimalData[], listName: string, itemID: string) => boolean;
+    isItemInListFunc: (lists: ListMinimalData[], listName: string, tmdbID: string) => boolean;
 
     setListsFunc: React.Dispatch<React.SetStateAction<ListMinimalData[]>>;
 }
 
-export const MoveModal: React.FC<MoveModalProps> = ({ selectedItem, lists, showLabel = true, showHeart = true, visibility, setVisibilityFunc, setIsLoadingFunc, moveItemFunc, isItemInListFunc, setListsFunc}) => {
+export const MoveModal: React.FC<MoveModalProps> = ({ selectedContent, lists, showLabel = true, showHeart = true, visibility, setVisibilityFunc, setIsLoadingFunc, moveItemFunc, isItemInListFunc, setListsFunc}) => {
 
-    if (!selectedItem) return null;
+    if (!selectedContent) return null;
 
     return (
         <Modal
@@ -55,14 +50,14 @@ export const MoveModal: React.FC<MoveModalProps> = ({ selectedItem, lists, showL
                         {sortLists(lists)
                             .filter((list) => list.listName !== FAVORITE_TAB)
                             .map((list, index) => {
-                                const isSelected = isItemInListFunc(lists, list.listName, selectedItem.tmdbID);
+                                const isSelected = isItemInListFunc(lists, list.listName, selectedContent.tmdbID);
                                 return (<Pressable
-                                    key={`LandingPage-${selectedItem.tmdbID}-${list.listName}-${index}`}
+                                    key={`LandingPage-${selectedContent.tmdbID}-${list.listName}-${index}`}
                                     style={[
                                         appStyles.modalButton,
                                         isSelected && appStyles.selectedModalButton,
                                     ]}
-                                    onPress={async () => await moveItemFunc(selectedItem, list.listName, lists, setListsFunc, setIsLoadingFunc, setVisibilityFunc)}
+                                    onPress={async () => await moveItemFunc(selectedContent, list.listName, lists, setListsFunc, setIsLoadingFunc, setVisibilityFunc)}
                                 >
                                     <Text style={[
                                         appStyles.modalButtonText,
@@ -76,15 +71,15 @@ export const MoveModal: React.FC<MoveModalProps> = ({ selectedItem, lists, showL
                         {/* Render FAVORITE_TAB at the bottom */}
                         {showHeart && lists.find(l => l.listName === FAVORITE_TAB) && (
                             <View
-                                key={`LandingPage-${selectedItem.tmdbID}-heart`}
+                                key={`LandingPage-${selectedContent.tmdbID}-heart`}
                                 style={{ paddingTop: 10 }}
                             >
                             <Heart
                                 heartColor={
-                                    isItemInListFunc(lists, FAVORITE_TAB, selectedItem.tmdbID) ? Colors.selectedHeartColor : Colors.unselectedHeartColor
+                                    isItemInListFunc(lists, FAVORITE_TAB, selectedContent.tmdbID) ? Colors.selectedHeartColor : Colors.unselectedHeartColor
                                 }
                                 size={35}
-                                onPress={async () => await moveItemFunc(selectedItem, FAVORITE_TAB, lists, setListsFunc, setIsLoadingFunc, setVisibilityFunc)}
+                                onPress={async () => await moveItemFunc(selectedContent, FAVORITE_TAB, lists, setListsFunc, setIsLoadingFunc, setVisibilityFunc)}
                             />
                             </View>
                         )}

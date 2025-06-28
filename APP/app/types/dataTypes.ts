@@ -18,7 +18,7 @@ export type UpdateUserProfileData = {
 // Receive
 export type UserData = {
     user: UserMinimalData;
-    contents: ContentMinimalData[];
+    contents: ContentPartialData[];
 };
 
 export type UserMinimalData = {
@@ -46,10 +46,11 @@ export type ListData = {
     // permission: string;
 };
 
-
-export type ContentMinimalData = {
+export type ContentPartialData = {
     tmdbID: string;
     title: string;
+    overview: string;
+    rating: number;
     releaseYear: number;
     verticalPoster: string;
     horizontalPoster: string;

@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { ContentMinimalData, UserData, UserMinimalData } from '../types/dataTypes';
+import { ContentPartialData, UserData, UserMinimalData } from '../types/dataTypes';
 import { getUserContents, getUserMinimalData } from '../helpers/StreamTrack/userHelper';
 // import { APIHelper } from '../helpers/APIHelper';
 
@@ -35,7 +35,7 @@ export const useUserDataStore = create<UserDataStore>((set) => ({
     set({ loading: true, error: null });
 
     const userMinimalData: UserMinimalData = await getUserMinimalData(token);
-    const contentMinimalData: ContentMinimalData[] = await getUserContents(token);
+    const contentMinimalData: ContentPartialData[] = await getUserContents(token);
 
     if (userMinimalData && contentMinimalData) {
         set({ userData: {user: userMinimalData, contents: contentMinimalData} as UserData, loading: false });

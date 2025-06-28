@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace StreamTrack.Migrations
 {
     [DbContext(typeof(StreamTrackDbContext))]
-    [Migration("20250627133712_Initial")]
+    [Migration("20250628222712_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace StreamTrack.Migrations
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.17");
 
-            modelBuilder.Entity("API.Models.Content", b =>
+            modelBuilder.Entity("API.Models.ContentDetail", b =>
                 {
                     b.Property<string>("TMDB_ID")
                         .HasColumnType("TEXT");
@@ -45,6 +45,9 @@ namespace StreamTrack.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsPopular")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Overview")
@@ -81,7 +84,42 @@ namespace StreamTrack.Migrations
 
                     b.HasKey("TMDB_ID");
 
-                    b.ToTable("Content");
+                    b.ToTable("ContentDetail");
+                });
+
+            modelBuilder.Entity("API.Models.ContentPartial", b =>
+                {
+                    b.Property<string>("TMDB_ID")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("HorizontalPoster")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Overview")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ReleaseYear")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("VerticalPoster")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("TMDB_ID");
+
+                    b.ToTable("ContentPartial");
                 });
 
             modelBuilder.Entity("API.Models.Genre", b =>
@@ -353,30 +391,30 @@ namespace StreamTrack.Migrations
                     b.ToTable("User");
                 });
 
-            modelBuilder.Entity("ContentGenre", b =>
+            modelBuilder.Entity("ContentDetailGenre", b =>
                 {
-                    b.Property<string>("ContentsTMDB_ID")
+                    b.Property<string>("ContentDetailsTMDB_ID")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("GenresGenreID")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("ContentsTMDB_ID", "GenresGenreID");
+                    b.HasKey("ContentDetailsTMDB_ID", "GenresGenreID");
 
                     b.HasIndex("GenresGenreID");
 
                     b.ToTable("ContentGenre", (string)null);
                 });
 
-            modelBuilder.Entity("ContentList", b =>
+            modelBuilder.Entity("ContentPartialList", b =>
                 {
-                    b.Property<string>("ContentsTMDB_ID")
+                    b.Property<string>("ContentPartialsTMDB_ID")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ListsListID")
                         .HasColumnType("TEXT");
 
-                    b.HasKey("ContentsTMDB_ID", "ListsListID");
+                    b.HasKey("ContentPartialsTMDB_ID", "ListsListID");
 
                     b.HasIndex("ListsListID");
 
@@ -411,6 +449,17 @@ namespace StreamTrack.Migrations
                     b.HasIndex("UsersUserID");
 
                     b.ToTable("UserService", (string)null);
+                });
+
+            modelBuilder.Entity("API.Models.ContentDetail", b =>
+                {
+                    b.HasOne("API.Models.ContentPartial", "Partial")
+                        .WithOne("Detail")
+                        .HasForeignKey("API.Models.ContentDetail", "TMDB_ID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Partial");
                 });
 
             modelBuilder.Entity("API.Models.List", b =>
@@ -451,22 +500,22 @@ namespace StreamTrack.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("API.Models.Content", "Content")
+                    b.HasOne("API.Models.ContentDetail", "ContentDetails")
                         .WithMany("StreamingOptions")
                         .HasForeignKey("TMDB_ID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Content");
+                    b.Navigation("ContentDetails");
 
                     b.Navigation("StreamingService");
                 });
 
-            modelBuilder.Entity("ContentGenre", b =>
+            modelBuilder.Entity("ContentDetailGenre", b =>
                 {
-                    b.HasOne("API.Models.Content", null)
+                    b.HasOne("API.Models.ContentDetail", null)
                         .WithMany()
-                        .HasForeignKey("ContentsTMDB_ID")
+                        .HasForeignKey("ContentDetailsTMDB_ID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -477,11 +526,11 @@ namespace StreamTrack.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("ContentList", b =>
+            modelBuilder.Entity("ContentPartialList", b =>
                 {
-                    b.HasOne("API.Models.Content", null)
+                    b.HasOne("API.Models.ContentPartial", null)
                         .WithMany()
-                        .HasForeignKey("ContentsTMDB_ID")
+                        .HasForeignKey("ContentPartialsTMDB_ID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -522,9 +571,14 @@ namespace StreamTrack.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("API.Models.Content", b =>
+            modelBuilder.Entity("API.Models.ContentDetail", b =>
                 {
                     b.Navigation("StreamingOptions");
+                });
+
+            modelBuilder.Entity("API.Models.ContentPartial", b =>
+                {
+                    b.Navigation("Detail");
                 });
 
             modelBuilder.Entity("API.Models.List", b =>

@@ -8,22 +8,10 @@ import { Feather } from '@expo/vector-icons';
 import { TMDBSearch } from './helpers/contentAPIHelper';
 import { TMDB_Content, TMDB, TMDB_MEDIA_TYPE } from './types/tmdbType';
 import { useUserDataStore } from './stores/userDataStore';
-import { ListData, ListMinimalData } from './types/dataTypes';
-import { delayedMoveTMDBItemToList, FAVORITE_TAB, isItemInAnyList, isItemInListMinimal, sortLists } from './helpers/StreamTrack/listHelper';
-import { MOVE_MODAL_DATA_ENUM, MoveModal } from './components/moveModalComponent';
+import { ContentPartialData, ListData, ListMinimalData } from './types/dataTypes';
+import { FAVORITE_TAB, isItemInAnyList, isItemInListMinimal, moveItemToListWithFuncs, sortLists } from './helpers/StreamTrack/listHelper';
+import { MoveModal } from './components/moveModalComponent';
 import { StarRating } from './components/starRatingComponent';
-import { API } from './types/APIType';
-
-export type Movie = {
-    tmdbID: string;
-    title: string;
-    year: string;
-    mediaType: TMDB_MEDIA_TYPE;
-    rating: number;
-    verticalPoster: string; 
-    horizontalPoster: string;
-    content: TMDB_Content | null;
-};
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -46,31 +34,30 @@ export default function SearchPage() {
 
     const [lists, setLists] = useState<ListMinimalData[] | null>([...userData?.user?.listsOwned, ...userData?.user?.listsSharedWithMe]);
 
-    const [selectedMovie, setSelectedMovie] = useState<Movie>(null);
+    const [selectedContent, setSelectedContent] = useState<ContentPartialData>(null);
 
-    const [movies, setMovies] = useState<Movie[]>([]);
+    const [contents, setContents] = useState<ContentPartialData[]>([]);
 
     const search = async (searchText: string) => {
         setShowNoResults(true);
         if (searchText.length > 0) {
             try {
                 setIsSearching(true);
-                const contents: TMDB = await TMDBSearch(searchText);
-                const movies: Movie[] = contents.results.map(content => {
+                const tmdbContents: TMDB = await TMDBSearch(searchText);
+                const contents: ContentPartialData[] = tmdbContents.results.map(tmdbContent => {
                     return {
-                        tmdbID: content.media_type+"/"+content.id.toString(),
-                        title: content.media_type === "movie" ? content.title : content.name,
-                        year: content.release_date ? content.release_date.split("-")[0] : "0",
-                        mediaType: content.media_type,
-                        rating:  parseFloat((content.vote_average/2).toFixed(2)), // rating is on 10 pt scale so this converts to 5 star scale
-                        verticalPoster: content.poster_path, 
-                        horizontalPoster: content.backdrop_path,
-                        content: content,
+                        tmdbID: tmdbContent.media_type+"/"+tmdbContent.id.toString(),
+                        title: tmdbContent.media_type === "movie" ? tmdbContent.title : tmdbContent.name,
+                        overview: tmdbContent.overview,
+                        rating:  parseFloat((tmdbContent.vote_average/2).toFixed(2)) ?? 0, // rating is on 10 pt scale so this converts to 5 star scale
+                        releaseYear: tmdbContent.release_date ? parseInt(tmdbContent.release_date.split("-")[0]) : 0,
+                        verticalPoster: tmdbContent.poster_path, 
+                        horizontalPoster: tmdbContent.backdrop_path,
                     }
                 });
-                setMovies(movies);
+                setContents(contents);
             } finally {
-                if (flatListRef.current && movies && movies.length > 0) {
+                if (flatListRef.current && contents && contents.length > 0) {
                     flatListRef.current.scrollToOffset({ animated: true, offset: 0});
                 }
                 setIsSearching(false);
@@ -113,43 +100,40 @@ export default function SearchPage() {
                 </View>
 
                 {/* Movie Cards */}
-                {(!movies || movies.length <= 0) ? (
+                {(!contents || contents.length <= 0) ? (
                     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 16 }}>
                         <Text style={{ fontSize: 16, color: 'gray', textAlign: 'center', marginTop: -80 }}>
                         {searchText.length > 0 && showNoResults && !isSearching ? "No Results :(" : "Try Searching for a Show or Movie!"}
                         </Text>
                     </View>
                 ) : (
-                <FlatList<Movie>
+                <FlatList<ContentPartialData>
                     ref={flatListRef}
-                    data={movies}
+                    data={contents}
                     keyExtractor={(item) => item.tmdbID}
                     showsVerticalScrollIndicator={false}
-                    renderItem={({ item: movie }) => (
+                    renderItem={({ item: content }) => (
                     <Pressable
                         onPress={() => {
                         //   Global.backPressLoadSearch = true;
                             router.push({
                                 pathname: '/InfoPage',
-                                    // Can't do this because I do a delayed add, so imaging the user hits the heart then immediately clicks the movie.
-                                        // It would say to pull contents which would fail
-                                // params: { api: isItemInAnyList(lists, movie.tmdbID) ? API.STREAM_TRACK : API.RAPID, tmdbID: movie.tmdbID, title: movie.title, year: movie.year, media_type: movie.mediaType, verticalPoster: movie.verticalPoster, horizontalPoster: movie.horizontalPoster },
-                                params: { api: API.RAPID, tmdbID: movie.tmdbID, title: movie.title, year: movie.year, media_type: movie.mediaType, verticalPoster: movie.verticalPoster, horizontalPoster: movie.horizontalPoster },
+                                params: { tmdbID: content.tmdbID, title: content.title, overview: content.overview, rating: content.rating, releaseYear: content.releaseYear, verticalPoster: content.verticalPoster, horizontalPoster: content.horizontalPoster },
                             });
                         }}
-                        onLongPress={() => {setSelectedMovie(movie); setMoveModalVisible(true);}}
+                        onLongPress={() => {setSelectedContent(content); setMoveModalVisible(true);}}
                     >
                         <View style={[appStyles.cardContainer, {marginHorizontal: 16}]}>
-                            <Image source={{ uri: movie.verticalPoster }} style={appStyles.cardPoster} />
+                            <Image source={{ uri: content.verticalPoster }} style={appStyles.cardPoster} />
                             <View style={appStyles.cardContent}>
-                                <Text style={appStyles.cardTitle}>{movie.title}</Text>
-                                <Text style={appStyles.cardDescription} numberOfLines={4}>{movie.content.overview}</Text>
-                                <StarRating rating={movie.rating}/>
+                                <Text style={appStyles.cardTitle}>{content.title}</Text>
+                                <Text style={appStyles.cardDescription} numberOfLines={4}>{content.overview}</Text>
+                                <StarRating rating={content.rating}/>
                             </View>
                             <Heart 
-                                heartColor={isItemInListMinimal(lists, FAVORITE_TAB, movie.tmdbID) ? Colors.selectedHeartColor : Colors.unselectedHeartColor}
+                                heartColor={isItemInListMinimal(lists, FAVORITE_TAB, content.tmdbID) ? Colors.selectedHeartColor : Colors.unselectedHeartColor}
                                 size={40}
-                                onPress={async () => await delayedMoveTMDBItemToList(movie, FAVORITE_TAB, lists, setLists, setIsSearching, setMoveModalVisible)}
+                                onPress={async () => await moveItemToListWithFuncs(content, FAVORITE_TAB, lists, setLists, setIsSearching, setMoveModalVisible)}
                             />
                         </View>
                     </Pressable>
@@ -158,13 +142,13 @@ export default function SearchPage() {
                 )}
 
                 <MoveModal
-                    selectedItem={selectedMovie}
+                    selectedContent={selectedContent}
                     lists={lists}
                     showHeart={false}
                     visibility={moveModalVisible}
                     setVisibilityFunc={setMoveModalVisible}
                     setIsLoadingFunc={setIsSearching}
-                    moveItemFunc={delayedMoveTMDBItemToList}
+                    moveItemFunc={moveItemToListWithFuncs}
                     isItemInListFunc={isItemInListMinimal}
                     setListsFunc={setLists}
                 />

@@ -50,7 +50,8 @@ public class StreamTrackDbContext : DbContext {
 
         modelBuilder.Entity<ContentPartial>()
             .HasOne(p => p.Detail)
-            .WithOne(d => d.Partial);
+            .WithOne(d => d.Partial)
+            .HasForeignKey<ContentDetail>(d => d.TMDB_ID);
 
         modelBuilder.Entity<ContentDetail>()
             .HasMany(c => c.Genres)

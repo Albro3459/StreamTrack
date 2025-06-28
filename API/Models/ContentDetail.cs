@@ -8,7 +8,6 @@ public class ContentDetail : SoftDeletableEntity {
     [Required]
     public string TMDB_ID { get; set; } = string.Empty;
 
-    [ForeignKey(nameof(TMDB_ID))]
     public ContentPartial? Partial { get; set; }
 
     [Required]

@@ -20,7 +20,7 @@ import { appStyles } from '@/styles/appStyles';
 import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { setUserData, useUserDataStore } from './stores/userDataStore';
-import { ContentMinimalData, ListMinimalData } from './types/dataTypes';
+import { ContentPartialData, ListMinimalData } from './types/dataTypes';
 import { createNewUserList, FAVORITE_TAB, getContentsInList, isItemInListMinimal, moveItemToListWithFuncs, sortLists } from './helpers/StreamTrack/listHelper';
 import { User } from 'firebase/auth';
 import { auth } from '@/firebaseConfig';
@@ -46,7 +46,7 @@ export default function LibraryPage() {
     const [createNewListModal, setCreateNewListModal] = useState(false);
 
     const [isLoading, setIsLoading] = useState(true);
-    const [selectedContentData, setSelectedContentData] = useState<ContentMinimalData | null>(null);
+    const [selectedContentData, setSelectedContentData] = useState<ContentPartialData | null>(null);
     const [moveModalVisible, setMoveModalVisible] = useState(false);
 
     const handelCreateNewTab = async (listName: string) => {
@@ -88,7 +88,7 @@ export default function LibraryPage() {
         }
     }, [lists, isLoading]);
 
-    const renderTabContent = (contents: ContentMinimalData[], list: string) => {
+    const renderTabContent = (contents: ContentPartialData[], list: string) => {
         if (!contents || contents.length === 0) {
         return (
             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
@@ -100,7 +100,7 @@ export default function LibraryPage() {
         }
   
         return (
-        <FlatList<ContentMinimalData>
+        <FlatList<ContentPartialData>
             // data={(lists.find(l => l.listName === activeTab) && userData.contents) ? userData.contents.filter(c => lists.find(l => l.listName === activeTab).tmdbIDs.includes(c.tmdbID)) : []}
             data={userData?.contents && getContentsInList(userData.contents, lists, activeTab)}
             numColumns={2}
@@ -111,7 +111,7 @@ export default function LibraryPage() {
                 onPress={() => {
                     router.push({
                         pathname: '/InfoPage',
-                        params: { api: API.STREAM_TRACK, tmdbID: content.tmdbID, title: content.title, year: content.releaseYear, media_type: content.tmdbID.split('/')[0], verticalPoster: content.verticalPoster, horizontalPoster: content.horizontalPoster },
+                        params: { tmdbID: content.tmdbID, title: content.title, overview: content.overview, rating: parseFloat((content.rating / 20).toFixed(2)), releaseYear: content.releaseYear, verticalPoster: content.verticalPoster, horizontalPoster: content.horizontalPoster, media_type: content.tmdbID.split('/')[0] },
                     });
                 }}
                 onLongPress={() => {
@@ -222,7 +222,7 @@ export default function LibraryPage() {
             </PagerView>
 
             <MoveModal
-                selectedItem={selectedContentData}
+                selectedContent={selectedContentData}
                 lists={lists}
                 showLabel={false}
                 visibility={moveModalVisible}

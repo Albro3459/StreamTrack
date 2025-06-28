@@ -51,9 +51,9 @@ public class ContentController : ControllerBase {
     //     return mapper.Map<ContentDetail, ContentDTO>(content);
     // }
 
-    // GET: API/Content/GetDetails
-    [HttpGet("GetDetails")]
-    public async Task<ActionResult<ContentDTO>> GetContentDetails(ContentPartialDTO partialDTO) {
+    // POST: API/Content/Details
+    [HttpGet("Details")]
+    public async Task<ActionResult<ContentDTO>> FetchContentDetails(ContentPartialDTO partialDTO) {
         // Get the user's auth token to get the firebase uuid to get the correct user's data
         // User's can only get their own data
 
@@ -62,40 +62,44 @@ public class ContentController : ControllerBase {
         if (string.IsNullOrEmpty(uid))
             return Unauthorized();
 
-        ContentDetail? details = await context.ContentDetail
-                .Include(c => c.Genres)
-                .Include(c => c.StreamingOptions)
-                    .ThenInclude(s => s.StreamingService)
-                .FirstOrDefaultAsync(c => c.TMDB_ID == partialDTO.TMDB_ID);
-
-        if (details == null) {
-            try {
-                ContentPartial? partial = await context.ContentPartial
+        ContentPartial? partial = await context.ContentPartial
                                                     .Include(c => c.Detail)
-                                                    .Where(c => c.TMDB_ID == partialDTO.TMDB_ID &&
-                                                                c.Detail == null
-                                                    ).FirstOrDefaultAsync();
+                                                        .ThenInclude(c => c.Genres)
+                                                    .Include(c => c.Detail)
+                                                        .ThenInclude(c => c.StreamingOptions)
+                                                            .ThenInclude(s => s.StreamingService)
+                                                    .FirstOrDefaultAsync(c => c.TMDB_ID == partialDTO.TMDB_ID);
 
-                if (partial != null) {
-                    details = await rapidAPIService.FetchContentDetailsByTMDBIDAsync(partialDTO);
-                    if (details != null) {
-                        details.Partial = partial;
-                        context.ContentDetail.Add(details);
-                        await context.SaveChangesAsync();
-                    }
+        bool newPartial = false;
+        if (partial == null) {
+            partial = mapper.Map<ContentPartialDTO, ContentPartial>(partialDTO);
+            context.ContentPartial.Add(partial);
+            newPartial = true;
+        }
+        try {
+            if (partial.Detail == null) {
+                ContentDetail? detail = await rapidAPIService.FetchContentDetailsByTMDBIDAsync(partialDTO);
+                if (detail != null) {
+                    partial.Detail = detail;
+                    context.ContentDetail.Add(detail);
                 }
+                // Always save the partial
+                await context.SaveChangesAsync();
             }
-            catch (Exception ex) {
-                System.Console.WriteLine("Error in GetContentDetails (probably on save): " + ex);
-                return BadRequest();
-            }
-
-            if (details == null) {
-                return NotFound();
+            else if (newPartial) {
+                await context.SaveChangesAsync();
             }
         }
+        catch (Exception ex) {
+            System.Console.WriteLine("Error in GetContentDetails (probably on save): " + ex);
+            return BadRequest();
+        }
 
-        return mapper.Map<ContentDetail, ContentDTO>(details);
+        if (partial.Detail == null) {
+            return NotFound();
+        }
+
+        return mapper.Map<ContentDetail, ContentDTO>(partial.Detail);
     }
 
     // GET: API/Content/GetAll

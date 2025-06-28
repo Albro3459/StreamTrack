@@ -9,32 +9,31 @@ import { router } from 'expo-router';
 import { SvgUri } from 'react-native-svg';
 import { TMDB_MEDIA_TYPE } from './types/tmdbType';
 import { RapidAPIGetByTMDBID } from './helpers/contentAPIHelper';
-import { ContentData, ListData, ListMinimalData, StreamingOptionData, StreamingServiceData } from './types/dataTypes';
+import { ContentData, ContentPartialData, ListData, ListMinimalData, StreamingOptionData, StreamingServiceData } from './types/dataTypes';
 import { useUserDataStore } from './stores/userDataStore';
 import { FAVORITE_TAB, isItemInListMinimal, moveItemToListWithFuncs } from './helpers/StreamTrack/listHelper';
-import { MOVE_MODAL_DATA_ENUM, MoveModal } from './components/moveModalComponent';
+import { MoveModal } from './components/moveModalComponent';
 import { StarRating } from './components/starRatingComponent';
 import { API } from './types/APIType';
-import { getContentByTMDBID } from './helpers/StreamTrack/contentHelper';
+import { getContentDetails } from './helpers/StreamTrack/contentHelper';
 import { auth } from '@/firebaseConfig';
 import { getRecentContent, useContentDataStore } from './stores/contentDataStore';
 
 const screenWidth = Dimensions.get("window").width;
 
 interface InfoPageParams {
-    api?: string;
-
     tmdbID?: string;
     title?: string;
-    year?: string;
-    media_type?: TMDB_MEDIA_TYPE;
+    overview?: string;
+    rating?: number;
+    releaseYear?: number;
     verticalPoster?: string;
     horizontalPoster?: string;
 }
 
 export default function InfoPage() {
 
-    const { api, tmdbID, title, year, media_type, verticalPoster, horizontalPoster } = useLocalSearchParams() as InfoPageParams;
+    const { tmdbID, title, overview, rating, releaseYear, verticalPoster, horizontalPoster } = useLocalSearchParams() as InfoPageParams;
 
     const { userData } = useUserDataStore();
     const { recentContent, addRecentContent } = useContentDataStore();
@@ -72,7 +71,7 @@ export default function InfoPage() {
 
     const getRuntime = (content: ContentData): string => {
         return (!content ? 
-                    (media_type === TMDB_MEDIA_TYPE.MOVIE ? "0h 0m" : "Seasons: 5  |  Episodes: 10") 
+                    (tmdbID.split('/')[0] === TMDB_MEDIA_TYPE.MOVIE ? "0h 0m" : "Seasons: 5  |  Episodes: 10") 
                     : (
                         content.showType === 'movie' ? (
                         content.runtime ? toHoursAndMinutes(content.runtime) : ""
@@ -83,18 +82,14 @@ export default function InfoPage() {
 
     useEffect(() => {
         const fetchContent = async () => {
-            if (!api || !tmdbID) return;
+            if (!tmdbID) return;
 
             const token = await auth.currentUser.getIdToken();
 
             let content: ContentData | null = getRecentContent(tmdbID);
             if (!content) {
-                if (api === API.STREAM_TRACK) {
-                    content = await getContentByTMDBID(token, tmdbID);
-                }
-                else if (api === API.RAPID) {
-                    content = await RapidAPIGetByTMDBID(tmdbID, verticalPoster ?? "", horizontalPoster ?? "");
-                }
+
+                content = await getContentDetails(token, { tmdbID, title, overview, rating, releaseYear, verticalPoster, horizontalPoster } as ContentPartialData)
 
                 if (content) {
                     addRecentContent(content);
@@ -109,7 +104,7 @@ export default function InfoPage() {
         }
 
         fetchContent();
-    }, [api, tmdbID, verticalPoster, horizontalPoster]);
+    }, [tmdbID, title, overview, rating, releaseYear, verticalPoster, horizontalPoster]);
 
     const renderTabContent = () => {
         switch (activeTab) {
@@ -118,11 +113,11 @@ export default function InfoPage() {
             <View style={styles.content}>
                 <View style={{flexDirection: "row", justifyContent: "flex-start", alignItems: "center"}}>
                     <Text style={styles.sectionTitle}>Rating  </Text>
-                    {content && <StarRating rating={parseFloat((content.rating / 20).toFixed(2))}/> }
+                    {content && <StarRating rating={rating}/> }
                 </View>
 
                 <View style={{flexDirection: "row", justifyContent: "flex-start", alignItems: "center"}}>
-                <Text style={styles.sectionTitle}>{!content ? media_type === TMDB_MEDIA_TYPE.MOVIE ? "Movie" : "Series" : (
+                <Text style={styles.sectionTitle}>{!content ? tmdbID.split('/')[0] === TMDB_MEDIA_TYPE.MOVIE ? "Movie" : "Series" : (
                     `${content.showType.charAt(0).toUpperCase() + content.showType.slice(1).toLowerCase()}`
                     )}</Text>
                 <Text style={[styles.text, {fontSize: 18, paddingLeft: 15, paddingTop: 10, textAlign: 'left', textAlignVertical: "center"}]}>
@@ -247,7 +242,7 @@ export default function InfoPage() {
                     <Text style={styles.title}>{title ? title : (content && content.title)}</Text>
                     <View style={styles.attributeContainer}>
                         <Text style={[styles.text, {fontSize: 18, textAlignVertical: "center"}]}>
-                            {(year && parseInt(year) > 0 ? year+ "    " 
+                            {(releaseYear && releaseYear > 0 ? releaseYear+ "    " 
                                     : (content && content.releaseYear > 0 
                                     ? content.releaseYear+ "    " : "")) + getRuntime(content)}
                         </Text>
@@ -291,7 +286,7 @@ export default function InfoPage() {
 
             {/* Lists */}
             <MoveModal
-                selectedItem={content}
+                selectedContent={content}
                 lists={lists}
                 showLabel={false}
                 showHeart={false}

@@ -1,5 +1,5 @@
 import { DataAPIURL } from "@/secrets/DataAPIUrl";
-import { ContentMinimalData, UpdateUserProfileData, UserData, UserMinimalData } from "../../types/dataTypes";
+import { ContentPartialData, UpdateUserProfileData, UserData, UserMinimalData } from "../../types/dataTypes";
 
 export const checkIfUserExists = async (token: string): Promise<boolean> => {
     try {
@@ -61,7 +61,7 @@ export const getUserMinimalData = async (token: string): Promise<UserMinimalData
     }
 };
 
-export const getUserContents = async (token: string): Promise<ContentMinimalData[] | null> => {
+export const getUserContents = async (token: string): Promise<ContentPartialData[] | null> => {
     try {
         const url = DataAPIURL + "API/User/GetContents";
 
@@ -82,7 +82,7 @@ export const getUserContents = async (token: string): Promise<ContentMinimalData
             return null;
         }
 
-        const data: ContentMinimalData[] = await result.json();
+        const data: ContentPartialData[] = await result.json();
         
         return data;
     } catch (err) {
