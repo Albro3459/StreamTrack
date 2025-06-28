@@ -254,10 +254,10 @@ export default function InfoPage() {
                     </View>
                     <View style={[styles.attributeContainer, {marginTop: 5}]} >
                         <TouchableOpacity
-                            style={styles.button}
+                            style={appStyles.button}
                             onPress={() => setListModalVisible(true)}
                         >
-                            <Text style={styles.buttonText}>Save to List</Text>
+                            <Text style={[appStyles.buttonText, {fontSize: 16}]}>Save to List</Text>
                         </TouchableOpacity>
                         
                         <Heart 
@@ -395,19 +395,5 @@ const styles = StyleSheet.create({
       color: Colors.reviewTextColor,
       marginVertical: 4,
       paddingBottom: 10,
-    },
-    button: {
-      backgroundColor: Colors.selectedColor,
-      paddingHorizontal: 20,
-      borderRadius: 10,
-      width: 150,
-      height: 50,
-      justifyContent: "center",
-      alignItems: "center",
-    },
-    buttonText: {
-      color: "white",
-      fontSize: 16,
-      fontWeight: "bold",
     },
 });

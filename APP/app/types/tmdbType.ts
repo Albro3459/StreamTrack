@@ -15,6 +15,8 @@ export type TMDB_Content = {
     // TV Show:
     name: string | null;
     original_name:  string | null;
+
+    // Both
     overview: string;
     poster_path: string | null;
     media_type: TMDB_MEDIA_TYPE;

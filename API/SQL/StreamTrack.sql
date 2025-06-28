@@ -1,3 +1,6 @@
+-- OUTDATED!
+-- See ExtractedSchema.db or run `dotnet ef migrations script`
+
 CREATE TABLE "users" (
   "id" varchar PRIMARY KEY,
   "email" varchar
