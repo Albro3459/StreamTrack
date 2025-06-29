@@ -17,6 +17,8 @@ public class ContentProfile : Profile {
 
         CreateMap<ContentPartial, ContentPartialDTO>().ReverseMap();
 
+        CreateMap<ContentPartialDTO, ContentRequestDTO>().ReverseMap();
+
         CreateMap<Genre, GenreDTO>();
     }
 }

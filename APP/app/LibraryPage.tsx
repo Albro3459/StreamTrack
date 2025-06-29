@@ -21,11 +21,10 @@ import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { setUserData, useUserDataStore } from './stores/userDataStore';
 import { ContentPartialData, ListMinimalData } from './types/dataTypes';
-import { createNewUserList, FAVORITE_TAB, getContentsInList, isItemInListMinimal, moveItemToListWithFuncs, sortLists } from './helpers/StreamTrack/listHelper';
+import { createNewUserList, FAVORITE_TAB, getContentsInList, isItemInListMinimal, moveItemToList, sortLists } from './helpers/StreamTrack/listHelper';
 import { User } from 'firebase/auth';
 import { auth } from '@/firebaseConfig';
 import { MoveModal } from './components/moveModalComponent';
-import { API } from './types/APIType';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -111,7 +110,7 @@ export default function LibraryPage() {
                 onPress={() => {
                     router.push({
                         pathname: '/InfoPage',
-                        params: { tmdbID: content.tmdbID, title: content.title, overview: content.overview, rating: parseFloat((content.rating / 20).toFixed(2)), releaseYear: content.releaseYear, verticalPoster: content.verticalPoster, horizontalPoster: content.horizontalPoster, media_type: content.tmdbID.split('/')[0] },
+                        params: { tmdbID: content.tmdbID, title: content.title, overview: content.overview, rating: parseFloat((content.rating ?? 0 / 20).toFixed(2)) ?? 0, releaseYear: content.releaseYear, verticalPoster: content.verticalPoster, horizontalPoster: content.horizontalPoster },
                     });
                 }}
                 onLongPress={() => {
@@ -228,7 +227,7 @@ export default function LibraryPage() {
                 visibility={moveModalVisible}
                 setVisibilityFunc={setMoveModalVisible}
                 setIsLoadingFunc={setIsLoading}
-                moveItemFunc={moveItemToListWithFuncs}
+                moveItemFunc={moveItemToList}
                 isItemInListFunc={isItemInListMinimal}
                 setListsFunc={setLists}
             />

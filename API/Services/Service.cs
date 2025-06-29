@@ -61,6 +61,7 @@ public class Service {
                     .ToListAsync();
     }
 
+    // Only used by GetUserLists which is only used for Swagger checking
     public async Task<UserDataDTO> MapUserToFullUserDTO(User user) {
         UserDataDTO userDataDTO = mapper.Map<User, UserDataDTO>(user);
 

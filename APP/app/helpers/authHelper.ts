@@ -1,7 +1,4 @@
 import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
-import { clearUserData, fetchUserData } from "../stores/userDataStore";
-import { clearStreamingServiceData, fetchStreamingServiceData } from "../stores/streamingServiceDataStore";
-import { clearGenreData, fetchGenreData  } from "../stores/genreDataStore";
 import { createUser } from "./StreamTrack/userHelper";
 import { CACHE, ClearCache, FetchCache } from "./cacheHelper";
 

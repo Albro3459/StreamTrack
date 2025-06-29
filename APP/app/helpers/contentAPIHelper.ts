@@ -1,22 +1,9 @@
-import axios from 'axios';
-
-import { RAPIDAPI_KEY, TMDB_BEARER_TOKEN } from '@/secrets/API_keys';
+import { TMDB_BEARER_TOKEN } from '@/secrets/API_keys';
 import { TMDB_MEDIA_TYPE, TMDB } from '../types/tmdbType';
-import { Content } from '../types/contentType';
-import { ContentData } from '../types/dataTypes';
-import { convertContentToContentData } from './StreamTrack/contentHelper';
 
-// Search API
+// TMDB Search API
 const TMDB_Base_Url = "https://api.themoviedb.org/3/search/multi?query=";
 const TMDB_Ending = "&include_adult=false&language=en-US&page=1";
-
-// Details API
-const RapidAPI_Base_Url = 'https://streaming-availability.p.rapidapi.com/shows/';
-const RapidAPI_Ending = "?series_granularity=show&output_language=en&country=us";
-const RapidAPI_Headers = {
-    'x-rapidapi-key': RAPIDAPI_KEY,
-    'x-rapidapi-host': 'streaming-availability.p.rapidapi.com'
-};
 
 export const TMDBSearch = async (keyword: string): Promise<TMDB> => {
 
@@ -35,7 +22,7 @@ export const TMDBSearch = async (keyword: string): Promise<TMDB> => {
     const result = await fetch(url, options);
     const data: TMDB = await result.json();
 
-    // data.results = data.results.filter(x => x.poster_path && (x.media_type === "tv" || x.media_type === "movie"));
+    // data.results = data.results.filter(x => x.poster_path && (x.media_type === "tv" || x.media_type === "movie")); // maybe filter out content without posters
     data.results = data.results.filter(x => x.media_type === TMDB_MEDIA_TYPE.TV || x.media_type === TMDB_MEDIA_TYPE.MOVIE);
     data.results = data.results.map(x => ({
         ...x,
@@ -45,42 +32,5 @@ export const TMDBSearch = async (keyword: string): Promise<TMDB> => {
 
     return data;
 }
-
-export const RapidAPIGetByTMDBID = async (tmdbID: string, vertical: string, horizontal: string): Promise<ContentData> => {
-
-    const url = RapidAPI_Base_Url + tmdbID + RapidAPI_Ending;
-
-    const options = {
-        method: 'GET',
-        url,
-        headers: RapidAPI_Headers
-    };
-    const result = await axios.request(options);
-    
-    const content: Content = await result.data;
-
-    const contentData: ContentData = convertContentToContentData(content, vertical, horizontal);
-
-    return contentData;
-}
-
-// export const RapidAPIGetByRapidID = async (id: string, vertical: string, horizontal: string): Promise<ContentData> => {
-
-//     const url = RapidAPI_Base_Url + id + RapidAPI_Ending;
-
-//     const options = {
-//         method: 'GET',
-//         url,
-//         headers: RapidAPI_Headers
-//     };
-//     const result = await axios.request(options);
-    
-//     const content: Content = await result.data;
-
-//     const contentData: ContentData = convertContentToContentData(content, vertical, horizontal);
-
-//     return contentData;
-// }
-
 
 export default {}

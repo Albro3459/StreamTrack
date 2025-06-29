@@ -2,15 +2,15 @@ import React, { useEffect, useState } from "react";
 import { StyleSheet, View, Text, ScrollView, FlatList, Image, TouchableOpacity, Pressable, Dimensions, Alert, Modal, ActivityIndicator } from "react-native";
 import { Card, Title } from "react-native-paper";
 import { MaterialIcons } from "@expo/vector-icons";
-import { router, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { appStyles, RalewayFont } from "@/styles/appStyles";
 import { useUserDataStore } from "./stores/userDataStore";
-import { Review } from "./types/reviewType";
-import { onAuthStateChanged, User } from "firebase/auth";
+import { User } from "firebase/auth";
 import { auth } from "@/firebaseConfig";
-import { StarRating } from "./components/starRatingComponent";
-import { MoveModal } from "./components/moveModalComponent";
+// import { onAuthStateChanged, User } from "firebase/auth";
+// import { StarRating } from "./components/starRatingComponent";
+// import { MoveModal } from "./components/moveModalComponent";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 

@@ -1,3 +1,4 @@
+import { clearContentCache } from "../stores/contentDataStore";
 import { clearGenreData, fetchGenreData } from "../stores/genreDataStore";
 import { clearStreamingServiceData, fetchStreamingServiceData } from "../stores/streamingServiceDataStore";
 import { clearUserData, fetchUserData } from "../stores/userDataStore";
@@ -34,7 +35,7 @@ export const FetchCache = (token: string, ...data: CACHE[]) => {
 export const ClearCache = (...data: CACHE[]) => {
 
     if (data.length === 0 || data.includes(CACHE.ALL)) {
-        clearUserData();
+        clearUserData(); clearContentCache();
         clearGenreData();
         clearStreamingServiceData();
         return;
@@ -42,6 +43,7 @@ export const ClearCache = (...data: CACHE[]) => {
 
     if (data.includes(CACHE.USER)) {
         clearUserData();
+        clearContentCache();
     }
     if (data.includes(CACHE.GENRE)) {
         clearGenreData();

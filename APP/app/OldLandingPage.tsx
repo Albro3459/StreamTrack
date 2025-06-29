@@ -7,7 +7,6 @@ import { Colors } from "@/constants/Colors";
 import { appStyles, RalewayFont } from "@/styles/appStyles";
 // import { WatchList } from "./types/listsType";
 import { useUserDataStore } from "./stores/userDataStore";
-import { Review } from "./types/reviewType";
 import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/firebaseConfig";
 import { StarRating } from "./components/starRatingComponent";
@@ -34,44 +33,44 @@ export default function OldLandingPage () {
     // const [moviesAndShows, setMoviesAndShows] = useState<PosterContent[]>([]);    
     
     // Array of reviews
-    const [reviews, setReviews] = useState<Review[]>([
-      {
-        id: "1",
-        user: "@larryjustice",
-        text: "The movie made me shed so many tears.",
-        rating: 5,
-        avatar: "https://via.placeholder.com/50",
-        contentID: "110",
-        contentTitle: ""
-      },
-      {
-        id: "2",
-        user: "@janedoe",
-        text: "A fantastic emotional journey.",
-        rating: 4.33,
-        avatar: "https://via.placeholder.com/50",
-        contentID: "146",
-        contentTitle: ""
-      },
-      {
-        id: "3",
-        user: "@movielover",
-        text: "A must-watch for everyone!",
-        rating: 3.167,
-        avatar: "https://via.placeholder.com/50",
-        contentID: "396",
-        contentTitle: ""
-      },
-      {
-        id: "4",
-        user: "@cinemafan",
-        text: "Visually stunning and heartfelt.",
-        rating: 4,
-        avatar: "https://via.placeholder.com/50",
-        contentID: "462",
-        contentTitle: ""
-      },
-    ]);
+    // const [reviews, setReviews] = useState<Review[]>([
+    //   {
+    //     id: "1",
+    //     user: "@larryjustice",
+    //     text: "The movie made me shed so many tears.",
+    //     rating: 5,
+    //     avatar: "https://via.placeholder.com/50",
+    //     contentID: "110",
+    //     contentTitle: ""
+    //   },
+    //   {
+    //     id: "2",
+    //     user: "@janedoe",
+    //     text: "A fantastic emotional journey.",
+    //     rating: 4.33,
+    //     avatar: "https://via.placeholder.com/50",
+    //     contentID: "146",
+    //     contentTitle: ""
+    //   },
+    //   {
+    //     id: "3",
+    //     user: "@movielover",
+    //     text: "A must-watch for everyone!",
+    //     rating: 3.167,
+    //     avatar: "https://via.placeholder.com/50",
+    //     contentID: "396",
+    //     contentTitle: ""
+    //   },
+    //   {
+    //     id: "4",
+    //     user: "@cinemafan",
+    //     text: "Visually stunning and heartfelt.",
+    //     rating: 4,
+    //     avatar: "https://via.placeholder.com/50",
+    //     contentID: "462",
+    //     contentTitle: ""
+    //   },
+    // ]);
 
 //     useEffect(() => {
 //       const fetchProfile = () => {
@@ -191,22 +190,22 @@ export default function OldLandingPage () {
   }, []);
 
     // Render function for reviews
-    const renderReview = ({ item }: {item: Review}) => {
+    // const renderReview = ({ item }: {item: Review}) => {
 
-      return (
-        <View style={appStyles.reviewCard}>
-          <Image source={{ uri: item.avatar }} style={appStyles.avatar} />
-          <View style={appStyles.reviewTextContainer}>
-            <Text style={appStyles.reviewUser}>{item.user}</Text>
-            <Text style={appStyles.reviewText}>{item.text}</Text>
-            <Text style={appStyles.reviewMovie}>
-              Movie: {item.contentTitle.length > 0 ? item.contentTitle : "Unknown"}
-            </Text>
-            <StarRating rating={item.rating} />
-          </View>
-        </View>
-      );
-    };
+    //   return (
+    //     <View style={appStyles.reviewCard}>
+    //       <Image source={{ uri: item.avatar }} style={appStyles.avatar} />
+    //       <View style={appStyles.reviewTextContainer}>
+    //         <Text style={appStyles.reviewUser}>{item.user}</Text>
+    //         <Text style={appStyles.reviewText}>{item.text}</Text>
+    //         <Text style={appStyles.reviewMovie}>
+    //           Movie: {item.contentTitle.length > 0 ? item.contentTitle : "Unknown"}
+    //         </Text>
+    //         <StarRating rating={item.rating} />
+    //       </View>
+    //     </View>
+    //   );
+    // };
 
     return (
         <View style={styles.container} >
@@ -278,15 +277,15 @@ export default function OldLandingPage () {
             </View> */}
 
             {/* Reviews Section */}
-            <View style={styles.section}>
-            <Text style={styles.sectionTitle}>TOP REVIEWS</Text>
-            <FlatList
-                data={reviews}
-                renderItem={renderReview}
-                scrollEnabled={false}
-                keyExtractor={(item) => item.id}
-            />
-            </View>
+            {/* <View style={styles.section}>
+                <Text style={styles.sectionTitle}>TOP REVIEWS</Text>
+                <FlatList
+                    data={reviews}
+                    renderItem={renderReview}
+                    scrollEnabled={false}
+                    keyExtractor={(item) => item.id}
+                />
+            </View> */}
 
         </ScrollView>
 

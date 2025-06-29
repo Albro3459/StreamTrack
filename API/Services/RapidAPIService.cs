@@ -36,7 +36,7 @@ public class RapidAPIService {
                                                 ).FirstOrDefaultAsync();
 
             if (partial != null) {
-                partial.Detail = await FetchContentDetailsByTMDBIDAsync(partialDTO);
+                partial.Detail = await FetchContentDetailsByTMDBIDAsync(mapper.Map<ContentPartialDTO, ContentRequestDTO>(partialDTO));
                 if (partial.Detail != null) {
                     context.ContentDetail.Add(partial.Detail);
                     await context.SaveChangesAsync();
@@ -49,7 +49,7 @@ public class RapidAPIService {
     }
 
     // DOES NOT SAVE! It is up to the called to handle that.
-    public async Task<ContentDetail?> FetchContentDetailsByTMDBIDAsync(ContentPartialDTO contentDTO) {
+    public async Task<ContentDetail?> FetchContentDetailsByTMDBIDAsync(ContentRequestDTO contentDTO) {
         string url = $"{RapidAPI_Base_Url}{contentDTO.TMDB_ID}{RapidAPI_Ending}";
 
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -63,7 +63,7 @@ public class RapidAPIService {
         APIContent? apiContent = JsonSerializer.Deserialize<APIContent>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         if (apiContent == null) return null;
 
-        return await MapToContentDetail(apiContent, contentDTO.VerticalPoster, contentDTO.HorizontalPoster);
+        return await MapToContentDetail(apiContent, contentDTO?.VerticalPoster ?? "", contentDTO?.HorizontalPoster ?? "");
     }
 
     private async Task<ContentDetail> MapToContentDetail(APIContent content, string verticalPoster, string horizontalPoster) {
@@ -75,16 +75,18 @@ public class RapidAPIService {
             RapidID = content.id,
             IMDB_ID = content.imdbId,
             ShowType = content.showType.ToString().ToLowerInvariant(),
-            Genres = content.genres.Select(g => new Genre { GenreID = g.id, Name = g.name }).ToList(),
             Cast = content.cast,
             Directors = content.directors,
             Rating = content.rating,
             Runtime = content.runtime,
             SeasonCount = content.seasonCount,
             EpisodeCount = content.episodeCount,
-            VerticalPoster = verticalPoster,
-            HorizontalPoster = horizontalPoster,
+            VerticalPoster = !string.IsNullOrWhiteSpace(verticalPoster) ? verticalPoster : content.imageSet.verticalPoster.w480 ?? "",
+            HorizontalPoster = !string.IsNullOrWhiteSpace(horizontalPoster) ? horizontalPoster : content.imageSet.horizontalPoster.w1080 ?? "",
         };
+
+        List<string> genreNames = content.genres.Select(g => g.name).ToList();
+        details.Genres = await context.Genre.Where(g => genreNames.Contains(g.Name)).ToListAsync();
 
         // Go single threaded and use a map to avoid duplicates
         if (content.streamingOptions.TryGetValue("us", out List<APIStreamingOption>? options)) {

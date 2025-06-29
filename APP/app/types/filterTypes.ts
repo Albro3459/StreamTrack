@@ -1,12 +1,4 @@
 
-
-export type Filter = {
-    selectedGenres: string[];
-    selectedTypes: string[];
-    selectedServices: string[];
-    selectedPaidOptions: string[];
-};
-
 export const Genres = [
     { label: 'Action', value: 'action' },
     { label: 'Adventure', value: 'adventure' },

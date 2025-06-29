@@ -26,34 +26,9 @@ public class ContentController : ControllerBase {
         mapper = _mapper;
     }
 
-    // // GET: API/Content/GetDetails/{tmdbID}
-    // [HttpGet("GetDetails/{*tmdbID}")]
-    // public async Task<ActionResult<ContentDTO>> GetContentDetailsByID(string tmdbID) {
-    //     // Get the user's auth token to get the firebase uuid to get the correct user's data
-    //     // User's can only get their own data
-
-    //     string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-    //     if (string.IsNullOrEmpty(uid))
-    //         return Unauthorized();
-
-    //     tmdbID = Uri.UnescapeDataString(tmdbID);
-
-    //     ContentDetail? content = await context.ContentDetail
-    //             .Include(c => c.Genres)
-    //             .Include(c => c.StreamingOptions)
-    //                 .ThenInclude(s => s.StreamingService)
-    //             .FirstOrDefaultAsync(c => c.TMDB_ID == tmdbID);
-    //     if (content == null) {
-    //         return NotFound();
-    //     }
-
-    //     return mapper.Map<ContentDetail, ContentDTO>(content);
-    // }
-
-    // POST: API/Content/Details
-    [HttpPost("Details")]
-    public async Task<ActionResult<ContentDTO>> FetchContentDetails([FromBody] ContentPartialDTO partialDTO) {
+    // GET: API/Content/GetDetails/{tmdbID}
+    [HttpGet("GetDetails/{*tmdbID}")]
+    public async Task<ActionResult<ContentDTO>> GetContentDetailsByID(string tmdbID) {
         // Get the user's auth token to get the firebase uuid to get the correct user's data
         // User's can only get their own data
 
@@ -62,44 +37,53 @@ public class ContentController : ControllerBase {
         if (string.IsNullOrEmpty(uid))
             return Unauthorized();
 
-        ContentPartial? partial = await context.ContentPartial
-                                                    .Include(c => c.Detail)
-                                                        .ThenInclude(c => c.Genres)
-                                                    .Include(c => c.Detail)
-                                                        .ThenInclude(c => c.StreamingOptions)
-                                                            .ThenInclude(s => s.StreamingService)
-                                                    .FirstOrDefaultAsync(c => c.TMDB_ID == partialDTO.TMDB_ID);
+        tmdbID = Uri.UnescapeDataString(tmdbID);
 
-        bool newPartial = false;
-        if (partial == null) {
-            partial = mapper.Map<ContentPartialDTO, ContentPartial>(partialDTO);
-            context.ContentPartial.Add(partial);
-            newPartial = true;
-        }
-        try {
-            if (partial.Detail == null) {
-                ContentDetail? detail = await rapidAPIService.FetchContentDetailsByTMDBIDAsync(partialDTO);
-                if (detail != null) {
-                    partial.Detail = detail;
-                    context.ContentDetail.Add(detail);
-                }
-                // Always save the partial
-                await context.SaveChangesAsync();
-            }
-            else if (newPartial) {
-                await context.SaveChangesAsync();
-            }
-        }
-        catch (Exception ex) {
-            System.Console.WriteLine("Error in GetContentDetails (probably on save): " + ex);
-            return BadRequest();
-        }
-
-        if (partial.Detail == null) {
+        ContentDetail? content = await context.ContentDetail
+                .Include(c => c.Genres)
+                .Include(c => c.StreamingOptions)
+                    .ThenInclude(s => s.StreamingService)
+                .FirstOrDefaultAsync(c => c.TMDB_ID == tmdbID);
+        if (content == null) {
             return NotFound();
         }
 
-        return mapper.Map<ContentDetail, ContentDTO>(partial.Detail);
+        return mapper.Map<ContentDetail, ContentDTO>(content);
+    }
+
+    // I dont think it needs to save because it only needs to be saved if its in a list or popular,
+    //   but if it was in a list or popular, it would already be in the DB
+    // POST: API/Content/Details
+    [HttpPost("Details")]
+    public async Task<ActionResult<ContentDTO>> FetchContentDetails([FromBody] ContentRequestDTO requestDTO) {
+        // Get the user's auth token to get the firebase uuid to get the correct user's data
+        // User's can only get their own data
+
+        string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(uid))
+            return Unauthorized();
+
+        ContentDetail? detail = await context.ContentDetail
+                                                .Include(c => c.Genres)
+                                                .Include(c => c.StreamingOptions)
+                                                    .ThenInclude(s => s.StreamingService)
+                                            .FirstOrDefaultAsync(c => c.TMDB_ID == requestDTO.TMDB_ID);
+
+        try {
+            if (detail == null) {
+                detail = await rapidAPIService.FetchContentDetailsByTMDBIDAsync(requestDTO);
+                if (detail == null) {
+                    return NotFound();
+                }
+            }
+        }
+        catch (Exception ex) {
+            System.Console.WriteLine("Error in GetContentDetails: " + ex);
+            return BadRequest();
+        }
+
+        return mapper.Map<ContentDetail, ContentDTO>(detail);
     }
 
     // GET: API/Content/GetAll

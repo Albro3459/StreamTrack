@@ -1,5 +1,6 @@
 import { SHOW_TYPE } from "./contentType";
-import { TMDB_MEDIA_TYPE } from "./tmdbType";
+
+// Types I used to send and receive from my StreamTrack API
 
 // Send
 export type ListsUpdateData = {
@@ -15,14 +16,10 @@ export type UpdateUserProfileData = {
     StreamingServices?: string[];
 };
 
-export type ContentPartialSendData = {
+export type ContentRequestData = {
     tmdbID: string;
-    Title: string;
-    Overview: string;
-    Rating: number;
-    ReleaseYear: number;
-    VerticalPoster: string;
-    HorizontalPoster: string;
+    VerticalPoster: string | null;
+    HorizontalPoster: string | null;
 };
 
 // Receive
@@ -62,8 +59,8 @@ export type ContentPartialData = {
     overview: string;
     rating: number;
     releaseYear: number;
-    verticalPoster: string;
-    horizontalPoster: string;
+    verticalPoster: string | null;
+    horizontalPoster: string | null;
 };
 
 export type ContentData = {

@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace StreamTrack.Migrations
 {
     [DbContext(typeof(StreamTrackDbContext))]
-    [Migration("20250629022834_Initial")]
+    [Migration("20250629041501_Initial")]
     partial class Initial
     {
         /// <inheritdoc />

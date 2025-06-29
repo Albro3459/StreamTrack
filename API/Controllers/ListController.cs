@@ -31,32 +31,33 @@ public class ListController : ControllerBase {
         serviceProvider = _serviceProvider;
     }
 
-    // GET: API/List/Get
-    [HttpGet("Get")]
-    public async Task<ActionResult<ListsAllDTO>> GetUserLists() {
-        // Get the user's auth token to get the firebase uuid to get the correct user's data
-        // User's can only get their own data
+    // Only used for testing with Swagger
+    // // GET: API/List/Get
+    // [HttpGet("Get")]
+    // public async Task<ActionResult<ListsAllDTO>> GetUserLists() {
+    //     // Get the user's auth token to get the firebase uuid to get the correct user's data
+    //     // User's can only get their own data
 
-        string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    //     string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (string.IsNullOrEmpty(uid))
-            return Unauthorized();
+    //     if (string.IsNullOrEmpty(uid))
+    //         return Unauthorized();
 
-        User? user = await service.GetFullUserByID(uid);
-        if (user == null) {
-            return NotFound();
-        }
+    //     User? user = await service.GetFullUserByID(uid);
+    //     if (user == null) {
+    //         return NotFound();
+    //     }
 
-        UserDataDTO userDTO = await service.MapUserToFullUserDTO(user);
+    //     UserDataDTO userDTO = await service.MapUserToFullUserDTO(user);
 
-        ListsAllDTO allLists = new ListsAllDTO {
-            ListsOwned = userDTO.ListsOwned,
-            ListsSharedWithMe = userDTO.ListsSharedWithMe,
-            ListsSharedWithOthers = userDTO.ListsSharedWithOthers,
-        };
+    //     ListsAllDTO allLists = new ListsAllDTO {
+    //         ListsOwned = userDTO.ListsOwned,
+    //         ListsSharedWithMe = userDTO.ListsSharedWithMe,
+    //         ListsSharedWithOthers = userDTO.ListsSharedWithOthers,
+    //     };
 
-        return allLists;
-    }
+    //     return allLists;
+    // }
 
     // POST: API/List/{listName}/Create
     [HttpPost("{listName}/Create")]
@@ -87,58 +88,6 @@ public class ListController : ControllerBase {
         return dto;
     }
 
-    // // POST: API/List/Update
-    // [HttpPost("Update")]
-    // public async Task<ActionResult<UserDataDTO>> UpdateListsWithContent(ListsUpdateDTO dto) {
-    //     // Not really tested tbh
-
-    //     string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-    //     if (string.IsNullOrEmpty(uid))
-    //         return Unauthorized();
-
-    //     // Find the content
-    //     Content? content = await context.Content.FirstOrDefaultAsync(c => c.TMDB_ID.Equals(dto.TMDB_ID));
-    //     if (content == null) return BadRequest();
-
-    //     // Get all the lists
-    //     List<string> allListNames = dto.AddToLists.Concat(dto.RemoveFromLists).Distinct().ToList();
-    //     List<List> userLists = await context.List
-    //                                 .Include(l => l.Contents)
-    //                                 .Where(l => l.OwnerUserID == uid && allListNames.Contains(l.ListName))
-    //                                 .ToListAsync();
-    //     List<List> listsToAddTo = userLists.Where(l => dto.AddToLists.Contains(l.ListName)).ToList();
-    //     List<List> listsToRemoveFrom = userLists.Where(l => dto.RemoveFromLists.Contains(l.ListName)).ToList();
-
-    //     // For each List to Add to, add if not there
-    //     foreach (List list in listsToAddTo) {
-    //         if (!list.Contents.Any(c => c.TMDB_ID.Equals(dto.TMDB_ID))) {
-    //             list.Contents.Add(content);
-    //         }
-    //     }
-
-    //     // For each list to remove from, remove it
-    //     foreach (List list in listsToRemoveFrom) {
-    //         if (list.Contents.Any(c => c.TMDB_ID.Equals(dto.TMDB_ID))) {
-    //             list.Contents.Remove(content);
-    //         }
-    //     }
-
-    //     // Save changes async
-    //     await context.SaveChangesAsync();
-
-    //     // Fetch the user's data
-
-    //     User? user = await service.GetFullUserByID(uid);
-    //     if (user == null) {
-    //         return NotFound();
-    //     }
-
-    //     UserDataDTO userDTO = await service.MapUserToFullUserDTO(user);
-
-    //     return userDTO;
-    // }
-
     // POST: API/List/{listName}/Add
     [HttpPost("{listName}/Add")]
     public async Task<ActionResult<ListMinimalDTO>> AddToUserList(string listName, [FromBody] ContentPartialDTO contentDTO) {
@@ -164,8 +113,8 @@ public class ListController : ControllerBase {
                 Overview = contentDTO.Overview,
                 Rating = contentDTO.Rating,
                 ReleaseYear = contentDTO.ReleaseYear,
-                VerticalPoster = contentDTO.VerticalPoster,
-                HorizontalPoster = contentDTO.HorizontalPoster
+                VerticalPoster = contentDTO.VerticalPoster ?? "",
+                HorizontalPoster = contentDTO.HorizontalPoster ?? ""
             };
             context.ContentPartial.Add(partial);
         }

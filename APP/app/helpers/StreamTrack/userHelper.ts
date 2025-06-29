@@ -1,5 +1,5 @@
 import { DataAPIURL } from "@/secrets/DataAPIUrl";
-import { ContentPartialData, UpdateUserProfileData, UserData, UserMinimalData } from "../../types/dataTypes";
+import { ContentPartialData, UpdateUserProfileData, UserMinimalData } from "../../types/dataTypes";
 
 export const checkIfUserExists = async (token: string): Promise<boolean> => {
     try {

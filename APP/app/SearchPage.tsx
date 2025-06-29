@@ -9,7 +9,7 @@ import { TMDBSearch } from './helpers/contentAPIHelper';
 import { TMDB_Content, TMDB, TMDB_MEDIA_TYPE } from './types/tmdbType';
 import { useUserDataStore } from './stores/userDataStore';
 import { ContentPartialData, ListData, ListMinimalData } from './types/dataTypes';
-import { FAVORITE_TAB, isItemInAnyList, isItemInListMinimal, moveItemToListWithFuncs, sortLists } from './helpers/StreamTrack/listHelper';
+import { FAVORITE_TAB, isItemInAnyList, isItemInListMinimal, moveItemToList, sortLists } from './helpers/StreamTrack/listHelper';
 import { MoveModal } from './components/moveModalComponent';
 import { StarRating } from './components/starRatingComponent';
 
@@ -133,7 +133,7 @@ export default function SearchPage() {
                             <Heart 
                                 heartColor={isItemInListMinimal(lists, FAVORITE_TAB, content.tmdbID) ? Colors.selectedHeartColor : Colors.unselectedHeartColor}
                                 size={40}
-                                onPress={async () => await moveItemToListWithFuncs(content, FAVORITE_TAB, lists, setLists, setIsSearching, setMoveModalVisible)}
+                                onPress={async () => await moveItemToList(content, FAVORITE_TAB, lists, setLists, setIsSearching, setMoveModalVisible)}
                             />
                         </View>
                     </Pressable>
@@ -148,7 +148,7 @@ export default function SearchPage() {
                     visibility={moveModalVisible}
                     setVisibilityFunc={setMoveModalVisible}
                     setIsLoadingFunc={setIsSearching}
-                    moveItemFunc={moveItemToListWithFuncs}
+                    moveItemFunc={moveItemToList}
                     isItemInListFunc={isItemInListMinimal}
                     setListsFunc={setLists}
                 />

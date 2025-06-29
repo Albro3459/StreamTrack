@@ -1,42 +1,35 @@
 import { Colors } from '@/constants/Colors';
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, Button, TouchableOpacity, Dimensions, Pressable, Modal, FlatList, Linking, ActivityIndicator } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Pressable, Linking, ActivityIndicator } from 'react-native';
 import Heart from './components/heartComponent';
 import { useLocalSearchParams } from 'expo-router/build/hooks';
 import { MaterialIcons } from '@expo/vector-icons';
 import { appStyles, RalewayFont } from '@/styles/appStyles';
-import { router } from 'expo-router';
 import { SvgUri } from 'react-native-svg';
 import { TMDB_MEDIA_TYPE } from './types/tmdbType';
-import { RapidAPIGetByTMDBID } from './helpers/contentAPIHelper';
-import { ContentData, ContentPartialData, ContentPartialSendData, ListData, ListMinimalData, StreamingOptionData, StreamingServiceData } from './types/dataTypes';
+import { ContentData, ContentRequestData, ListMinimalData, StreamingOptionData } from './types/dataTypes';
 import { useUserDataStore } from './stores/userDataStore';
-import { FAVORITE_TAB, isItemInListMinimal, moveItemToListWithFuncs } from './helpers/StreamTrack/listHelper';
+import { FAVORITE_TAB, isItemInListMinimal, moveItemToList } from './helpers/StreamTrack/listHelper';
 import { MoveModal } from './components/moveModalComponent';
 import { StarRating } from './components/starRatingComponent';
-import { API } from './types/APIType';
 import { getContentDetails } from './helpers/StreamTrack/contentHelper';
 import { auth } from '@/firebaseConfig';
-import { getRecentContent, useContentDataStore } from './stores/contentDataStore';
+import { getCachedContent, useContentDataStore } from './stores/contentDataStore';
 
 const screenWidth = Dimensions.get("window").width;
 
 interface InfoPageParams {
     tmdbID?: string;
-    title?: string;
-    overview?: string;
-    rating?: number;
-    releaseYear?: number;
     verticalPoster?: string;
     horizontalPoster?: string;
 }
 
 export default function InfoPage() {
 
-    const { tmdbID, title, overview, rating, releaseYear, verticalPoster, horizontalPoster } = useLocalSearchParams() as InfoPageParams;
+    const { tmdbID, verticalPoster, horizontalPoster } = useLocalSearchParams() as InfoPageParams;
 
     const { userData } = useUserDataStore();
-    const { recentContent, addRecentContent } = useContentDataStore();
+    const { cacheContent } = useContentDataStore();
 
     const [lists, setLists] = useState<ListMinimalData[] | null>([...userData.user.listsOwned, ...userData.user.listsSharedWithMe]);
 
@@ -86,37 +79,34 @@ export default function InfoPage() {
 
             const token = await auth.currentUser.getIdToken();
     
-            let content: ContentData | null = getRecentContent(tmdbID);
+            let content: ContentData | null = getCachedContent(tmdbID);
 
             try {
                 if (!content) {
-                    content = await getContentDetails(token, { tmdbID:tmdbID, Title:title, Overview:overview, Rating: Number(rating ?? 0), ReleaseYear: Number(releaseYear ?? 0), VerticalPoster:verticalPoster, HorizontalPoster:horizontalPoster } as ContentPartialSendData)
-                    if (content) {
-                        addRecentContent(content);
-                    }
+                    content = await getContentDetails(token, {tmdbID:tmdbID, VerticalPoster:verticalPoster, HorizontalPoster:horizontalPoster} as ContentRequestData);
                 }
             } finally {
                 if (content) {
                     setContent(content);
+                    cacheContent(content);
                 }
                 setIsLoading(false);
             }
-
-            
         }
-
         fetchContent();
-    }, [tmdbID, title, overview, rating, releaseYear, verticalPoster, horizontalPoster]);
+    }, [tmdbID, verticalPoster, horizontalPoster]);
 
     const renderTabContent = () => {
         switch (activeTab) {
         case 'About':
             return (
             <View style={styles.content}>
-                <View style={{flexDirection: "row", justifyContent: "flex-start", alignItems: "center"}}>
-                    <Text style={styles.sectionTitle}>Rating  </Text>
-                    {content && <StarRating rating={rating}/> }
-                </View>
+                {content?.rating > 0 &&
+                    <View style={{flexDirection: "row", justifyContent: "flex-start", alignItems: "center"}}>
+                        <Text style={styles.sectionTitle}>Rating  </Text>
+                        {content && <StarRating rating={content?.rating}/> }
+                    </View>
+                }
 
                 <View style={{flexDirection: "row", justifyContent: "flex-start", alignItems: "center"}}>
                 <Text style={styles.sectionTitle}>{!content ? tmdbID.split('/')[0] === TMDB_MEDIA_TYPE.MOVIE ? "Movie" : "Series" : (
@@ -241,11 +231,11 @@ export default function InfoPage() {
                 <Image source={{ uri: content && content.verticalPoster }} style={styles.posterImage} />
                 {/* Movie Info */}
                 <View style={styles.infoSection}>
-                    <Text style={styles.title}>{title ? title : (content && content.title)}</Text>
+                    <Text style={styles.title}>{content?.title}</Text>
                     <View style={styles.attributeContainer}>
                         <Text style={[styles.text, {fontSize: 18, textAlignVertical: "center"}]}>
-                            {(releaseYear && releaseYear > 0 ? releaseYear+ "    " 
-                                    : (content && content.releaseYear > 0 
+                            {(content?.releaseYear > 0 ? content?.releaseYear+ "    " 
+                                    : (content?.releaseYear > 0 
                                     ? content.releaseYear+ "    " : "")) + getRuntime(content)}
                         </Text>
                     </View>
@@ -260,7 +250,7 @@ export default function InfoPage() {
                         <Heart 
                             heartColor={isItemInListMinimal(lists, FAVORITE_TAB, tmdbID ? tmdbID : content ? content.tmdbID : "") ? Colors.selectedHeartColor : Colors.unselectedHeartColor}
                             size={45}
-                            onPress={async () => await moveItemToListWithFuncs(content, FAVORITE_TAB, lists, setLists, setIsLoading, setListModalVisible)}
+                            onPress={async () => await moveItemToList(content, FAVORITE_TAB, lists, setLists, setIsLoading, setListModalVisible)}
                         />
                     </View>
                 </View>
@@ -295,7 +285,7 @@ export default function InfoPage() {
                 visibility={listModalVisible}
                 setVisibilityFunc={setListModalVisible}
                 setIsLoadingFunc={setIsLoading}
-                moveItemFunc={moveItemToListWithFuncs}
+                moveItemFunc={moveItemToList}
                 isItemInListFunc={isItemInListMinimal}
                 setListsFunc={setLists}
             />

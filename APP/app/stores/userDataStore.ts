@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { ContentPartialData, UserData, UserMinimalData } from '../types/dataTypes';
 import { getUserContents, getUserMinimalData } from '../helpers/StreamTrack/userHelper';
-// import { APIHelper } from '../helpers/APIHelper';
 
 interface UserDataStore {
   userData: UserData | null;

@@ -16,9 +16,9 @@ public class ContentPartialDTO {
 
     public int ReleaseYear { get; set; }
 
-    public string VerticalPoster { get; set; } = string.Empty;
+    public string? VerticalPoster { get; set; }
 
-    public string HorizontalPoster { get; set; } = string.Empty;
+    public string? HorizontalPoster { get; set; }
 
     public override bool Equals(object? obj) =>
         obj is ContentPartialDTO other && TMDB_ID == other.TMDB_ID;
