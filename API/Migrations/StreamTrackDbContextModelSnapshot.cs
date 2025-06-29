@@ -55,8 +55,8 @@ namespace StreamTrack.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Rating")
-                        .HasColumnType("INTEGER");
+                    b.Property<double>("Rating")
+                        .HasColumnType("REAL");
 
                     b.Property<int>("ReleaseYear")
                         .HasColumnType("INTEGER");
@@ -100,8 +100,8 @@ namespace StreamTrack.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Rating")
-                        .HasColumnType("INTEGER");
+                    b.Property<double>("Rating")
+                        .HasColumnType("REAL");
 
                     b.Property<int>("ReleaseYear")
                         .HasColumnType("INTEGER");

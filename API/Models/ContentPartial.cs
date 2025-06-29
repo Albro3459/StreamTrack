@@ -19,7 +19,7 @@ public class ContentPartial : SoftDeletableEntity {
     public string Overview { get; set; } = string.Empty;
 
     [Required]
-    public int Rating { get; set; }
+    public double Rating { get; set; }
 
     [Required]
     public int ReleaseYear { get; set; }

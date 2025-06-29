@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Threading.Tasks;
 using API.DTOs;
 using API.Infrastructure;
 using API.Models;
@@ -62,10 +63,10 @@ public class RapidAPIService {
         APIContent? apiContent = JsonSerializer.Deserialize<APIContent>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         if (apiContent == null) return null;
 
-        return MapToContentDetail(apiContent, contentDTO.VerticalPoster, contentDTO.HorizontalPoster);
+        return await MapToContentDetail(apiContent, contentDTO.VerticalPoster, contentDTO.HorizontalPoster);
     }
 
-    private ContentDetail MapToContentDetail(APIContent content, string verticalPoster, string horizontalPoster) {
+    private async Task<ContentDetail> MapToContentDetail(APIContent content, string verticalPoster, string horizontalPoster) {
         var details = new ContentDetail {
             TMDB_ID = content.tmdbId,
             Title = content.title,
@@ -85,25 +86,43 @@ public class RapidAPIService {
             HorizontalPoster = horizontalPoster,
         };
 
-        details.StreamingOptions = content.streamingOptions.TryGetValue("us", out List<APIStreamingOption>? options)
-                                                                ? options.Select(o => MapToStreamingOption(o, details)).ToList()
-                                                                : new List<StreamingOption>();
+        // Go single threaded and use a map to avoid duplicates
+        if (content.streamingOptions.TryGetValue("us", out List<APIStreamingOption>? options)) {
+            var streamingOptionMap = new Dictionary<(string, string), StreamingOption>();
+            foreach (var o in options) {
+                var key = (details.TMDB_ID, o.service.id);
+                if (!streamingOptionMap.ContainsKey(key)) {
+                    var so = await MapToStreamingOption(o, details);
+                    streamingOptionMap[key] = so;
+                }
+            }
+            details.StreamingOptions = streamingOptionMap.Values.ToList();
+        }
+        else {
+            details.StreamingOptions = new List<StreamingOption>();
+        }
 
         return details;
     }
 
-    private StreamingOption MapToStreamingOption(APIStreamingOption option, ContentDetail contentDetail) {
+    private async Task<StreamingOption> MapToStreamingOption(APIStreamingOption option, ContentDetail contentDetail) {
         // Find or create the StreamingService
-        var serviceId = option.service.id;
-        var service = context.StreamingService.FirstOrDefault(s => s.ServiceID == serviceId);
+        var serviceID = option.service.id;
+        var streamingOption = context.StreamingOption.Local.FirstOrDefault(o => o.TMDB_ID == contentDetail.TMDB_ID && o.ServiceID == serviceID)
+                        ?? await context.StreamingOption.FirstOrDefaultAsync(o => o.TMDB_ID == contentDetail.TMDB_ID && o.ServiceID == serviceID);
+        if (streamingOption != null) return streamingOption;
+
+
+        var service = context.StreamingService.Local.FirstOrDefault(s => s.ServiceID == serviceID)
+                        ?? await context.StreamingService.FirstOrDefaultAsync(s => s.ServiceID == serviceID);
         if (service == null) {
             service = new StreamingService {
-                ServiceID = serviceId,
+                ServiceID = serviceID,
                 Name = option.service.name,
                 LightLogo = option.service.imageSet.lightThemeImage,
                 DarkLogo = option.service.imageSet.darkThemeImage,
             };
-            context.StreamingService.Add(service);
+            await context.StreamingService.AddAsync(service);
         }
 
         return new StreamingOption {

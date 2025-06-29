@@ -12,7 +12,7 @@ public class ContentPartialDTO {
 
     public string Overview { get; set; } = string.Empty;
 
-    public int Rating { get; set; }
+    public double Rating { get; set; }
 
     public int ReleaseYear { get; set; }
 

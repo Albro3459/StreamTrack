@@ -27,7 +27,7 @@ public class ContentDTO {
 
     public List<string> Directors { get; set; } = new();
 
-    public int Rating { get; set; }
+    public double Rating { get; set; }
 
     public int? Runtime { get; set; }
 

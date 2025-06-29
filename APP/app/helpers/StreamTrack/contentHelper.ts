@@ -1,14 +1,12 @@
-import { Content, SHOW_TYPE } from "@/app/types/contentType";
-import { ContentData, ContentPartialData } from "@/app/types/dataTypes";
-import { TMDB_MEDIA_TYPE } from "@/app/types/tmdbType";
+import { ContentData, ContentPartialSendData } from "@/app/types/dataTypes";
 import { DataAPIURL } from "@/secrets/DataAPIUrl";
 
-export const getContentDetails = async (token: string, partialDTO: ContentPartialData): Promise<ContentData | null> => {
+export const getContentDetails = async (token: string, partialDTO: ContentPartialSendData): Promise<ContentData | null> => {
     try {
         const url = DataAPIURL + "API/Content/Details";
 
         const options = {
-            method: 'GEPOSTT',
+            method: 'POST',
             headers: {
                 accept: 'application/json',
                 'Content-Type': 'application/json',

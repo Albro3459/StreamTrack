@@ -9,7 +9,7 @@ import { router } from 'expo-router';
 import { SvgUri } from 'react-native-svg';
 import { TMDB_MEDIA_TYPE } from './types/tmdbType';
 import { RapidAPIGetByTMDBID } from './helpers/contentAPIHelper';
-import { ContentData, ContentPartialData, ListData, ListMinimalData, StreamingOptionData, StreamingServiceData } from './types/dataTypes';
+import { ContentData, ContentPartialData, ContentPartialSendData, ListData, ListMinimalData, StreamingOptionData, StreamingServiceData } from './types/dataTypes';
 import { useUserDataStore } from './stores/userDataStore';
 import { FAVORITE_TAB, isItemInListMinimal, moveItemToListWithFuncs } from './helpers/StreamTrack/listHelper';
 import { MoveModal } from './components/moveModalComponent';
@@ -85,21 +85,23 @@ export default function InfoPage() {
             if (!tmdbID) return;
 
             const token = await auth.currentUser.getIdToken();
-
+    
             let content: ContentData | null = getRecentContent(tmdbID);
-            if (!content) {
 
-                content = await getContentDetails(token, { tmdbID, title, overview, rating, releaseYear, verticalPoster, horizontalPoster } as ContentPartialData)
-
-                if (content) {
-                    addRecentContent(content);
+            try {
+                if (!content) {
+                    content = await getContentDetails(token, { tmdbID:tmdbID, Title:title, Overview:overview, Rating: Number(rating ?? 0), ReleaseYear: Number(releaseYear ?? 0), VerticalPoster:verticalPoster, HorizontalPoster:horizontalPoster } as ContentPartialSendData)
+                    if (content) {
+                        addRecentContent(content);
+                    }
                 }
-            }
-
-            if (content) {
-                setContent(content);
+            } finally {
+                if (content) {
+                    setContent(content);
+                }
                 setIsLoading(false);
             }
+
             
         }
 

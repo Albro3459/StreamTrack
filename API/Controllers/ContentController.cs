@@ -52,8 +52,8 @@ public class ContentController : ControllerBase {
     // }
 
     // POST: API/Content/Details
-    [HttpGet("Details")]
-    public async Task<ActionResult<ContentDTO>> FetchContentDetails(ContentPartialDTO partialDTO) {
+    [HttpPost("Details")]
+    public async Task<ActionResult<ContentDTO>> FetchContentDetails([FromBody] ContentPartialDTO partialDTO) {
         // Get the user's auth token to get the firebase uuid to get the correct user's data
         // User's can only get their own data
 

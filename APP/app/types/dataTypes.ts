@@ -15,6 +15,16 @@ export type UpdateUserProfileData = {
     StreamingServices?: string[];
 };
 
+export type ContentPartialSendData = {
+    tmdbID: string;
+    Title: string;
+    Overview: string;
+    Rating: number;
+    ReleaseYear: number;
+    VerticalPoster: string;
+    HorizontalPoster: string;
+};
+
 // Receive
 export type UserData = {
     user: UserMinimalData;

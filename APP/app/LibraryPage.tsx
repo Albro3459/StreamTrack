@@ -188,7 +188,7 @@ export default function LibraryPage() {
                         value={newListName}
                         onChangeText={setNewListName}
                         onSubmitEditing={async () => await handelCreateNewTab(newListName)}
-                        autoFocus={true}
+                        autoFocus
                     />
                     <View style={styles.buttonRow}>
                         <Pressable

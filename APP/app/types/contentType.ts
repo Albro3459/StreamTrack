@@ -42,7 +42,7 @@ export type Service = {
 
 export type StreamingOption = {
     service: Service;
-    type: 'rent' | 'buy' | 'subscription';
+    type: 'addon' | 'buy' | 'rent' | 'subscription';
     link: string;
     videoLink?: string; // Optional
     quality: string;

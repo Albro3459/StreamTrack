@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace StreamTrack.Migrations
 {
     [DbContext(typeof(StreamTrackDbContext))]
-    [Migration("20250628222712_Initial")]
+    [Migration("20250629022834_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -58,8 +58,8 @@ namespace StreamTrack.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Rating")
-                        .HasColumnType("INTEGER");
+                    b.Property<double>("Rating")
+                        .HasColumnType("REAL");
 
                     b.Property<int>("ReleaseYear")
                         .HasColumnType("INTEGER");
@@ -103,8 +103,8 @@ namespace StreamTrack.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Rating")
-                        .HasColumnType("INTEGER");
+                    b.Property<double>("Rating")
+                        .HasColumnType("REAL");
 
                     b.Property<int>("ReleaseYear")
                         .HasColumnType("INTEGER");

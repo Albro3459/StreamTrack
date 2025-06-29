@@ -40,7 +40,7 @@ public class ContentDetail : SoftDeletableEntity {
     public List<string> Directors { get; set; } = new(); // string[] that will be stored in the DB as JSON
 
     [Required]
-    public int Rating { get; set; }
+    public double Rating { get; set; }
 
     public int? Runtime { get; set; }
 
