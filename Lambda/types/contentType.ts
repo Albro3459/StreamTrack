@@ -1,3 +1,10 @@
+// Content type from the Streaming Availability API (RapidAPI)
+
+export enum SHOW_TYPE {
+    MOVIE = "movie",
+    SERIES = "series"
+}
+
 type Genre = {
     id: string;
     name: string;
@@ -37,7 +44,7 @@ export type Service = {
 
 export type StreamingOption = {
     service: Service;
-    type: 'rent' | 'buy' | 'subscription';
+    type: 'addon' | 'buy' | 'rent' | 'subscription';
     link: string;
     videoLink?: string; // Optional
     quality: string;
@@ -82,7 +89,7 @@ type ImageSet = {
 
 export type Content = {
     itemType: 'show';
-    showType: 'movie' | 'series';
+    showType: SHOW_TYPE;
     id: string;
     imdbId: string;
     tmdbId: string;

@@ -4,8 +4,10 @@ select * from List;
 
 select * from ListContent;
 
-select * from Content;
-select * from Content where VerticalPoster LIKE '%www%' OR HorizontalPoster LIKE '%www%';
+select * from ContentDetail;
+select * from ContentDetail where VerticalPoster LIKE 'https://www%' OR HorizontalPoster LIKE 'https://www%';
+select * from ContentDetail where VerticalPoster LIKE '%svg%' OR HorizontalPoster LIKE '%svg%';
+
 
 select * from Genre;
 

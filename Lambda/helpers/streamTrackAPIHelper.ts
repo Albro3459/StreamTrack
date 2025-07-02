@@ -17,6 +17,8 @@ export const bulkUpdateContents = async (token: string | null, contents: Content
             body: JSON.stringify(contents)
         };
 
+        // console.log( JSON.stringify(contents));
+
         const result = await fetch(url, options);
 
         if (!result.ok) {

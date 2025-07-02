@@ -47,9 +47,9 @@ export enum ORDER_BY {
     RELEASE_DATE = "release_date",
     RATING = "rating",
     POPULARITY_ALLTIME = "popularity_alltime",
-    POPULARITY_1YEAR = "popularity_1year",
+    POPULARITY_1YEAR = "popularity_1year", // DESC
     POPULARITY_1MONTH = "popularity_1month",
-    POPULARITY_1WEEK = "popularity_1week"
+    POPULARITY_1WEEK = "popularity_1week" // MUST DO ASC (it's broken)
 }
 
 export enum ORDER_DIRECTION {

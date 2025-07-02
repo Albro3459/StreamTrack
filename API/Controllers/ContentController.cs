@@ -7,6 +7,7 @@ using API.DTOs;
 using API.Infrastructure;
 using API.Models;
 using API.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace API.Controllers;
 
@@ -120,23 +121,35 @@ public class ContentController : ControllerBase {
         List<ContentDetail> previouslyPopular = await context.ContentDetail
                                 .Include(c => c.Partial).ThenInclude(p => p.Lists)
                                 .Where(c => c.IsPopular && !tmdbIds.Contains(c.TMDB_ID) &&
-                                            c.Partial != null && c.Partial.Lists.Count == 0
+                                            (c.Partial == null || c.Partial.Lists.Count == 0)
                                 ).ToListAsync();
 
         var existingContents = await context.ContentDetail.Where(c => tmdbIds.Contains(c.TMDB_ID)).ToListAsync();
 
         List<ContentDetail> contents = new();
         foreach (var dto in dtos) {
-            ContentDetail? content = await context.ContentDetail.FirstOrDefaultAsync(c => c.TMDB_ID == dto.TMDB_ID);
-            if (content == null) {
-                content = await service.ContentDTOToContent(dto);
-                if (content != null) {
-                    content.IsPopular = true; // POPULAR
-                    contents.Add(content);
+            ContentDetail? details = await context.ContentDetail.FirstOrDefaultAsync(c => c.TMDB_ID == dto.TMDB_ID);
+            if (details == null) {
+                details = await service.ContentDTOToContent(dto);
+                if (details != null) {
+                    contents.Add(details);
                 }
             }
-            else {
-                content.IsPopular = true; // POPULAR
+
+            // Should no longer be null
+            if (details != null) {
+                details.IsPopular = true; // POPULAR
+
+                ContentPartial? partial = await context.ContentPartial.FirstOrDefaultAsync(c => c.TMDB_ID == dto.TMDB_ID);
+                if (partial == null) {
+                    partial = mapper.Map<ContentDetail, ContentPartial>(details);
+                    context.ContentPartial.Add(partial);
+                }
+
+                if (partial != null) {
+                    partial.Detail = details;
+                    details.Partial = partial;
+                }
             }
         }
 

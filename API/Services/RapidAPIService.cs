@@ -66,6 +66,7 @@ public class RapidAPIService {
         return await MapToContentDetail(apiContent, contentDTO?.VerticalPoster ?? "", contentDTO?.HorizontalPoster ?? "");
     }
 
+    // Probably should get the TMDB posters when needed eventually
     private async Task<ContentDetail> MapToContentDetail(APIContent content, string verticalPoster, string horizontalPoster) {
         var details = new ContentDetail {
             TMDB_ID = content.tmdbId,

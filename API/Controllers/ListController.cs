@@ -128,7 +128,7 @@ public class ListController : ControllerBase {
         // send off background Task to fetch and save full content details
         taskQueue.QueueBackgroundWorkItem(async (serviceProvider, token) => {
             var rapidAPIService = serviceProvider.GetRequiredService<RapidAPIService>();
-            await rapidAPIService.FetchAndSaveMissingContent(contentDTO);
+            await rapidAPIService.FetchAndSaveMissingContent(contentDTO); // Probably should get the TMDB posters when needed eventually
         });
 
 

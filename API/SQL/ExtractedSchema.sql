@@ -1,17 +1,9 @@
-CREATE TABLE "Content" (
-    "TMDB_ID" TEXT NOT NULL CONSTRAINT "PK_Content" PRIMARY KEY,
+CREATE TABLE "ContentPartial" (
+    "TMDB_ID" TEXT NOT NULL CONSTRAINT "PK_ContentPartial" PRIMARY KEY,
     "Title" TEXT NOT NULL,
     "Overview" TEXT NOT NULL,
+    "Rating" REAL NOT NULL,
     "ReleaseYear" INTEGER NOT NULL,
-    "RapidID" TEXT NOT NULL,
-    "IMDB_ID" TEXT NOT NULL,
-    "ShowType" TEXT NOT NULL,
-    "Cast" TEXT NOT NULL,
-    "Directors" TEXT NOT NULL,
-    "Rating" INTEGER NOT NULL,
-    "Runtime" INTEGER NULL,
-    "SeasonCount" INTEGER NULL,
-    "EpisodeCount" INTEGER NULL,
     "VerticalPoster" TEXT NOT NULL,
     "HorizontalPoster" TEXT NOT NULL,
     "IsDeleted" INTEGER NOT NULL
@@ -39,23 +31,25 @@ CREATE TABLE "User" (
     "IsDeleted" INTEGER NOT NULL
 );
 
-CREATE TABLE "ContentGenre" (
-    "ContentsTMDB_ID" TEXT NOT NULL,
-    "GenresGenreID" TEXT NOT NULL,
-    CONSTRAINT "PK_ContentGenre" PRIMARY KEY ("ContentsTMDB_ID", "GenresGenreID"),
-    CONSTRAINT "FK_ContentGenre_Content_ContentsTMDB_ID" FOREIGN KEY ("ContentsTMDB_ID") REFERENCES "Content" ("TMDB_ID") ON DELETE CASCADE,
-    CONSTRAINT "FK_ContentGenre_Genre_GenresGenreID" FOREIGN KEY ("GenresGenreID") REFERENCES "Genre" ("GenreID") ON DELETE CASCADE
-);
-
-CREATE TABLE "StreamingOption" (
-    "TMDB_ID" TEXT NOT NULL,
-    "ServiceID" TEXT NOT NULL,
-    "Type" TEXT NOT NULL,
-    "Price" TEXT NULL,
-    "DeepLink" TEXT NOT NULL,
-    CONSTRAINT "PK_StreamingOption" PRIMARY KEY ("TMDB_ID", "ServiceID"),
-    CONSTRAINT "FK_StreamingOption_Content_TMDB_ID" FOREIGN KEY ("TMDB_ID") REFERENCES "Content" ("TMDB_ID") ON DELETE CASCADE,
-    CONSTRAINT "FK_StreamingOption_StreamingService_ServiceID" FOREIGN KEY ("ServiceID") REFERENCES "StreamingService" ("ServiceID") ON DELETE CASCADE
+CREATE TABLE "ContentDetail" (
+    "TMDB_ID" TEXT NOT NULL CONSTRAINT "PK_ContentDetail" PRIMARY KEY,
+    "IsPopular" INTEGER NOT NULL,
+    "Title" TEXT NOT NULL,
+    "Overview" TEXT NOT NULL,
+    "ReleaseYear" INTEGER NOT NULL,
+    "RapidID" TEXT NOT NULL,
+    "IMDB_ID" TEXT NOT NULL,
+    "ShowType" TEXT NOT NULL,
+    "Cast" TEXT NOT NULL,
+    "Directors" TEXT NOT NULL,
+    "Rating" REAL NOT NULL,
+    "Runtime" INTEGER NULL,
+    "SeasonCount" INTEGER NULL,
+    "EpisodeCount" INTEGER NULL,
+    "VerticalPoster" TEXT NOT NULL,
+    "HorizontalPoster" TEXT NOT NULL,
+    "IsDeleted" INTEGER NOT NULL,
+    CONSTRAINT "FK_ContentDetail_ContentPartial_TMDB_ID" FOREIGN KEY ("TMDB_ID") REFERENCES "ContentPartial" ("TMDB_ID") ON DELETE CASCADE
 );
 
 CREATE TABLE "List" (
@@ -83,11 +77,30 @@ CREATE TABLE "UserService" (
     CONSTRAINT "FK_UserService_User_UsersUserID" FOREIGN KEY ("UsersUserID") REFERENCES "User" ("UserID") ON DELETE CASCADE
 );
 
+CREATE TABLE "ContentGenre" (
+    "ContentDetailsTMDB_ID" TEXT NOT NULL,
+    "GenresGenreID" TEXT NOT NULL,
+    CONSTRAINT "PK_ContentGenre" PRIMARY KEY ("ContentDetailsTMDB_ID", "GenresGenreID"),
+    CONSTRAINT "FK_ContentGenre_ContentDetail_ContentDetailsTMDB_ID" FOREIGN KEY ("ContentDetailsTMDB_ID") REFERENCES "ContentDetail" ("TMDB_ID") ON DELETE CASCADE,
+    CONSTRAINT "FK_ContentGenre_Genre_GenresGenreID" FOREIGN KEY ("GenresGenreID") REFERENCES "Genre" ("GenreID") ON DELETE CASCADE
+);
+
+CREATE TABLE "StreamingOption" (
+    "TMDB_ID" TEXT NOT NULL,
+    "ServiceID" TEXT NOT NULL,
+    "Type" TEXT NOT NULL,
+    "Price" TEXT NULL,
+    "DeepLink" TEXT NOT NULL,
+    CONSTRAINT "PK_StreamingOption" PRIMARY KEY ("TMDB_ID", "ServiceID"),
+    CONSTRAINT "FK_StreamingOption_ContentDetail_TMDB_ID" FOREIGN KEY ("TMDB_ID") REFERENCES "ContentDetail" ("TMDB_ID") ON DELETE CASCADE,
+    CONSTRAINT "FK_StreamingOption_StreamingService_ServiceID" FOREIGN KEY ("ServiceID") REFERENCES "StreamingService" ("ServiceID") ON DELETE CASCADE
+);
+
 CREATE TABLE "ListContent" (
-    "ContentsTMDB_ID" TEXT NOT NULL,
+    "ContentPartialsTMDB_ID" TEXT NOT NULL,
     "ListsListID" TEXT NOT NULL,
-    CONSTRAINT "PK_ListContent" PRIMARY KEY ("ContentsTMDB_ID", "ListsListID"),
-    CONSTRAINT "FK_ListContent_Content_ContentsTMDB_ID" FOREIGN KEY ("ContentsTMDB_ID") REFERENCES "Content" ("TMDB_ID") ON DELETE CASCADE,
+    CONSTRAINT "PK_ListContent" PRIMARY KEY ("ContentPartialsTMDB_ID", "ListsListID"),
+    CONSTRAINT "FK_ListContent_ContentPartial_ContentPartialsTMDB_ID" FOREIGN KEY ("ContentPartialsTMDB_ID") REFERENCES "ContentPartial" ("TMDB_ID") ON DELETE CASCADE,
     CONSTRAINT "FK_ListContent_List_ListsListID" FOREIGN KEY ("ListsListID") REFERENCES "List" ("ListID") ON DELETE CASCADE
 );
 
@@ -99,7 +112,6 @@ CREATE TABLE "ListShares" (
     CONSTRAINT "FK_ListShares_List_ListID" FOREIGN KEY ("ListID") REFERENCES "List" ("ListID") ON DELETE CASCADE,
     CONSTRAINT "FK_ListShares_User_UserID" FOREIGN KEY ("UserID") REFERENCES "User" ("UserID") ON DELETE CASCADE
 );
-
 
 CREATE INDEX "IX_ContentGenre_GenresGenreID" ON "ContentGenre" ("GenresGenreID");
 
