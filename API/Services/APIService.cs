@@ -1,26 +1,35 @@
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
-using System.Threading.Tasks;
+
 using API.DTOs;
 using API.Infrastructure;
 using API.Models;
 using AutoMapper;
-using Microsoft.EntityFrameworkCore;
+using System.Net.Http.Headers;
 
 namespace API.Services;
 
-public class RapidAPIService {
+class Posters {
+    public string VerticalPoster { get; set; } = string.Empty;
+    public string HorizontalPoster { get; set; } = string.Empty;
+}
+
+public class APIService {
 
     private readonly StreamTrackDbContext context;
     private readonly HttpClient httpClient;
     private readonly IMapper mapper;
-    private readonly string apiKey = RAPID_API.KEY;
     private const string RapidAPI_Base_Url = "https://streaming-availability.p.rapidapi.com/shows/";
     private const string RapidAPI_Ending = "?series_granularity=show&output_language=en&country=us";
     private const string RapidApiKeyHeader = "x-rapidapi-key";
     private const string RapidApiHostHeader = "x-rapidapi-host";
     private const string RapidApiHostValue = "streaming-availability.p.rapidapi.com";
 
-    public RapidAPIService(StreamTrackDbContext _context, HttpClient _httpClient, IMapper _mapper) {
+
+    private const string TMDB_Base_Url = "https://api.themoviedb.org/3/";
+    private const string TMDB_Ending = "?language=en-US";
+
+    public APIService(StreamTrackDbContext _context, HttpClient _httpClient, IMapper _mapper) {
         context = _context;
         httpClient = _httpClient;
         mapper = _mapper;
@@ -53,7 +62,7 @@ public class RapidAPIService {
         string url = $"{RapidAPI_Base_Url}{contentDTO.TMDB_ID}{RapidAPI_Ending}";
 
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Add(RapidApiKeyHeader, apiKey);
+        request.Headers.Add(RapidApiKeyHeader, API_KEYS.RAPID);
         request.Headers.Add(RapidApiHostHeader, RapidApiHostValue);
 
         using var response = await httpClient.SendAsync(request);
@@ -63,8 +72,48 @@ public class RapidAPIService {
         APIContent? apiContent = JsonSerializer.Deserialize<APIContent>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         if (apiContent == null) return null;
 
-        return await MapToContentDetail(apiContent, contentDTO?.VerticalPoster ?? "", contentDTO?.HorizontalPoster ?? "");
+        // Update any missing posters
+        Posters posters = new Posters { VerticalPoster = contentDTO.VerticalPoster ?? "", HorizontalPoster = contentDTO.HorizontalPoster ?? "" };
+        bool badVerticalPoster = IsBadPoster(posters.VerticalPoster);
+        bool badHorizontalPoster = IsBadPoster(posters.HorizontalPoster);
+        if (badVerticalPoster || badHorizontalPoster) {
+            posters = await GetPosters(contentDTO.TMDB_ID);
+            posters.VerticalPoster = badVerticalPoster ? posters.VerticalPoster : contentDTO.VerticalPoster ?? "";
+            posters.HorizontalPoster = badHorizontalPoster ? posters.HorizontalPoster : contentDTO.HorizontalPoster ?? "";
+        }
+
+        return await MapToContentDetail(apiContent, posters.VerticalPoster, posters.HorizontalPoster);
     }
+
+    private async Task<Posters> GetPosters(string tmdbID) {
+        string url = TMDB_Base_Url + tmdbID + TMDB_Ending;
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", API_KEYS.TMDB_BEARER_TOKEN);
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+        using var response = await httpClient.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+        string? json = await response.Content.ReadAsStringAsync();
+
+        using var doc = JsonDocument.Parse(json);
+        string verticalPoster = "", horizontalPoster = "";
+        verticalPoster = doc.RootElement.TryGetProperty("poster_path", out var posterPathElem) && posterPathElem.GetString() is string p && !string.IsNullOrEmpty(p)
+                            ? "https://image.tmdb.org/t/p/w500" + p
+                            : "";
+        horizontalPoster = doc.RootElement.TryGetProperty("backdrop_path", out var backPathElem) && backPathElem.GetString() is string b && !string.IsNullOrEmpty(b)
+                            ? "https://image.tmdb.org/t/p/w1280" + b
+                            : "";
+
+        return new Posters { VerticalPoster = verticalPoster, HorizontalPoster = horizontalPoster };
+    }
+
+    private bool IsBadPoster(string url) {
+        if (string.IsNullOrWhiteSpace(url)) return true;
+        var lowered = url.ToLowerInvariant();
+        if (lowered.Contains("svg") || lowered.StartsWith("https://www.")) return true;
+        return false;
+    }
+
 
     // Probably should get the TMDB posters when needed eventually
     private async Task<ContentDetail> MapToContentDetail(APIContent content, string verticalPoster, string horizontalPoster) {

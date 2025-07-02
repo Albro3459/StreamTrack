@@ -17,12 +17,12 @@ public class ListController : ControllerBase {
 
     private readonly StreamTrackDbContext context;
     private readonly Service service;
-    private readonly RapidAPIService rapidAPIService;
+    private readonly Services.APIService rapidAPIService;
     private readonly BackgroundTaskQueue taskQueue;
     private readonly IServiceProvider serviceProvider;
     private readonly IMapper mapper;
 
-    public ListController(StreamTrackDbContext _context, Service _service, RapidAPIService _rapidAPIService, BackgroundTaskQueue _taskQueue, IServiceProvider _serviceProvider, IMapper _mapper) {
+    public ListController(StreamTrackDbContext _context, Service _service, Services.APIService _rapidAPIService, BackgroundTaskQueue _taskQueue, IServiceProvider _serviceProvider, IMapper _mapper) {
         context = _context;
         service = _service;
         rapidAPIService = _rapidAPIService;
@@ -127,7 +127,7 @@ public class ListController : ControllerBase {
 
         // send off background Task to fetch and save full content details
         taskQueue.QueueBackgroundWorkItem(async (serviceProvider, token) => {
-            var rapidAPIService = serviceProvider.GetRequiredService<RapidAPIService>();
+            var rapidAPIService = serviceProvider.GetRequiredService<Services.APIService>();
             await rapidAPIService.FetchAndSaveMissingContent(contentDTO); // Probably should get the TMDB posters when needed eventually
         });
 

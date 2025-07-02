@@ -17,10 +17,10 @@ public class ContentController : ControllerBase {
 
     private readonly StreamTrackDbContext context;
     private readonly Service service;
-    private readonly RapidAPIService rapidAPIService;
+    private readonly Services.APIService rapidAPIService;
     private readonly IMapper mapper;
 
-    public ContentController(StreamTrackDbContext _context, Service _service, RapidAPIService _rapidAPIService, IMapper _mapper) {
+    public ContentController(StreamTrackDbContext _context, Service _service, Services.APIService _rapidAPIService, IMapper _mapper) {
         context = _context;
         service = _service;
         rapidAPIService = _rapidAPIService;
