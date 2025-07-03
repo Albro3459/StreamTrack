@@ -1,14 +1,17 @@
 import { APIGatewayEvent, Context } from "aws-lambda";
 
 import { fetchByServiceAndGenre } from "./helpers/contentAPIHelper";
-import { bulkUpdateContents } from "./helpers/streamTrackAPIHelper";
+import { updatePopularContents } from "./helpers/streamTrackAPIHelper";
 import { getFirebaseToken } from "./helpers/firebaseHelper";
 import { ContentData } from "./types/dataTypes";
 import { TMDB_MEDIA_TYPE } from "./types/tmdbType";
 import { GENRE, ORDER_BY, ORDER_DIRECTION, SERVICE, SHOW_TYPE } from "./types/contentFilterOptions";
 
-// Cron Schedule: (Min: 0, Hour: 0, Days of the month: (1,5,9,13,17,21,25,29 skips when no 29th), Month: * any, Day of week: ? use day of month, Year: 2025 just in case)
-// cron(0 0 1,5,9,13,17,21,25,29 * ? 2025)
+// OLD Cron Schedule: (Min: 0, Hour: 0, Days of the month: (1,5,9,13,17,21,25,29 skips when no 29th), Month: * any, Day of week: ? use day of month, Year: 2025 just in case)
+// cron(0 0 1,5,9,13,17,21,25,29 * 7 2025)
+
+// Cron Schedule: (Min: 0, Hour: 0, Days of the month: ? none specified, Month: * any, Day of week: 0 Sunday, Year: 2025 just in case)
+// corn(0, 0, ? * 0 2025)
 
 // export const handler = async (event: APIGatewayEvent, context: Context) => {
 
@@ -20,6 +23,8 @@ const order_by: ORDER_BY = ORDER_BY.POPULARITY_1WEEK;
 const order_direction: ORDER_DIRECTION = ORDER_DIRECTION.ASC;
 
 // 8 genres x 8 services = 64 calls x 2 for movies and shows = 128 total calls
+
+// Maybe add pulls from shows/top https://docs.movieofthenight.com/resource/shows#get-top-shows
 
 export const handler = async () => {
 
@@ -56,7 +61,7 @@ export const handler = async () => {
 
     const dedupedContents: ContentData[] = Array.from(uniqueContentMap.values());
 
-    const result: number | null = await bulkUpdateContents(token, dedupedContents);
+    const result: number | null = await updatePopularContents(token, dedupedContents);
     if (!result) return { status: 400, count: requestCount }
     return { status: result, count: requestCount }
 };

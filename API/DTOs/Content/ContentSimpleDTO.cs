@@ -13,6 +13,8 @@ public class ContentSimpleDTO {
 
     public string ShowType { get; set; } = string.Empty;
 
+    public double Rating { get; set; } = 0.0;
+
     public List<string> GenreNames { get; set; } = new();
 
     public List<string> StreamingServiceNames { get; set; } = new();

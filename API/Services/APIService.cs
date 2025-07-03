@@ -72,6 +72,9 @@ public class APIService {
         APIContent? apiContent = JsonSerializer.Deserialize<APIContent>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         if (apiContent == null) return null;
 
+        // Set rating to 5 point scale
+        apiContent.rating = Math.Round(apiContent.rating / 20.0, 2);
+
         // Update any missing posters
         Posters posters = new Posters { VerticalPoster = contentDTO.VerticalPoster ?? "", HorizontalPoster = contentDTO.HorizontalPoster ?? "" };
         bool badVerticalPoster = IsBadPoster(posters.VerticalPoster);
@@ -159,21 +162,16 @@ public class APIService {
 
     private async Task<StreamingOption> MapToStreamingOption(APIStreamingOption option, ContentDetail contentDetail) {
         // Find or create the StreamingService
-        var serviceID = option.service.id;
-        var streamingOption = context.StreamingOption.Local.FirstOrDefault(o => o.TMDB_ID == contentDetail.TMDB_ID && o.ServiceID == serviceID)
-                        ?? await context.StreamingOption.FirstOrDefaultAsync(o => o.TMDB_ID == contentDetail.TMDB_ID && o.ServiceID == serviceID);
+        var serviceName = option.service.name;
+        var streamingOption = context.StreamingOption.Local.FirstOrDefault(o => o.TMDB_ID == contentDetail.TMDB_ID && o.StreamingService.Name == serviceName)
+                        ?? await context.StreamingOption.FirstOrDefaultAsync(o => o.TMDB_ID == contentDetail.TMDB_ID && o.StreamingService.Name == serviceName);
         if (streamingOption != null) return streamingOption;
 
 
-        var service = context.StreamingService.Local.FirstOrDefault(s => s.ServiceID == serviceID)
-                        ?? await context.StreamingService.FirstOrDefaultAsync(s => s.ServiceID == serviceID);
+        var service = context.StreamingService.Local.FirstOrDefault(s => s.ServiceID == serviceName)
+                        ?? await context.StreamingService.FirstOrDefaultAsync(s => s.ServiceID == serviceName);
         if (service == null) {
-            service = new StreamingService {
-                ServiceID = serviceID,
-                Name = option.service.name,
-                LightLogo = option.service.imageSet.lightThemeImage,
-                DarkLogo = option.service.imageSet.darkThemeImage,
-            };
+            service = new StreamingService(option.service.name, option.service.imageSet.lightThemeImage, option.service.imageSet.darkThemeImage);
             await context.StreamingService.AddAsync(service);
         }
 

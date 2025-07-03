@@ -8,6 +8,7 @@ using API.Infrastructure;
 using API.Models;
 using API.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 namespace API.Controllers;
 
@@ -17,12 +18,56 @@ public class ContentController : ControllerBase {
 
     private readonly StreamTrackDbContext context;
     private readonly Service service;
+    private readonly PopularSortingService sortingService;
     private readonly Services.APIService rapidAPIService;
     private readonly IMapper mapper;
 
-    public ContentController(StreamTrackDbContext _context, Service _service, Services.APIService _rapidAPIService, IMapper _mapper) {
+    // Split on the & for multiple keys
+    private static readonly Dictionary<string, string> SECTION_TITLES = new Dictionary<string, string> {
+        // Genres
+        { "Action", "Action-Packed" },
+        { "Romance", "Swoon-Worthy Romance" },
+        { "Comedy", "Comedy Gold" },
+        { "Drama", "Pure Drama" },
+        { "Sci-Fi", "Sci-Fi Wonders" },
+        { "Horror", "Nightmare Fuel" },
+        { "Thriller", "Thrilling Rides" },
+        { "Western", "Wild West" },
+
+        { "Romance&Comedy", "Love & Laughs" },
+        { "Horror&Thriller", "Chills & Thrills" },
+
+        // Services
+        { "Netflix", "Popular on Netflix" },
+        { "Hulu", "Popular on Hulu" },
+        { "Max", "Popular on Max" },
+        { "Prime Video", "Popular on Prime Video" },
+        { "Disney+", "Popular on Disney+" },
+        { "Apple TV", "Popular on Apple TV" },
+        { "Paramount+", "Popular on Paramount+" },
+        { "Peacock", "Popular on Peacock" },
+        { "Only&Netflix", "Only on Netflix" },
+        { "Only&Hulu", "Only on Hulu" },
+        { "Only&Max", "Only on Max" },
+        { "Only&Prime Video", "Only on Prime Video" },
+        { "Only&Disney+", "Only on Disney+" },
+        { "Only&Apple TV", "Only on Apple TV" },
+        { "Only&Paramount+", "Only on Paramount+" },
+        { "Only&Peacock", "Only on Peacock" },
+
+        // Other Categories
+        { "Free", "Free to Stream" },
+        { "Movie", "Must-See Movies" },
+        { "Series", "Binge-Worthy Shows" },
+        { "Rating", "Highly Rated" },
+        { "Released", "Released This Year" }
+    };
+
+
+    public ContentController(StreamTrackDbContext _context, Service _service, PopularSortingService _sortingService, Services.APIService _rapidAPIService, IMapper _mapper) {
         context = _context;
         service = _service;
+        sortingService = _sortingService;
         rapidAPIService = _rapidAPIService;
         mapper = _mapper;
     }
@@ -103,10 +148,58 @@ public class ContentController : ControllerBase {
     }
 
 
-    // TODO: Need to remove old popular && not in any lists, at the end IFF no errors
-    // POST: API/Content/BulkPopularUpdate
-    [HttpPost("BulkPopularUpdate")]
-    public async Task<ActionResult<ContentDTO>> BulkPopularUpdate(List<ContentDTO> dtos) {
+    // POPULAR CONTENT:
+
+    // GET: API/Content/Popular
+    [HttpGet("Popular")]
+    public async Task<ActionResult<PopularContentDTO>> GetPopularContent() {
+        string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(uid))
+            return Unauthorized();
+
+        List<ContentDetail> contents = await context.ContentDetail
+                .Include(c => c.Genres)
+                .Include(c => c.StreamingOptions)
+                    .ThenInclude(s => s.StreamingService)
+                .Where(c => c.IsPopular)
+                .ToListAsync();
+
+        if (contents.Count == 0) {
+            return NotFound();
+        }
+
+        var rng = new Random();
+        List<ContentSimpleDTO> carousel = contents.OrderBy(_ => rng.Next()).Take(10)
+                                                    .Select(c => mapper.Map<ContentDetail, ContentSimpleDTO>(c))
+                                                    .ToList();
+
+        Dictionary<string, List<ContentSimpleDTO>> mainContent = SECTION_TITLES
+            .OrderBy(_ => rng.Next())
+            .Take(5)
+            .Select(pair => new {
+                Section = pair.Value,  // display name
+                Contents = sortingService.filterSectionContent(pair.Key, contents)
+            })
+            .Where(pair => pair.Contents.Count > 0)
+            .ToDictionary(
+                pair => pair.Section,  // display name
+                pair => pair.Contents
+            );
+
+        PopularContentDTO popularContents = new PopularContentDTO {
+            Carousel = carousel,
+            Main = mainContent
+        };
+
+        return popularContents;
+    }
+
+
+    // Maybe add timestamp in the future for recent content, but it doesn't matter right now
+    // POST: API/Content/Popular/Update
+    [HttpPost("Popular/Update")]
+    public async Task<ActionResult<ContentDTO>> UpdatePopularContent(List<ContentDTO> dtos) {
         // Only the lambda user will be sending the content
 
         string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);

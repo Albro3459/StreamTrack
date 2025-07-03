@@ -119,17 +119,16 @@ public class StreamTrackDbContext : DbContext {
             new Genre { GenreID = "3", Name = "Drama", IsDeleted = false },
             new Genre { GenreID = "4", Name = "Horror", IsDeleted = false },
             new Genre { GenreID = "5", Name = "Romance", IsDeleted = false },
-            new Genre { GenreID = "6", Name = "Rom-Com", IsDeleted = false },
-            new Genre { GenreID = "7", Name = "Sci-Fi", IsDeleted = false },
-            new Genre { GenreID = "8", Name = "Thriller", IsDeleted = false },
-            new Genre { GenreID = "9", Name = "Western", IsDeleted = false }
+            new Genre { GenreID = "6", Name = "Science Fiction", IsDeleted = false },
+            new Genre { GenreID = "7", Name = "Thriller", IsDeleted = false },
+            new Genre { GenreID = "8", Name = "Western", IsDeleted = false }
         );
 
         modelBuilder.Entity<StreamingService>().HasData(
             new StreamingService { ServiceID = "1", Name = "Netflix", DarkLogo = "https://media.movieofthenight.com/services/netflix/logo-dark-theme.svg", LightLogo = "https://media.movieofthenight.com/services/netflix/logo-light-theme.svg" },
             new StreamingService { ServiceID = "2", Name = "Hulu", DarkLogo = "https://media.movieofthenight.com/services/hulu/logo-dark-theme.svg", LightLogo = "https://media.movieofthenight.com/services/hulu/logo-light-theme.svg" },
-            new StreamingService { ServiceID = "3", Name = "HBO Max", DarkLogo = "https://media.movieofthenight.com/services/max/logo-dark-theme.svg", LightLogo = "https://media.movieofthenight.com/services/max/logo-light-theme.svg" },
-            new StreamingService { ServiceID = "4", Name = "Amazon Prime", DarkLogo = "https://media.movieofthenight.com/services/prime/logo-dark-theme.svg", LightLogo = "https://media.movieofthenight.com/services/prime/logo-light-theme.svg" },
+            new StreamingService { ServiceID = "3", Name = "Max", DarkLogo = "https://media.movieofthenight.com/services/max/logo-dark-theme.svg", LightLogo = "https://media.movieofthenight.com/services/max/logo-light-theme.svg" },
+            new StreamingService { ServiceID = "4", Name = "Prime Video", DarkLogo = "https://media.movieofthenight.com/services/prime/logo-dark-theme.svg", LightLogo = "https://media.movieofthenight.com/services/prime/logo-light-theme.svg" },
             new StreamingService { ServiceID = "5", Name = "Disney+", DarkLogo = "https://media.movieofthenight.com/services/disney/logo-dark-theme.svg", LightLogo = "https://media.movieofthenight.com/services/disney/logo-light-theme.svg" },
             new StreamingService { ServiceID = "6", Name = "Apple TV", DarkLogo = "https://media.movieofthenight.com/services/apple/logo-dark-theme.svg", LightLogo = "https://media.movieofthenight.com/services/apple/logo-light-theme.svg" },
             new StreamingService { ServiceID = "7", Name = "Paramount+", DarkLogo = "https://media.movieofthenight.com/services/paramount/logo-dark-theme.svg", LightLogo = "https://media.movieofthenight.com/services/paramount/logo-light-theme.svg" },

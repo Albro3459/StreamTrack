@@ -71,6 +71,7 @@ builder.Services.AddAutoMapper(typeof(Program)); // All profiles in this project
 
 // Services
 builder.Services.AddScoped<Service>();
+builder.Services.AddScoped<PopularSortingService>();
 builder.Services.AddHttpClient<APIService>();
 builder.Services.AddSingleton<BackgroundTaskQueue>();
 builder.Services.AddHostedService<QueuedHostedService>();

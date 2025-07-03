@@ -56,7 +56,7 @@ export default function SearchPage() {
                     }
                 });
                 setContents(contents);
-            } finally {
+            } finally { // Scroll back up to top
                 if (flatListRef.current && contents && contents.length > 0) {
                     flatListRef.current.scrollToOffset({ animated: true, offset: 0});
                 }
@@ -118,7 +118,7 @@ export default function SearchPage() {
                         //   Global.backPressLoadSearch = true;
                             router.push({
                                 pathname: '/InfoPage',
-                                params: { tmdbID: content.tmdbID, title: content.title, overview: content.overview, rating: content.rating, releaseYear: content.releaseYear, verticalPoster: content.verticalPoster, horizontalPoster: content.horizontalPoster },
+                                params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, horizontalPoster: content.horizontalPoster },
                             });
                         }}
                         onLongPress={() => {setSelectedContent(content); setMoveModalVisible(true);}}

@@ -35,7 +35,7 @@ public class APIContent {
     public List<APIGenre> genres { get; set; } = new();
     public List<string> directors { get; set; } = new();
     public List<string> cast { get; set; } = new();
-    public int rating { get; set; }
+    public double rating { get; set; } // double to convert it to a 5 point scale
     public int? runtime { get; set; }
     public int? seasonCount { get; set; }
     public int? episodeCount { get; set; }

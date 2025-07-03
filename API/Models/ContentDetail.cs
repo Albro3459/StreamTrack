@@ -29,7 +29,7 @@ public class ContentDetail : SoftDeletableEntity {
     public string IMDB_ID { get; set; } = string.Empty;
 
     [Required]
-    public string ShowType { get; set; } = string.Empty;
+    public string ShowType { get; set; } = string.Empty; // "movie" or "series"
 
     public ICollection<Genre> Genres { get; set; } = new List<Genre>();
 

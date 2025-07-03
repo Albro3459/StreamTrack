@@ -1,11 +1,11 @@
 import { DataAPIURL } from "../secrets/DataAPIUrl";
 import { ContentData } from "../types/dataTypes";
 
-export const bulkUpdateContents = async (token: string | null, contents: ContentData[]): Promise<number | null> => {
+export const updatePopularContents = async (token: string | null, contents: ContentData[]): Promise<number | null> => {
     try {
         if (!token) return null;
 
-        const url = DataAPIURL + `API/Content/BulkPopularUpdate`;
+        const url = DataAPIURL + `API/Content/Popular/Update`;
                 
         const options = {
             method: 'POST',

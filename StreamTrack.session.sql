@@ -8,7 +8,7 @@ select * from ContentDetail;
 select * from ContentDetail where VerticalPoster LIKE 'https://www%' OR HorizontalPoster LIKE 'https://www%';
 select * from ContentDetail where VerticalPoster LIKE '%svg%' OR HorizontalPoster LIKE '%svg%';
 
-
+select * from ContentGenre;
 select * from Genre;
 
 select * from StreamingService;

@@ -110,7 +110,7 @@ export default function LibraryPage() {
                 onPress={() => {
                     router.push({
                         pathname: '/InfoPage',
-                        params: { tmdbID: content.tmdbID, title: content.title, overview: content.overview, rating: parseFloat((content.rating ?? 0 / 20).toFixed(2)) ?? 0, releaseYear: content.releaseYear, verticalPoster: content.verticalPoster, horizontalPoster: content.horizontalPoster },
+                        params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, horizontalPoster: content.horizontalPoster },
                     });
                 }}
                 onLongPress={() => {

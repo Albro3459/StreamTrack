@@ -13,7 +13,13 @@ public class ContentProfile : Profile {
 
         CreateMap<ContentDetail, ContentPartialDTO>();
 
-        // CreateMap<ContentDetail, ContentSimpleDTO>();
+        CreateMap<ContentDetail, ContentSimpleDTO>()
+            .ForMember(dest => dest.GenreNames,
+                        opt => opt.MapFrom(c => c.Genres.Select(g => g.Name))
+            ).ForMember(dest => dest.StreamingServiceNames,
+                        opt => opt.MapFrom(c => c.StreamingOptions.Select(o => o.StreamingService.Name))
+        );
+
 
         CreateMap<ContentPartial, ContentPartialDTO>().ReverseMap();
 
