@@ -13,7 +13,8 @@ import { ContentSimpleData, ListMinimalData } from "./types/dataTypes";
 import { MoveModal } from "./components/moveModalComponent";
 import { contentSimpleToPartial } from "./helpers/StreamTrack/contentHelper";
 import { isItemInList, moveItemToList, sortLists } from "./helpers/StreamTrack/listHelper";
-// import { MoveModal } from "./components/moveModalComponent";
+import { Gesture, GestureDetector } from "react-native-gesture-handler";
+import { runOnJS } from 'react-native-reanimated';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -37,7 +38,7 @@ export default function LandingPage () {
 
     const [carouselIndex, setCarouselIndex] = useState<number>(0);
     const carouselRef = useRef(null);
-    const timerRef = useRef<number | null>(null);
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
 
     const [isLoading, setIsLoading] = useState(true);
 
@@ -93,22 +94,33 @@ export default function LandingPage () {
         setSelectedContent(content); setAutoPlay(false); setMoveModalVisible(true);
     }
 
-    const renderCarouselContent = ({ item: content, index } : { item: ContentSimpleData, index: number }) => (
-        <Pressable
-            // onPress={() => handlePress(content) }
-            onLongPress={() => { handleLongPress(content); }}
-            style={styles.slide}
-        >
-            <Image
-                source={{ uri: content.horizontalPoster }}
-                style={styles.image}
-                resizeMode="cover"
-            />
-            {/* <View style={styles.titleContainer}>
-                <Text style={styles.title} numberOfLines={1}>{content.title}</Text>
-            </View> */}
-        </Pressable>
-    );
+    const renderCarouselContent = ({ item: content, index } : { item: ContentSimpleData, index: number }) => {
+         const tapGesture = Gesture.Tap()
+            .onEnd((event) => {
+                runOnJS(handlePress)(content);
+            });
+
+        const longPressGesture = Gesture.LongPress()
+            .minDuration(500)
+            .onStart(() => {
+                runOnJS(handleLongPress)(content);
+            });
+
+        const combinedGesture = Gesture.Exclusive(longPressGesture, tapGesture);
+        
+        return (<GestureDetector gesture={combinedGesture}>
+            <View style={styles.slide}>
+                <Image
+                    source={{ uri: content.horizontalPoster }}
+                    style={styles.image}
+                    resizeMode="cover"
+                />
+                {/* <View style={styles.titleContainer}>
+                    <Text style={styles.title} numberOfLines={1}>{content.title}</Text>
+                </View> */}
+            </View>
+        </GestureDetector>);
+    };
 
     return (
         <View style={styles.container} >
