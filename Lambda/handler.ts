@@ -48,6 +48,7 @@ export const handler = async () => {
                     console.log("Current API Request Count: " + requestCount + " / 128");
                     console.log("Content count in this request: " + results.length);
                     console.log("Content IDs just added: " + JSON.stringify(results.map(c => c.tmdbID)) + "\n");
+                    console.log(`Request Details: {Service: ${service} | Genre: ${genre} | Type: ${show_type}}`);
                 } catch (error) {
                     console.error(`Failed for service=${service}, genre=${genre}, showType=${show_type}, order_by=${order_by}, order_direction=${order_direction}:`, error);
                     return { status: 400, count: requestCount } // crash out

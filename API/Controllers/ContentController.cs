@@ -150,6 +150,8 @@ public class ContentController : ControllerBase {
 
     // POPULAR CONTENT:
 
+    // Used to pull popular content for the landing page
+    // Count: 10 from carousel + 5 * 10 per section = 10 + 50 = 60 contents
     // GET: API/Content/Popular
     [HttpGet("Popular")]
     public async Task<ActionResult<PopularContentDTO>> GetPopularContent() {
@@ -162,26 +164,32 @@ public class ContentController : ControllerBase {
                 .Include(c => c.Genres)
                 .Include(c => c.StreamingOptions)
                     .ThenInclude(s => s.StreamingService)
-                .Where(c => c.IsPopular)
+                .Where(c => c.IsPopular) // Only POPULAR content
                 .ToListAsync();
 
         if (contents.Count == 0) {
             return NotFound();
         }
 
+        const int maxContents = 10; // max amount of contents to take per each section or carousel
+        const int maxSections = 5; // max amount of sections to display
+
+        // Pick 10 random contents for the carousel
         var rng = new Random();
-        List<ContentSimpleDTO> carousel = contents.OrderBy(_ => rng.Next()).Take(10)
+        List<ContentSimpleDTO> carousel = contents.OrderBy(_ => rng.Next())
+                                                    .Take(maxContents)
                                                     .Select(c => mapper.Map<ContentDetail, ContentSimpleDTO>(c))
                                                     .ToList();
 
+        // Picks 5 random sections and then gets the filtered contents for each section
         Dictionary<string, List<ContentSimpleDTO>> mainContent = SECTION_TITLES
             .OrderBy(_ => rng.Next())
-            .Take(5)
+            .Take(maxSections)
             .Select(pair => new {
                 Section = pair.Value,  // display name
-                Contents = sortingService.filterSectionContent(pair.Key, contents)
+                Contents = sortingService.filterSectionContent(pair.Key, contents, maxContents)
             })
-            .Where(pair => pair.Contents.Count > 0)
+            .Where(pair => pair.Contents.Count > 0) // filter out empty sections (filtering failed)
             .ToDictionary(
                 pair => pair.Section,  // display name
                 pair => pair.Contents

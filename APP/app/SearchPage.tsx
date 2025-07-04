@@ -9,7 +9,7 @@ import { TMDBSearch } from './helpers/contentAPIHelper';
 import { TMDB_Content, TMDB, TMDB_MEDIA_TYPE } from './types/tmdbType';
 import { useUserDataStore } from './stores/userDataStore';
 import { ContentPartialData, ListData, ListMinimalData } from './types/dataTypes';
-import { FAVORITE_TAB, isItemInAnyList, isItemInListMinimal, moveItemToList, sortLists } from './helpers/StreamTrack/listHelper';
+import { FAVORITE_TAB, isItemInAnyList, isItemInList, moveItemToList, sortLists } from './helpers/StreamTrack/listHelper';
 import { MoveModal } from './components/moveModalComponent';
 import { StarRating } from './components/starRatingComponent';
 
@@ -32,7 +32,7 @@ export default function SearchPage() {
 
     const [moveModalVisible, setMoveModalVisible] = useState(false);
 
-    const [lists, setLists] = useState<ListMinimalData[] | null>([...userData?.user?.listsOwned, ...userData?.user?.listsSharedWithMe]);
+    const [lists, setLists] = useState<ListMinimalData[] | null>([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]);
 
     const [selectedContent, setSelectedContent] = useState<ContentPartialData>(null);
 
@@ -67,7 +67,7 @@ export default function SearchPage() {
 
     useEffect(() => {
         if (userData) {
-            setLists([...userData?.user?.listsOwned, ...userData?.user?.listsSharedWithMe]);
+            setLists([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]);
         }
     }, [userData]);
 
@@ -131,7 +131,7 @@ export default function SearchPage() {
                                 <StarRating rating={content.rating}/>
                             </View>
                             <Heart 
-                                heartColor={isItemInListMinimal(lists, FAVORITE_TAB, content.tmdbID) ? Colors.selectedHeartColor : Colors.unselectedHeartColor}
+                                heartColor={isItemInList(lists, FAVORITE_TAB, content.tmdbID) ? Colors.selectedHeartColor : Colors.unselectedHeartColor}
                                 size={40}
                                 onPress={async () => await moveItemToList(content, FAVORITE_TAB, lists, setLists, setIsSearching, setMoveModalVisible)}
                             />
@@ -149,7 +149,7 @@ export default function SearchPage() {
                     setVisibilityFunc={setMoveModalVisible}
                     setIsLoadingFunc={setIsSearching}
                     moveItemFunc={moveItemToList}
-                    isItemInListFunc={isItemInListMinimal}
+                    isItemInListFunc={isItemInList}
                     setListsFunc={setLists}
                 />
 

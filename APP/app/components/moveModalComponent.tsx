@@ -15,18 +15,20 @@ interface MoveModalProps {
 
     setVisibilityFunc: React.Dispatch<React.SetStateAction<boolean>>;
     setIsLoadingFunc: React.Dispatch<React.SetStateAction<boolean>>;
+    setAutoPlayFunc?: React.Dispatch<React.SetStateAction<boolean>>;
     
     moveItemFunc: (selectedItem: any, listName: string, lists: ListMinimalData[], 
                     setListsFunc:  React.Dispatch<React.SetStateAction<ListMinimalData[]>>,
                     setIsLoadingFunc: React.Dispatch<React.SetStateAction<boolean>>,
-                    setVisibilityFunc: React.Dispatch<React.SetStateAction<boolean>>
+                    setVisibilityFunc: React.Dispatch<React.SetStateAction<boolean>>,
+                    setAutoPlayFunc?: React.Dispatch<React.SetStateAction<boolean>>
     ) => Promise<void>;
     isItemInListFunc: (lists: ListMinimalData[], listName: string, tmdbID: string) => boolean;
 
     setListsFunc: React.Dispatch<React.SetStateAction<ListMinimalData[]>>;
 }
 
-export const MoveModal: React.FC<MoveModalProps> = ({ selectedContent, lists, showLabel = true, showHeart = true, visibility, setVisibilityFunc, setIsLoadingFunc, moveItemFunc, isItemInListFunc, setListsFunc}) => {
+export const MoveModal: React.FC<MoveModalProps> = ({ selectedContent, lists, showLabel = true, showHeart = true, visibility, setVisibilityFunc, setIsLoadingFunc, setAutoPlayFunc, moveItemFunc, isItemInListFunc, setListsFunc}) => {
 
     if (!selectedContent) return null;
 
@@ -35,11 +37,11 @@ export const MoveModal: React.FC<MoveModalProps> = ({ selectedContent, lists, sh
             transparent={true}
             visible={visibility}
             animationType="fade"
-            onRequestClose={() => setVisibilityFunc(false)}
+            onRequestClose={() => { setVisibilityFunc(false); setAutoPlayFunc && setAutoPlayFunc(true); }}
         >
             <Pressable
                 style={appStyles.modalOverlay}
-                onPress={() => setVisibilityFunc(false)}
+                onPress={() =>  { setVisibilityFunc(false); setAutoPlayFunc && setAutoPlayFunc(true); }}
             >
                 <View style={[appStyles.modalContent, showHeart && {paddingBottom: 10}]}>
                     {showLabel && <Text style={appStyles.modalTitle}>
@@ -57,7 +59,7 @@ export const MoveModal: React.FC<MoveModalProps> = ({ selectedContent, lists, sh
                                         appStyles.modalButton,
                                         isSelected && appStyles.selectedModalButton,
                                     ]}
-                                    onPress={async () => await moveItemFunc(selectedContent, list.listName, lists, setListsFunc, setIsLoadingFunc, setVisibilityFunc)}
+                                    onPress={async () => await moveItemFunc(selectedContent, list.listName, lists, setListsFunc, setIsLoadingFunc, setVisibilityFunc, setAutoPlayFunc)}
                                 >
                                     <Text style={[
                                         appStyles.modalButtonText,
@@ -79,7 +81,7 @@ export const MoveModal: React.FC<MoveModalProps> = ({ selectedContent, lists, sh
                                     isItemInListFunc(lists, FAVORITE_TAB, selectedContent.tmdbID) ? Colors.selectedHeartColor : Colors.unselectedHeartColor
                                 }
                                 size={35}
-                                onPress={async () => await moveItemFunc(selectedContent, FAVORITE_TAB, lists, setListsFunc, setIsLoadingFunc, setVisibilityFunc)}
+                                onPress={async () => await moveItemFunc(selectedContent, FAVORITE_TAB, lists, setListsFunc, setIsLoadingFunc, setVisibilityFunc, setAutoPlayFunc)}
                             />
                             </View>
                         )}

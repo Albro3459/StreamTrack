@@ -9,7 +9,7 @@ import { SvgUri } from 'react-native-svg';
 import { TMDB_MEDIA_TYPE } from './types/tmdbType';
 import { ContentData, ContentRequestData, ListMinimalData, StreamingOptionData } from './types/dataTypes';
 import { useUserDataStore } from './stores/userDataStore';
-import { FAVORITE_TAB, isItemInListMinimal, moveItemToList } from './helpers/StreamTrack/listHelper';
+import { FAVORITE_TAB, isItemInList, moveItemToList } from './helpers/StreamTrack/listHelper';
 import { MoveModal } from './components/moveModalComponent';
 import { StarRating } from './components/starRatingComponent';
 import { getContentDetails } from './helpers/StreamTrack/contentHelper';
@@ -31,7 +31,7 @@ export default function InfoPage() {
     const { userData } = useUserDataStore();
     const { cacheContent } = useContentDataStore();
 
-    const [lists, setLists] = useState<ListMinimalData[] | null>([...userData.user.listsOwned, ...userData.user.listsSharedWithMe]);
+    const [lists, setLists] = useState<ListMinimalData[] | null>([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]);
 
     const [content, setContent] = useState<ContentData | null>();
 
@@ -248,7 +248,7 @@ export default function InfoPage() {
                         </TouchableOpacity>
                         
                         <Heart 
-                            heartColor={isItemInListMinimal(lists, FAVORITE_TAB, tmdbID ? tmdbID : content ? content.tmdbID : "") ? Colors.selectedHeartColor : Colors.unselectedHeartColor}
+                            heartColor={isItemInList(lists, FAVORITE_TAB, tmdbID ? tmdbID : content ? content.tmdbID : "") ? Colors.selectedHeartColor : Colors.unselectedHeartColor}
                             size={45}
                             onPress={async () => await moveItemToList(content, FAVORITE_TAB, lists, setLists, setIsLoading, setListModalVisible)}
                         />
@@ -286,7 +286,7 @@ export default function InfoPage() {
                 setVisibilityFunc={setListModalVisible}
                 setIsLoadingFunc={setIsLoading}
                 moveItemFunc={moveItemToList}
-                isItemInListFunc={isItemInListMinimal}
+                isItemInListFunc={isItemInList}
                 setListsFunc={setLists}
             />
 

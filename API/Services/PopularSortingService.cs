@@ -16,83 +16,7 @@ public class PopularSortingService {
         mapper = _mapper;
     }
 
-    // public Dictionary<string, List<ContentSimpleDTO>> filterMainContent(List<ContentSimpleDTO> content, List<string> sections) {
-    //     Dictionary<string, List<ContentSimpleDTO>> mainContent = new();
-
-    //     foreach (string section in sections) {
-    //         string[] split = section.Split('&');
-    //         if (split.Length > 1) {
-    //             switch (split[0]) {
-    //                 case "Romance": // Rom Coms
-    //                 case "Horror": // Horror + Thrillers
-    //                     mainContent[split[0]] = filterGenres(split[0], split[1]);
-    //                     break;
-    //                 case "Only":
-    //                     switch (split[1]) {
-    //                         case "Netflix":
-    //                         case "Hulu":
-    //                         case "Max":
-    //                         case "Prime Video":
-    //                         case "Disney+":
-    //                         case "Apple TV":
-    //                         case "Paramount+":
-    //                         case "Peacock":
-    //                             // filterServices(split[1], true);
-    //                             break;
-    //                         default:
-    //                             break;
-    //                     }
-    //                     break;
-    //                 default:
-    //                     break;
-
-    //             }
-    //         }
-    //         else {
-    //             switch (section) {
-    //                 case "Action":
-    //                 case "Romance":
-    //                 case "Comedy":
-    //                 case "Drama":
-    //                 case "Sci-Fi":
-    //                 case "Horror":
-    //                 case "Thriller":
-    //                 case "Western":
-    //                     // filterGenres(section);
-    //                     break;
-
-    //                 case "Netflix":
-    //                 case "Hulu":
-    //                 case "Max":
-    //                 case "Prime Video":
-    //                 case "Disney+":
-    //                 case "Apple TV":
-    //                 case "Paramount+":
-    //                 case "Peacock":
-    //                     // filterStreamingServices(section);
-    //                     break;
-
-    //                 case "Free":
-    //                     break;
-    //                 case "Movie":
-    //                     break;
-    //                 case "Series":
-    //                     break;
-    //                 case "Rating":
-    //                     break;
-    //                 case "Recent":
-    //                     break;
-
-    //                 default:
-    //                     break;
-    //             }
-    //         }
-    //     }
-
-    //     return mainContent;
-    // }
-
-    public List<ContentSimpleDTO> filterSectionContent(string section, List<ContentDetail> contents) {
+    public List<ContentSimpleDTO> filterSectionContent(string section, List<ContentDetail> contents, int maxContents) {
         List<ContentSimpleDTO> filteredContent = new();
 
         string[] split = section.Split('&');
@@ -100,7 +24,7 @@ public class PopularSortingService {
             switch (split[0]) {
                 case "Romance": // Rom Coms
                 case "Horror": // Horror + Thrillers
-                    filteredContent = filterGenres(contents, split[0], split[1]);
+                    filteredContent = filterGenres(contents, maxContents, split[0], split[1]);
                     break;
                 case "Only":
                     switch (split[1]) {
@@ -112,7 +36,7 @@ public class PopularSortingService {
                         case "Apple TV":
                         case "Paramount+":
                         case "Peacock":
-                            filteredContent = filterStreamingServices(contents, split[1], true);
+                            filteredContent = filterStreamingServices(contents, maxContents, split[1], true);
                             break;
                         default:
                             break;
@@ -133,7 +57,7 @@ public class PopularSortingService {
                 case "Horror":
                 case "Thriller":
                 case "Western":
-                    filteredContent = filterGenres(contents, section);
+                    filteredContent = filterGenres(contents, maxContents, section);
                     break;
 
                 case "Netflix":
@@ -144,32 +68,37 @@ public class PopularSortingService {
                 case "Apple TV":
                 case "Paramount+":
                 case "Peacock":
-                    filteredContent = filterStreamingServices(contents, section);
+                    filteredContent = filterStreamingServices(contents, maxContents, section);
                     break;
 
                 case "Free":
                     filteredContent = contents.Where(c => c.StreamingOptions.Any(o => o.Price == null))
+                                                .Take(maxContents)
                                                 .Select(c => mapper.Map<ContentDetail, ContentSimpleDTO>(c))
                                                 .ToList();
                     break;
                 case "Movie":
                     filteredContent = contents.Where(c => c.ShowType.ToLower() == "movie")
+                                                .Take(maxContents)
                                                 .Select(c => mapper.Map<ContentDetail, ContentSimpleDTO>(c))
                                                 .ToList();
                     break;
                 case "Series":
                     filteredContent = contents.Where(c => c.ShowType.ToLower() == "series")
+                                                .Take(maxContents)
                                                 .Select(c => mapper.Map<ContentDetail, ContentSimpleDTO>(c))
                                                 .ToList();
                     break;
                 case "Rating":
                     filteredContent = contents.Where(c => c.Rating >= 4.25) // 85% rating or better
+                                                .Take(maxContents)
                                                 .Select(c => mapper.Map<ContentDetail, ContentSimpleDTO>(c))
                                                 .ToList();
                     break;
                 case "Released":
                     var currentYear = DateTime.Now.Year;
                     filteredContent = contents.Where(c => c.ReleaseYear == currentYear) // Released this year
+                                                .Take(maxContents)
                                                 .Select(c => mapper.Map<ContentDetail, ContentSimpleDTO>(c))
                                                 .ToList();
                     break;
@@ -182,16 +111,17 @@ public class PopularSortingService {
     }
 
     // Filters for 1 or more genres
-    public List<ContentSimpleDTO> filterGenres(List<ContentDetail> contents, params string[] genres) {
+    public List<ContentSimpleDTO> filterGenres(List<ContentDetail> contents, int maxContents, params string[] genres) {
         if (genres.Length == 0) return new();
 
         List<string> lowerGenres = genres.Select(g => g.ToLower()).ToList();
         return contents.Where(c => lowerGenres.All(genre => c.Genres.Any(g => g.Name.ToLower().Equals(genre))))
+                        .Take(maxContents)
                         .Select(c => mapper.Map<ContentDetail, ContentSimpleDTO>(c))
                         .ToList();
     }
 
-    public List<ContentSimpleDTO> filterStreamingServices(List<ContentDetail> contents, string streamingService, bool only = false) {
+    public List<ContentSimpleDTO> filterStreamingServices(List<ContentDetail> contents, int maxContents, string streamingService, bool only = false) {
         if (streamingService.IsNullOrEmpty()) return new();
 
         string lowerStreamingService = streamingService.ToLower();
@@ -200,11 +130,13 @@ public class PopularSortingService {
                 var hashSet = c.StreamingOptions.Select(o => o.StreamingService.Name.ToLower()).ToHashSet();
                 return hashSet.Count == 1 && hashSet.Contains(lowerStreamingService);
             })
+            .Take(maxContents)
             .Select(c => mapper.Map<ContentDetail, ContentSimpleDTO>(c))
             .ToList();
         }
         else {
             return contents.Where(c => c.StreamingOptions.Any(o => o.StreamingService.Name.ToLower().Equals(lowerStreamingService)))
+                            .Take(maxContents)
                             .Select(c => mapper.Map<ContentDetail, ContentSimpleDTO>(c))
                             .ToList();
         }

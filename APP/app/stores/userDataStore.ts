@@ -2,20 +2,13 @@ import { create } from 'zustand';
 import { ContentPartialData, UserData, UserMinimalData } from '../types/dataTypes';
 import { getUserContents, getUserMinimalData } from '../helpers/StreamTrack/userHelper';
 
-interface UserDataStore {
-  userData: UserData | null;
-  loading: boolean;
-  error: string | null;
-  fetchUserData: (token: string) => Promise<void>;
-  clearUserData: () => void;
-  setUserData: (data: UserData) => void;
-}
-
+// Wrappers
 export const fetchUserData = (token: string) => {
     const store = useUserDataStore.getState();
     if (store.loading) return;
     store.fetchUserData(token);
 };
+
 export const clearUserData = () => useUserDataStore.getState().clearUserData();
 
 export const setUserData = (data: UserData, force: boolean = false) => {
@@ -23,6 +16,16 @@ export const setUserData = (data: UserData, force: boolean = false) => {
     if (!force && store.loading) return;
     store.clearUserData();
     store.setUserData(data);
+}
+
+// Store
+interface UserDataStore {
+  userData: UserData | null;
+  loading: boolean;
+  error: string | null;
+  fetchUserData: (token: string) => Promise<void>;
+  clearUserData: () => void;
+  setUserData: (data: UserData) => void;
 }
 
 export const useUserDataStore = create<UserDataStore>((set) => ({

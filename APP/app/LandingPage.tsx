@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { StyleSheet, View, Text, ScrollView, FlatList, Image, TouchableOpacity, Pressable, Dimensions, Alert, Modal, ActivityIndicator } from "react-native";
-import { Card, Title } from "react-native-paper";
+import React, { useEffect, useRef, useState } from "react";
+import Carousel from "react-native-reanimated-carousel";
+import { Pressable, View, Image, StyleSheet, TouchableOpacity, Text, ScrollView, ActivityIndicator, Dimensions } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
@@ -8,8 +8,11 @@ import { appStyles, RalewayFont } from "@/styles/appStyles";
 import { useUserDataStore } from "./stores/userDataStore";
 import { User } from "firebase/auth";
 import { auth } from "@/firebaseConfig";
-// import { onAuthStateChanged, User } from "firebase/auth";
-// import { StarRating } from "./components/starRatingComponent";
+import { usePopularContentStore } from "./stores/popularContentStore";
+import { ContentSimpleData, ListMinimalData } from "./types/dataTypes";
+import { MoveModal } from "./components/moveModalComponent";
+import { contentSimpleToPartial } from "./helpers/StreamTrack/contentHelper";
+import { isItemInList, moveItemToList, sortLists } from "./helpers/StreamTrack/listHelper";
 // import { MoveModal } from "./components/moveModalComponent";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
@@ -21,49 +24,97 @@ export default function LandingPage () {
     
     const [user, setUser] = useState<User | null>();
     const { userData } = useUserDataStore();
+    const { popularContent } = usePopularContentStore();
 
-    const [isLoading, setIsLoading] = useState(false);  
+    const [lists, setLists] = useState<ListMinimalData[] | null>(sortLists([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]));
 
-    // (async () => {
-    //     const token = await auth.currentUser.getIdToken();
-    //     console.log(token);
-    // })();
+    const [moveModalVisible, setMoveModalVisible] = useState(false);
+    const [autoPlay, setAutoPlay] = useState(true);
+
+    const [selectedContent, setSelectedContent] = useState<ContentSimpleData>(null);
+
+    const [carouselIndex, setCarouselIndex] = useState<number>(0);
+    const carouselRef = useRef(null);
+
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        if (userData) {
+            setLists(sortLists([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]));
+        }
+    }, [userData]);
+
+    useEffect(() => {
+        const store = usePopularContentStore.getState(); 
+        if (popularContent && lists) {
+            setIsLoading(false);
+        }
+        else if (!lists || (store.loading && !popularContent)) {
+            setIsLoading(true);
+        }
+    }, [popularContent, lists]);
+
+    const handlePress = (content: ContentSimpleData) => {
+        router.push({
+            pathname: '/InfoPage',
+            params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, horizontalPoster: content.horizontalPoster },
+        });
+    }
+
+    const handleLongPress = (content: ContentSimpleData) => {
+        setSelectedContent(content); setAutoPlay(false); setMoveModalVisible(true);
+    }
+
+    const renderCarouselContent = ({ item: content, index } : { item: ContentSimpleData, index: number }) => (
+        <Pressable
+            // onPress={() => handlePress(content) }
+            onLongPress={() => { handleLongPress(content); }}
+            style={styles.slide}
+        >
+            <Image
+                source={{ uri: content.horizontalPoster }}
+                style={styles.image}
+                resizeMode="cover"
+            />
+            {/* <View style={styles.titleContainer}>
+                <Text style={styles.title} numberOfLines={1}>{content.title}</Text>
+            </View> */}
+        </Pressable>
+    );
 
     return (
         <View style={styles.container} >
             <ScrollView style={{ marginBottom: LIBRARY_OVERLAY_HEIGHT}} showsVerticalScrollIndicator={false}>
                 <Text style={styles.welcomeText}>WELCOME BACK{userData?.user?.firstName?.length > 0 && " "+userData.user.firstName.toUpperCase()}!</Text>
-                {/* Trending Section */}
-                <View style={styles.section}>
-                    <Text style={styles.sectionTitle}>TRENDING</Text>
-                    {/* <Pressable onPress={() => router.push({
-                                                pathname: '/InfoPage',
-                                                params: { id: carouselContent[carouselIndex]?.id || "10" },
-                                })}>
-                        <Card style={styles.trendingCard}>
-                        <Image source={{ uri: carouselContent[carouselIndex] && carouselContent[carouselIndex].posters.horizontal }} style={styles.trendingImage} />
-                        <Card.Content>
-                            <Title style={styles.trendingTitle}>
-                            {carouselContent && carouselContent[carouselIndex] && carouselContent[carouselIndex].title}
-                            </Title>
-                        </Card.Content>
-                        </Card>
-                    </Pressable> */}
-
-                    {/* Circular Navigation Buttons */}
-                    <View style={styles.navigationButtons}>
-                        <TouchableOpacity
-                        //   onPress={handlePreviousMovie}
-                        style={styles.circleButton}
-                        >
-                        <MaterialIcons name="arrow-back" size={24} color="#fff" />
-                        </TouchableOpacity>
-                        <TouchableOpacity 
-                            // onPress={handleNextMovie} 
-                            style={styles.circleButton}
-                        >
-                            <MaterialIcons name="arrow-forward" size={24} color="#fff" />
-                        </TouchableOpacity>
+                <View style={{ marginBottom: 16, alignItems: "center" }}>
+                    <Carousel<ContentSimpleData>
+                        ref={carouselRef}
+                        // loop // Causes bugs and don't need it. It loops anyway. Maybe because of autoPlay
+                        width={screenWidth * 0.90}
+                        height={screenWidth * 0.50}
+                        // autoPlay={autoPlay}
+                        autoPlay={true}
+                        autoPlayInterval={10000}
+                        data={popularContent?.carousel}
+                        scrollAnimationDuration={500}
+                        onSnapToItem={setCarouselIndex}
+                        renderItem={renderCarouselContent}
+                    />
+                    {/* Dots below carousel */}
+                    <View style={styles.dotsContainer}>
+                        {popularContent?.carousel?.map((_, i) => (
+                            <TouchableOpacity
+                                key={i}
+                                style={[
+                                    styles.dot,
+                                    carouselIndex === i && styles.dotActive
+                                ]}
+                                onPress={() => {
+                                    setCarouselIndex(i);
+                                    carouselRef.current?.scrollTo({ index: i, animated: true });
+                                }}
+                            />
+                        ))}
                     </View>
                 </View>
 
@@ -112,17 +163,18 @@ export default function LandingPage () {
             </ScrollView>
 
             {/* Move Modal */}
-            {/* <MoveModal
-                selectedItem={selectedMovie}
+            <MoveModal
+                selectedContent={selectedContent}
                 lists={lists}
-                showHeart={false}
+                showHeart={true}
                 visibility={moveModalVisible}
                 setVisibilityFunc={setMoveModalVisible}
-                setIsLoadingFunc={setIsSearching}
-                moveItemFunc={delayedMoveTMDBItemToList}
-                isItemInListFunc={isTMDBItemInList}
+                setIsLoadingFunc={setIsLoading}
+                setAutoPlayFunc={setAutoPlay}
+                moveItemFunc={moveItemToList}
+                isItemInListFunc={isItemInList}
                 setListsFunc={setLists}
-            /> */}
+            />
         
 
             <View style={styles.libraryOverlay}>
@@ -145,129 +197,86 @@ export default function LandingPage () {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: Colors.backgroundColor,
-    paddingHorizontal: 20,
-    paddingTop: 40,
-  },
-  welcomeText: {
-    fontSize: 26,
-    // fontWeight: "bold",
-    fontFamily: RalewayFont,
-    color: "#fff",
-    marginBottom: 20,
-  },
-  section: {
-    marginBottom: 30,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#fff",
-    marginBottom: 10,
-  },
-  trendingCard: {
-    backgroundColor: Colors.altBackgroundColor,
-    borderRadius: 10,
-  },
-  trendingImage: {
-    height: 200,
-    width: "100%",
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10
-  },
-  trendingTitle: {
-    color: "#fff",
-    top: 8,
-    fontFamily: RalewayFont,
-    textAlign: "center",
-  },
-
-  
-  navigationButtons: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingVertical: 13,
-  },
-  circleButton: {
-    width: 50,
-    height: 50,
-    backgroundColor: Colors.selectedColor,
-    borderRadius: 25,
-    justifyContent: "center",
-    alignItems: "center",
-    ...appStyles.shadow
-  },
-  movieCard: {
-    width: 11*7,
-    marginRight: 15,
-    overflow: "hidden"
-  },
-  movieImage: {
-    height: 16*7,
-    aspectRatio: 11 / 16,
-    borderRadius: 8,
-  },
-  movieTitle: {
-    color: "#fff",
-    fontSize: 14,
-    marginTop: 5,
-    textAlign: "center",
-  },
-  filterSection: {
-    backgroundColor: Colors.altBackgroundColor,
-    padding: 20,
-    borderRadius: 10,
-    marginBottom: 50
-  },
-  filterOptions: {
-    marginTop: 10,
-  },
-  filterText: {
-    color: "#fff",
-    fontSize: 16,
-    marginBottom: 5,
-  },
-  filterButton: {
-    backgroundColor: Colors.selectedColor,
-    width: 125,
-    height: 50,
-    borderRadius: 10,
-
-    paddingVertical: 10,
-    paddingHorizontal: 10,
-    marginTop: 15,
-    marginBottom: 60,    
-    
-    justifyContent: "center",
-    alignItems: "center",
-    alignSelf: "center"
-  },
-  libraryOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    height: LIBRARY_OVERLAY_HEIGHT,
-    justifyContent: 'center',
-    alignItems: 'center',
-    zIndex: 100,
-  },
-  libraryButton: {
-    width: 140,
-    paddingVertical: 14,
-    marginBottom: 10,
-    borderRadius: 10,
-    backgroundColor: Colors.selectedColor,
-    alignContent: "center",
-    justifyContent: "center",
-    ...appStyles.shadow
-  },
-  libraryButtonText: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: "600",
-    textAlign:"center",
-  },
+    container: {
+        flex: 1,
+        backgroundColor: Colors.backgroundColor,
+        paddingHorizontal: 20,
+        paddingTop: 40,
+    },
+    welcomeText: {
+        fontSize: 26,
+        fontFamily: RalewayFont,
+        color: Colors.selectedTextColor,
+        marginBottom: 20,
+    },
+    libraryOverlay: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        height: LIBRARY_OVERLAY_HEIGHT,
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 100,
+    },
+      libraryButton: {
+        width: 140,
+        paddingVertical: 14,
+        marginBottom: 10,
+        borderRadius: 10,
+        backgroundColor: Colors.selectedColor,
+        alignContent: "center",
+        justifyContent: "center",
+        ...appStyles.shadow
+    },
+      libraryButtonText: {
+        color: Colors.selectedTextColor,
+        fontSize: 18,
+        fontWeight: "600",
+        textAlign:"center",
+    },
+    slide: {
+        flex: 1,
+        borderRadius: 18,
+        overflow: "hidden",
+        justifyContent: "flex-end",
+    },
+    image: {
+        width: "100%",
+        height: "100%",
+    },
+    titleContainer: {
+        position: "absolute",
+        bottom: 0,
+        width: "100%",
+        backgroundColor: "rgba(0,0,0,0.44)",
+        paddingVertical: 8,
+        paddingHorizontal: 14,
+    },
+    title: {
+        color: Colors.selectedTextColor,
+        fontWeight: "600",
+        fontSize: 18,
+        letterSpacing: 0.2,
+    },
+    dotsContainer: {
+        flexDirection: "row",
+        justifyContent: "center",
+        alignItems: "center",
+        marginTop: 10,
+        height: 18,
+        gap: 8,
+    },
+    dot: {
+        width: 7,
+        height: 7,
+        borderRadius: 4,
+        backgroundColor: Colors.grayCell,
+        marginHorizontal: 2,
+    },
+    dotActive: {
+        backgroundColor: Colors.selectedTextColor,
+        width: 10,
+        height: 10,
+    }
 });

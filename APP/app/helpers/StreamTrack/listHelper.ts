@@ -22,7 +22,7 @@ export const getContentsInList = (contents: ContentPartialData[], lists: ListMin
                 : [];
 };
 
-export const isItemInListMinimal = (lists: ListMinimalData[], listName: string, tmdbID: string) => {
+export const isItemInList = (lists: ListMinimalData[], listName: string, tmdbID: string) => {
     const list: ListMinimalData = lists.find(l => l.listName === listName);
     if (!list) return false;
 
@@ -36,7 +36,8 @@ export const isItemInAnyList = (lists: ListMinimalData[], tmdbID: string) => {
 export const moveItemToList = async (content: ContentPartialData, listName: string, lists: ListMinimalData[], 
                                 setLists: React.Dispatch<React.SetStateAction<ListMinimalData[]>>,
                                 setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
-                                setMoveModalVisible: React.Dispatch<React.SetStateAction<boolean>>        
+                                setMoveModalVisible: React.Dispatch<React.SetStateAction<boolean>>,      
+                                setAutoPlay?: React.Dispatch<React.SetStateAction<boolean>>      
 ) => {
     // Only works for user owned lists for now
 
@@ -75,6 +76,7 @@ export const moveItemToList = async (content: ContentPartialData, listName: stri
     } finally {
         setIsLoading(false);
         setMoveModalVisible(false);
+        if (setAutoPlay) setAutoPlay(true);
     }
 };
 

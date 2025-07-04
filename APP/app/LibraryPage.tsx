@@ -21,7 +21,7 @@ import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
 import { setUserData, useUserDataStore } from './stores/userDataStore';
 import { ContentPartialData, ListMinimalData } from './types/dataTypes';
-import { createNewUserList, FAVORITE_TAB, getContentsInList, isItemInListMinimal, moveItemToList, sortLists } from './helpers/StreamTrack/listHelper';
+import { createNewUserList, FAVORITE_TAB, getContentsInList, isItemInList, moveItemToList, sortLists } from './helpers/StreamTrack/listHelper';
 import { User } from 'firebase/auth';
 import { auth } from '@/firebaseConfig';
 import { MoveModal } from './components/moveModalComponent';
@@ -37,7 +37,7 @@ export default function LibraryPage() {
 
     const { userData } = useUserDataStore();
 
-    const [lists, setLists] = useState<ListMinimalData[] | null>(sortLists([...userData?.user?.listsOwned, ...userData?.user?.listsSharedWithMe]));
+    const [lists, setLists] = useState<ListMinimalData[] | null>(sortLists([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]));
 
     const [activeTab, setActiveTab] = useState<string | null>(lists[0].listName);
 
@@ -77,7 +77,7 @@ export default function LibraryPage() {
 
     useEffect(() => {
         if (userData) {
-            setLists(sortLists([...userData?.user?.listsOwned, ...userData?.user?.listsSharedWithMe]));
+            setLists(sortLists([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]));
         }
     }, [userData]);
 
@@ -228,7 +228,7 @@ export default function LibraryPage() {
                 setVisibilityFunc={setMoveModalVisible}
                 setIsLoadingFunc={setIsLoading}
                 moveItemFunc={moveItemToList}
-                isItemInListFunc={isItemInListMinimal}
+                isItemInListFunc={isItemInList}
                 setListsFunc={setLists}
             />
 

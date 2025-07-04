@@ -11,9 +11,13 @@ public class ContentSimpleDTO {
 
     public string Title { get; set; } = string.Empty;
 
+    public string Overview { get; set; } = string.Empty;
+
     public string ShowType { get; set; } = string.Empty;
 
     public double Rating { get; set; } = 0.0;
+
+    public int ReleaseYear { get; set; } = 0;
 
     public List<string> GenreNames { get; set; } = new();
 

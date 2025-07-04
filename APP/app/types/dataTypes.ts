@@ -16,6 +16,7 @@ export type UpdateUserProfileData = {
     StreamingServices?: string[];
 };
 
+// Used to get content details on Info Page
 export type ContentRequestData = {
     tmdbID: string;
     VerticalPoster: string | null;
@@ -53,6 +54,26 @@ export type ListData = {
     // permission: string;
 };
 
+export type PopularContentData = {
+    carousel: ContentSimpleData[];
+    main: Record<string, ContentSimpleData[]>;
+}
+
+// Landing Page
+export type ContentSimpleData = {
+    tmdbID: string;
+    title: string;
+    overview: string;
+    showType: SHOW_TYPE;
+    rating: number;
+    releaseYear: number;
+    genreNames: string[];
+    streamingServiceNames: string[];
+    verticalPoster: string;
+    horizontalPoster: string;
+};
+
+// Search and Library pages
 export type ContentPartialData = {
     tmdbID: string;
     title: string;

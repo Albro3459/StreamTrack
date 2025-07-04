@@ -170,23 +170,17 @@ namespace StreamTrack.Migrations
                         {
                             GenreID = "6",
                             IsDeleted = false,
-                            Name = "Rom-Com"
+                            Name = "Science Fiction"
                         },
                         new
                         {
                             GenreID = "7",
                             IsDeleted = false,
-                            Name = "Sci-Fi"
-                        },
-                        new
-                        {
-                            GenreID = "8",
-                            IsDeleted = false,
                             Name = "Thriller"
                         },
                         new
                         {
-                            GenreID = "9",
+                            GenreID = "8",
                             IsDeleted = false,
                             Name = "Western"
                         });
@@ -316,7 +310,7 @@ namespace StreamTrack.Migrations
                             DarkLogo = "https://media.movieofthenight.com/services/max/logo-dark-theme.svg",
                             IsDeleted = false,
                             LightLogo = "https://media.movieofthenight.com/services/max/logo-light-theme.svg",
-                            Name = "HBO Max"
+                            Name = "Max"
                         },
                         new
                         {
@@ -324,7 +318,7 @@ namespace StreamTrack.Migrations
                             DarkLogo = "https://media.movieofthenight.com/services/prime/logo-dark-theme.svg",
                             IsDeleted = false,
                             LightLogo = "https://media.movieofthenight.com/services/prime/logo-light-theme.svg",
-                            Name = "Amazon Prime"
+                            Name = "Prime Video"
                         },
                         new
                         {
