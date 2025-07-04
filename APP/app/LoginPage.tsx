@@ -65,6 +65,7 @@ export default function LoginPage() {
                 <TextInput
                     style={appStyles.textInput}
                     placeholder="Email"
+                    placeholderTextColor={Colors.italicTextColor}
                     value={email}
                     onChangeText={setEmail}
                     autoCapitalize="none"
@@ -72,6 +73,7 @@ export default function LoginPage() {
                 <TextInput
                     style={appStyles.textInput}
                     placeholder="Password"
+                    placeholderTextColor={Colors.italicTextColor}
                     value={password}
                     onChangeText={setPassword}
                     onSubmitEditing={() => {!isSignUp && handleAuth()}}

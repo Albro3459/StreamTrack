@@ -87,6 +87,7 @@ export default function ProfilePage() {
                         </View>
                         <TextInput
                             style={styles.textInput}
+                            placeholderTextColor={Colors.italicTextColor}
                             value={firstNameText || ""}
                             onChangeText={(newText) => {setFirstNameText(newText); setIsEditing(true);}}
                         />
@@ -95,6 +96,7 @@ export default function ProfilePage() {
                         </View>
                         <TextInput
                             style={styles.textInput}
+                            placeholderTextColor={Colors.italicTextColor}
                             value={lastNameText || ""}
                             onChangeText={(newText) => {setLastNameText(newText); setIsEditing(true);}}
                         />

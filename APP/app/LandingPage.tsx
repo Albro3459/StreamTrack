@@ -37,7 +37,7 @@ export default function LandingPage () {
 
     const [carouselIndex, setCarouselIndex] = useState<number>(0);
     const carouselRef = useRef(null);
-    const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const timerRef = useRef<number | null>(null);
 
     const [isLoading, setIsLoading] = useState(true);
 
