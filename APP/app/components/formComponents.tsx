@@ -48,7 +48,9 @@ export const PressableBubblesGroup: React.FC<PressableBubbleGroupProps> = ({ lab
             onPress={() => {toggleSelection(label, setLabelState); onChange(true);}} 
             style={[styles.pressableBubble, selectedLabels.has(label) ? styles.selectedBubble : {paddingHorizontal: "4.33%",}]}
         >
-            <Text style={[styles.pressableText, selectedLabels.has(label) && styles.selectedBubbleText]}>{label}</Text>
+            <Text style={[styles.pressableText, selectedLabels.has(label) && styles.selectedBubbleText]}>
+                {label === "Science Fiction" ? "Sci-Fi" : label}
+            </Text>
         </Pressable>
     ) : 
     services && services.length > 0 ? services.map((service) =>

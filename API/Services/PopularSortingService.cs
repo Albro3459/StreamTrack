@@ -90,7 +90,7 @@ public class PopularSortingService {
                                                 .ToList();
                     break;
                 case "Rating":
-                    filteredContent = contents.Where(c => c.Rating >= 4.25) // 85% rating or better
+                    filteredContent = contents.Where(c => c.Rating >= 4.5) // 90% rating or better
                                                 .Take(maxContents)
                                                 .Select(c => mapper.Map<ContentDetail, ContentSimpleDTO>(c))
                                                 .ToList();

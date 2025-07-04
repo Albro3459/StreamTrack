@@ -125,13 +125,7 @@ export default function InfoPage() {
                     {content && content.streamingOptions.filter(s => !s.price).map((streamingOption, index) => (
                         <Pressable
                             key={index+streamingOption.deepLink}
-                            style={{
-                                maxWidth: screenWidth / 5,
-                                maxHeight: 50,
-                                margin: 5,
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                            }}
+                            style={styles.streamingLogo}
                             onPress={() => {
                                 if (streamingOption.deepLink) {
                                     Linking.openURL(streamingOption.deepLink).catch(err => console.error("Failed to open URL:", err));
@@ -150,13 +144,7 @@ export default function InfoPage() {
                      {content && content.streamingOptions.filter(s => s.price).map((streamingOption, index) => (
                         <Pressable
                             key={index+streamingOption.deepLink}
-                            style={{
-                                maxWidth: screenWidth / 5,
-                                maxHeight: 50,
-                                margin: 5,
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                            }}
+                            style={styles.streamingLogo}
                             onPress={() => {
                                 if (streamingOption.deepLink) {
                                     Linking.openURL(streamingOption.deepLink).catch(err => console.error("Failed to open URL:", err));
@@ -361,6 +349,14 @@ const styles = StyleSheet.create({
     },
     activeTabText: {
       color: '#FFFFFF',
+    },
+    streamingLogo: {
+        maxWidth: screenWidth / 5,
+        maxHeight: 50,
+        margin: 5,
+        paddingTop: 10,
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     content: {
       padding: 16,

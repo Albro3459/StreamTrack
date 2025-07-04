@@ -1,17 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import Carousel from "react-native-reanimated-carousel";
-import { Pressable, View, Image, StyleSheet, TouchableOpacity, Text, ScrollView, ActivityIndicator, Dimensions } from "react-native";
-import { MaterialIcons } from "@expo/vector-icons";
+import { Pressable, View, Image, StyleSheet, TouchableOpacity, Text, ScrollView, ActivityIndicator, Dimensions, FlatList } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { appStyles, RalewayFont } from "@/styles/appStyles";
 import { useUserDataStore } from "./stores/userDataStore";
-import { User } from "firebase/auth";
-import { auth } from "@/firebaseConfig";
 import { usePopularContentStore } from "./stores/popularContentStore";
 import { ContentSimpleData, ListMinimalData } from "./types/dataTypes";
 import { MoveModal } from "./components/moveModalComponent";
-import { contentSimpleToPartial } from "./helpers/StreamTrack/contentHelper";
 import { isItemInList, moveItemToList, sortLists } from "./helpers/StreamTrack/listHelper";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { runOnJS } from 'react-native-reanimated';
@@ -20,12 +16,11 @@ const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
 const LIBRARY_OVERLAY_HEIGHT = screenHeight*.095;
 
-const CAROUSEL_AUTOPLAY_INTERVAL: number = 2000;
+const CAROUSEL_AUTOPLAY_INTERVAL: number = 7500; // in milliseconds, so 1000 === 1 sec
 
 export default function LandingPage () {
     const router = useRouter();
     
-    const [user, setUser] = useState<User | null>();
     const { userData } = useUserDataStore();
     const { popularContent } = usePopularContentStore();
 
@@ -112,12 +107,9 @@ export default function LandingPage () {
             <View style={styles.slide}>
                 <Image
                     source={{ uri: content.horizontalPoster }}
-                    style={styles.image}
+                    style={styles.carouselImage}
                     resizeMode="cover"
                 />
-                {/* <View style={styles.titleContainer}>
-                    <Text style={styles.title} numberOfLines={1}>{content.title}</Text>
-                </View> */}
             </View>
         </GestureDetector>);
     };
@@ -126,7 +118,7 @@ export default function LandingPage () {
         <View style={styles.container} >
             <ScrollView style={{ marginBottom: LIBRARY_OVERLAY_HEIGHT}} showsVerticalScrollIndicator={false}>
                 <Text style={styles.welcomeText}>WELCOME BACK{userData?.user?.firstName?.length > 0 && " "+userData.user.firstName.toUpperCase()}!</Text>
-                <View style={{ marginBottom: 16, alignItems: "center" }}>
+                <View style={{ marginBottom: 24, alignItems: "center" }}>
                     <Carousel<ContentSimpleData>
                         ref={carouselRef}
                         loop={false} // Causes bugs when clicking dots :(
@@ -157,48 +149,51 @@ export default function LandingPage () {
                         ))}
                     </View>
                 </View>
-
-                {/* Movie Cards */}
-                {/* {(!movies || movies.length <= 0) ? (
-                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 16 }}>
-                        <Text style={{ fontSize: 16, color: 'gray', textAlign: 'center', marginTop: -80 }}>
-                        {searchText.length > 0 && showNoResults && !isSearching ? "No Results :(" : "Try Searching for a Show or Movie!"}
-                        </Text>
-                    </View>
-                ) : (
-                <FlatList<Movie>
-                    ref={flatListRef}
-                    data={movies}
-                    keyExtractor={(item) => item.tmdbID}
-                    showsVerticalScrollIndicator={false}
-                    renderItem={({ item: movie }) => (
-                    <Pressable
-                        onPress={() => {
-                        //   Global.backPressLoadSearch = true;
-                            router.push({
-                                pathname: '/InfoPage',
-                                params: { tmdbID: movie.tmdbID, title: movie.title, year: movie.year, media_type: movie.mediaType, verticalPoster: movie.verticalPoster, horizontalPoster: movie.horizontalPoster },
-                            });
-                        }}
-                        onLongPress={() => {setSelectedMovie(movie); setMoveModalVisible(true);}}
-                    >
-                        <View style={[appStyles.cardContainer, {marginHorizontal: 16}]}>
-                            <Image source={{ uri: movie.verticalPoster }} style={appStyles.cardPoster} />
-                            <View style={appStyles.cardContent}>
-                                <Text style={appStyles.cardTitle}>{movie.title}</Text>
-                                <Text style={appStyles.cardDescription} numberOfLines={4}>{movie.content.overview}</Text>
-                                <StarRating rating={movie.rating}/>
-                            </View>
-                            <Heart 
-                                heartColor={isTMDBItemInList(lists, FAVORITE_TAB, movie.fullTMDBID) ? Colors.selectedHeartColor : Colors.unselectedHeartColor}
-                                size={40}
-                                onPress={async () => await delayedMoveTMDBItemToList(movie, FAVORITE_TAB, lists, setLists, setIsSearching, setMoveModalVisible)}
+                
+                {/* Sections */}
+                {popularContent?.main && Object.entries(popularContent.main).length > 0 ? (
+                    Object.entries(popularContent.main).map(([sectionTitle, sectionItems]) =>
+                        sectionItems.length > 0 ? (
+                        <View key={sectionTitle} style={styles.section}>
+                            <Text style={styles.sectionTitle}>{sectionTitle}</Text>
+                            <FlatList<ContentSimpleData>
+                                data={sectionItems}
+                                horizontal
+                                showsHorizontalScrollIndicator={false}
+                                keyExtractor={item => item.tmdbID}
+                                contentContainerStyle={styles.railListContent}
+                                renderItem={({ item }) => (
+                                    <Pressable
+                                        style={({ pressed }) => [
+                                            styles.card,
+                                            pressed && styles.cardPressed,
+                                        ]}
+                                        onPress={() => handlePress(item)}
+                                        onLongPress={() => handleLongPress(item)}
+                                        android_ripple={{ color: Colors.grayCell }}
+                                    >
+                                        <View style={styles.imageWrapper}>
+                                            <Image
+                                                source={{ uri: item.verticalPoster || item.horizontalPoster }}
+                                                style={styles.image}
+                                                resizeMode="cover"
+                                            />
+                                        </View>
+                                    </Pressable>
+                                )}
                             />
                         </View>
-                    </Pressable>
+                        ) : null
+                    )
+                    ) : (
+                    <View style={styles.nothingFoundContainer}>
+                        <Text style={styles.nothingFoundText}>Nothing found.</Text>
+                        {/* <TouchableOpacity onPress={clearAllFilters} style={styles.clearButton}>
+                            <Text style={styles.clearButtonText}>Clear Filters</Text>
+                        </TouchableOpacity> */}
+                    </View>
                     )}
-                />
-                )} */}
+
 
             </ScrollView>
 
@@ -216,7 +211,7 @@ export default function LandingPage () {
                 setListsFunc={setLists}
             />
         
-
+            {/* Library Button & Overlay */}
             <View style={styles.libraryOverlay}>
                 <TouchableOpacity
                     style={styles.libraryButton}
@@ -249,6 +244,7 @@ const styles = StyleSheet.create({
         color: Colors.selectedTextColor,
         marginBottom: 20,
     },
+
     libraryOverlay: {
         position: 'absolute',
         bottom: 0,
@@ -259,7 +255,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         zIndex: 100,
     },
-      libraryButton: {
+    libraryButton: {
         width: 140,
         paddingVertical: 14,
         marginBottom: 10,
@@ -269,19 +265,20 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         ...appStyles.shadow
     },
-      libraryButtonText: {
+    libraryButtonText: {
         color: Colors.selectedTextColor,
         fontSize: 18,
         fontWeight: "600",
         textAlign:"center",
     },
+
     slide: {
         flex: 1,
         borderRadius: 18,
         overflow: "hidden",
         justifyContent: "flex-end",
     },
-    image: {
+    carouselImage: {
         width: "100%",
         height: "100%",
     },
@@ -318,5 +315,83 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.selectedTextColor,
         width: 10,
         height: 10,
-    }
+    },
+
+    section: {
+        marginBottom: 24,
+        height: screenWidth * 0.45, // ~9/16 compared to card's width
+    },
+    sectionTitle: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: Colors.selectedTextColor,
+        marginBottom: 12,
+        paddingLeft: 8,
+        letterSpacing: 0.1,
+    },
+    railListContent: {
+        paddingHorizontal: 4,
+    },
+    card: {
+        width: screenWidth * 0.25, // ~9/16 compared to section's minHeight
+        marginRight: 15,
+        borderRadius: 10,
+        backgroundColor: Colors.altBackgroundColor,
+        overflow: 'hidden',
+        alignItems: 'center',
+        elevation: 1,
+        shadowColor: '#000',
+        shadowOpacity: 0.10,
+        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 1 },
+    },
+    cardPressed: {
+        transform: [{ scale: 0.97 }],
+        opacity: 0.96,
+    },
+    imageWrapper: {
+        width: '100%',
+        aspectRatio: 11 / 16,
+        borderRadius: 10,
+        // borderTopLeftRadius: 12,
+        // borderTopRightRadius: 12,
+        overflow: 'hidden',
+        backgroundColor: Colors.grayCell,
+    },
+    image: {
+        width: '100%',
+        height: '100%',
+        borderRadius: 0,
+    },
+    cardTitle: {
+        color: Colors.selectedTextColor,
+        fontSize: 14,
+        fontWeight: '600',
+        marginTop: 7,
+        marginBottom: 8,
+        textAlign: 'center',
+        paddingHorizontal: 4,
+    },
+    nothingFoundContainer: {
+        padding: 48,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    nothingFoundText: {
+        color: Colors.grayCell,
+        fontSize: 18,
+        marginBottom: 12,
+    },
+    clearButton: {
+        backgroundColor: Colors.selectedColor,
+        paddingVertical: 12,
+        paddingHorizontal: 26,
+        borderRadius: 7,
+        marginTop: 5,
+    },
+    clearButtonText: {
+        color: Colors.selectedTextColor,
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
 });
