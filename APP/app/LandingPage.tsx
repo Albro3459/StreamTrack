@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import Carousel from "react-native-reanimated-carousel";
 import { Pressable, View, Image, StyleSheet, TouchableOpacity, Text, ScrollView, ActivityIndicator, Dimensions } from "react-native";
 import { MaterialIcons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { appStyles, RalewayFont } from "@/styles/appStyles";
 import { useUserDataStore } from "./stores/userDataStore";
@@ -18,6 +18,8 @@ import { isItemInList, moveItemToList, sortLists } from "./helpers/StreamTrack/l
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
 const LIBRARY_OVERLAY_HEIGHT = screenHeight*.095;
+
+const CAROUSEL_AUTOPLAY_INTERVAL: number = 2000;
 
 export default function LandingPage () {
     const router = useRouter();
@@ -35,8 +37,34 @@ export default function LandingPage () {
 
     const [carouselIndex, setCarouselIndex] = useState<number>(0);
     const carouselRef = useRef(null);
+    const timerRef = useRef<NodeJS.Timeout | null>(null);
 
     const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const lastIndex = popularContent?.carousel?.length ? popularContent.carousel.length - 1 : 0;
+        if (carouselIndex === lastIndex && popularContent?.carousel?.length > 1) {
+            // Only start timer if at last slide
+            timerRef.current = setTimeout(() => {
+                setCarouselIndex(0);
+                if (carouselRef.current) {
+                    carouselRef.current.scrollTo({ index: 0, animated: false });
+                }
+            }, CAROUSEL_AUTOPLAY_INTERVAL);
+        } else {
+            // If index changes away from last slide, clear the timer
+            if (timerRef.current) {
+                clearTimeout(timerRef.current);
+                timerRef.current = null;
+            }
+        }
+        return () => { // clean up
+            if (timerRef.current) {
+                clearTimeout(timerRef.current);
+                timerRef.current = null;
+            }
+        };
+    }, [carouselIndex, popularContent?.carousel?.length]);
 
     useEffect(() => {
         if (userData) {
@@ -89,12 +117,12 @@ export default function LandingPage () {
                 <View style={{ marginBottom: 16, alignItems: "center" }}>
                     <Carousel<ContentSimpleData>
                         ref={carouselRef}
-                        // loop // Causes bugs and don't need it. It loops anyway. Maybe because of autoPlay
+                        loop={false} // Causes bugs when clicking dots :(
                         width={screenWidth * 0.90}
                         height={screenWidth * 0.50}
-                        // autoPlay={autoPlay}
-                        autoPlay={true}
-                        autoPlayInterval={10000}
+                        windowSize={3}
+                        autoPlay={autoPlay}
+                        autoPlayInterval={CAROUSEL_AUTOPLAY_INTERVAL}
                         data={popularContent?.carousel}
                         scrollAnimationDuration={500}
                         onSnapToItem={setCarouselIndex}
