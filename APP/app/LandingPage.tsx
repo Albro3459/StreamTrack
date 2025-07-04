@@ -1,16 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
 import Carousel from "react-native-reanimated-carousel";
-import { Pressable, View, Image, StyleSheet, TouchableOpacity, Text, ScrollView, ActivityIndicator, Dimensions, FlatList } from "react-native";
+import { Pressable, View, Image, StyleSheet, TouchableOpacity, Text, ScrollView, ActivityIndicator, Dimensions, FlatList, RefreshControl } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { appStyles, RalewayFont } from "@/styles/appStyles";
 import { useUserDataStore } from "./stores/userDataStore";
-import { usePopularContentStore } from "./stores/popularContentStore";
+import { fetchPopularContent, usePopularContentStore } from "./stores/popularContentStore";
 import { ContentSimpleData, ListMinimalData } from "./types/dataTypes";
 import { MoveModal } from "./components/moveModalComponent";
 import { isItemInList, moveItemToList, sortLists } from "./helpers/StreamTrack/listHelper";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { runOnJS } from 'react-native-reanimated';
+import { auth } from "@/firebaseConfig";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -36,6 +37,16 @@ export default function LandingPage () {
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
     const [isLoading, setIsLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        try {
+            await fetchPopularContent(await auth.currentUser.getIdToken());
+        } finally {
+            setRefreshing(false);
+        }
+    };
 
     useEffect(() => {
         const lastIndex = popularContent?.carousel?.length ? popularContent.carousel.length - 1 : 0;
@@ -116,7 +127,16 @@ export default function LandingPage () {
 
     return (
         <View style={styles.container} >
-            <ScrollView style={{ marginBottom: LIBRARY_OVERLAY_HEIGHT}} showsVerticalScrollIndicator={false}>
+            <ScrollView style={{ marginBottom: LIBRARY_OVERLAY_HEIGHT}} showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        tintColor={Colors.selectedTextColor} // iOS spinner color
+                        colors={[Colors.selectedColor]} // Android spinner color
+                    />
+                }
+            >
                 <Text style={styles.welcomeText}>WELCOME BACK{userData?.user?.firstName?.length > 0 && " "+userData.user.firstName.toUpperCase()}!</Text>
                 <View style={{ marginBottom: 24, alignItems: "center" }}>
                     <Carousel<ContentSimpleData>
