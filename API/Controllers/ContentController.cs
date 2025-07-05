@@ -99,9 +99,9 @@ public class ContentController : ControllerBase {
 
     // I dont think it needs to save because it only needs to be saved if its in a list or popular,
     //   but if it was in a list or popular, it would already be in the DB
-    // POST: API/Content/Details
-    [HttpPost("Details")]
-    public async Task<ActionResult<ContentDTO>> FetchContentDetails([FromBody] ContentRequestDTO requestDTO) {
+    // POST: API/Content/Info
+    [HttpPost("Info")]
+    public async Task<ActionResult<ContentInfoDTO>> FetchContentInfo([FromBody] ContentRequestDTO requestDTO) {
         // Get the user's auth token to get the firebase uuid to get the correct user's data
         // User's can only get their own data
 
@@ -129,7 +129,11 @@ public class ContentController : ControllerBase {
             return BadRequest();
         }
 
-        return mapper.Map<ContentDetail, ContentDTO>(detail);
+        ContentDTO detailDTO = mapper.Map<ContentDetail, ContentDTO>(detail);
+
+        List<ContentPartialDTO> recommendations = await service.GetRecommendations(detail);
+
+        return new ContentInfoDTO { Content = detailDTO, Recommendations = recommendations };
     }
 
     // GET: API/Content/GetAll

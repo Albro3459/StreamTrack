@@ -1,18 +1,18 @@
 "use client";
 
 import { create } from 'zustand';
-import { ContentData } from '../types/dataTypes';
+import { ContentInfoData } from '../types/dataTypes';
 
 interface ContentDataStore {
-    contentCache: ContentData[];
-    cacheContent: (content: ContentData) => void;
+    contentCache: ContentInfoData[];
+    cacheContent: (info: ContentInfoData) => void;
     clearContentCache: () => void;
 }
 
-export const getCachedContent = (tmdbID: string): ContentData | null => {
+export const getCachedContent = (tmdbID: string): ContentInfoData | null => {
     const store = useContentDataStore.getState();
-    const recent: ContentData[] = store.contentCache;
-    return recent.find(c => c.tmdbID === tmdbID);
+    const recent: ContentInfoData[] = store.contentCache;
+    return recent.find(c => c.content.tmdbID === tmdbID);
 };
 
 export const clearContentCache = () : void => {
@@ -23,12 +23,12 @@ export const clearContentCache = () : void => {
 export const useContentDataStore = create<ContentDataStore>((set, get) => ({
     contentCache: [],
 
-    cacheContent: (content: ContentData) => {
-        const recent: ContentData[] = get().contentCache;
+    cacheContent: (info: ContentInfoData) => {
+        const recent: ContentInfoData[] = get().contentCache;
 
-        const filtered = recent.filter(c => c.tmdbID !== content.tmdbID); // Remove duplicates
+        const filtered = recent.filter(c => c.content.tmdbID !== info.content.tmdbID); // Remove duplicates
 
-        const updated = [content, ...filtered].slice(0, 15); // Put it at the front and only keep first n items
+        const updated = [info, ...filtered].slice(0, 15); // Put it at the front and only keep first n items
         
         set({contentCache: updated});
     },

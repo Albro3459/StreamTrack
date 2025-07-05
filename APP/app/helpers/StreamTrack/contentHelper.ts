@@ -1,6 +1,6 @@
 "use client";
 
-import { ContentData, ContentPartialData, ContentRequestData, ContentSimpleData, PopularContentData } from "@/app/types/dataTypes";
+import { ContentInfoData, ContentPartialData, ContentRequestData, ContentSimpleData, PopularContentData } from "@/app/types/dataTypes";
 import { DataAPIURL } from "@/secrets/DataAPIUrl";
 
 export const contentSimpleToPartial = (simple: ContentSimpleData): ContentPartialData => {
@@ -15,9 +15,9 @@ export const contentSimpleToPartial = (simple: ContentSimpleData): ContentPartia
     };
 };
 
-export const getContentDetails = async (token: string, content: ContentRequestData): Promise<ContentData | null> => {
+export const getContentInfo = async (token: string, content: ContentRequestData): Promise<ContentInfoData | null> => {
     try {
-        const url = DataAPIURL + "API/Content/Details";
+        const url = DataAPIURL + "API/Content/Info";
 
         const options = {
             method: 'POST',
@@ -37,7 +37,7 @@ export const getContentDetails = async (token: string, content: ContentRequestDa
             return null;
         }
 
-        const data: ContentData = await result.json();
+        const data: ContentInfoData = await result.json();
         
         return data;
     } catch (err) {

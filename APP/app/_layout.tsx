@@ -7,6 +7,7 @@ import { Fontisto, Feather } from '@expo/vector-icons';
 import { Colors } from "@/constants/Colors";
 import { useEffect } from "react";
 import { useFonts, Raleway_800ExtraBold } from '@expo-google-fonts/raleway';
+import { appStyles } from "@/styles/appStyles";
 // import { Kurale_400Regular } from '@expo-google-fonts/kurale';
 
 // import { ClearLoadState, Global } from "@/Global";
@@ -21,70 +22,6 @@ export default function RootLayout() {
         Raleway_800ExtraBold,
         // Kurale_400Regular,
     });
-
-    // const handleInfoPageBackPress = (navigation) => {
-    //     // console.log("INFO PAGE BACK PRESS:");
-
-    //     // console.log("Global.backPressLoadSearch:", Global.backPressLoadSearch);
-    //     // console.log("Global.searchMovies:", Global.searchMovies);
-    //     // console.log("Global.searchFilter:", Global.searchFilter);
-
-    //     // console.log("Global.backPressLoadLibrary:", Global.backPressLoadLibrary);
-
-    //     // console.log("Global.backPressLoadSpinner:", Global.backPressLoadSpinner);
-        
-    //     if (Global.backPressLoadSearch) {
-    //         // Add SearchPage to the stack below the current screen
-    //         navigation.reset({
-    //         index: 1,
-    //         routes: [
-    //             { name: "SearchPage" }, // Place SearchPage below
-    //             { name: "InfoPage" }, // Current screen
-    //         ],
-    //         });
-    //     }
-    //     else if (Global.backPressLoadLibrary) {
-    //         // Add Library to the stack below the current screen
-    //         navigation.reset({
-    //         index: 1,
-    //         routes: [
-    //             { name: "LibraryPage" }, // Place LibraryPage below
-    //             { name: "InfoPage" }, // Current screen
-    //         ],
-    //         });
-    //     }
-    //     else if (Global.backPressLoadSpinner) {
-    //         // Add Spinner to the stack below the current screen
-    //         navigation.reset({
-    //             index: 1,
-    //             routes: [
-    //                 { name: "SpinnerPage" }, // Place SpinnerPage below
-    //                 { name: "InfoPage" }, // Current screen
-    //             ],
-    //             });
-    //     }
-    //     // Go back to SearchPage, LibraryPage, or SpinnerPage with back animation and state if needed
-    //     navigation.goBack();
-    // };
-
-    // const handleSpinnerPageBackPress = (navigation) => {
-    //     // console.log("SPINNER PAGE BACK PRESS:");
-
-    //     // console.log("Global.backPressLoadLibrary:", Global.backPressLoadLibrary);
-        
-    //     if (Global.backPressLoadLibrary) {
-    //         // Add Library to the stack below the current screen
-    //         navigation.reset({
-    //         index: 1,
-    //         routes: [
-    //             { name: "LibraryPage" }, // Place LibraryPage below
-    //             { name: "SpinnerPage" }, // Current screen
-    //         ],
-    //         });
-    //     }
-    //     // Go back to LibraryPage with back animation and state if needed
-    //     navigation.goBack();
-    // };
     
     // Show splash screen until fonts are loaded
     useEffect(() => {
@@ -119,10 +56,7 @@ export default function RootLayout() {
                     title: "Search", 
                     headerBackButtonDisplayMode: "minimal",
                     headerTintColor: "white",
-                    headerTitleStyle: {
-                        fontSize: 24,
-                        color: "white"
-                    },
+                    headerTitleStyle: appStyles.headerTitleStyle,
                     headerStyle: {
                         backgroundColor: Colors.selectedColor,
                     },
@@ -134,19 +68,15 @@ export default function RootLayout() {
                     title: "Stream Track",
                     gestureEnabled: false,
                     headerBackVisible: false,
-                    headerTitleStyle: {
-                        fontSize: 24,
-                        color: "white"
-                    },
+                    headerTitleStyle: appStyles.headerTitleStyle,
                     headerStyle: {
                         backgroundColor: Colors.selectedColor,
                     },
                     headerLeft: () => (
                         <Pressable onPress={() => {
-                            // ClearLoadState();
                             router.push('/SearchPage');
                         }}>
-                            <Feather name="search" size={28} color="white" />
+                            <Feather name="search" size={24} color="white" />
                         </Pressable>
                     ),
                     headerRight: () => (
@@ -154,7 +84,7 @@ export default function RootLayout() {
                                     pathname: '/ProfilePage',
                                     params: { isSigningUp: 0 }, // Have to pass as number or string
                                 })}>
-                            <Feather name="user" size={28} color="white" />
+                            <Feather name="user" size={24} color="white" />
                         </TouchableOpacity>
                     ),
                 })}
@@ -168,10 +98,7 @@ export default function RootLayout() {
                     // headerBackVisible: false,
                     headerBackButtonDisplayMode: "minimal",
                     headerTintColor: "white",
-                    headerTitleStyle: {
-                        fontSize: 24,
-                        color: "white"
-                    },
+                    headerTitleStyle: appStyles.headerTitleStyle,
                     headerStyle: {
                         backgroundColor: Colors.selectedColor,
                     },
@@ -185,7 +112,7 @@ export default function RootLayout() {
                             // ClearLoadState();
                             router.replace('/LandingPage');
                         }}>
-                            <Feather name="home" size={28} color="white" />
+                            <Feather name="home" size={24} color="white" />
                         </TouchableOpacity>
                     ),
                 })}
@@ -198,19 +125,15 @@ export default function RootLayout() {
                     title: "Library",
                     headerBackButtonDisplayMode: "minimal",
                     headerTintColor: "white",
-                    headerTitleStyle: {
-                        fontSize: 24,
-                        color: "white"
-                    },
+                    headerTitleStyle: appStyles.headerTitleStyle,
                     headerStyle: {
                         backgroundColor: Colors.selectedColor,
                     },
                     headerRight: () => (
                         <TouchableOpacity onPress={() => {
-                            // Global.backPressLoadLibrary = true;
                             router.push('/SpinnerPage');
                         }}>
-                            <Fontisto name="spinner" size={28} color="white" />
+                            <Fontisto name="spinner" size={24} color="white" />
                         </TouchableOpacity>
                     ),
                 })}
@@ -221,21 +144,18 @@ export default function RootLayout() {
                 options={() => ({
                     title: "Info", 
                     headerBackButtonDisplayMode: "minimal",
-                    // headerBackVisible: false,
-                    // gestureEnabled: false,
                     headerTintColor: "white",
-                    headerTitleStyle: {
-                        fontSize: 24,
-                        color: "white"
-                    },
+                    headerTitleStyle: appStyles.headerTitleStyle,
                     headerStyle: {
                         backgroundColor: Colors.selectedColor,
                     },
-                    // headerLeft: () => (
-                    //     <Pressable onPress={() => handleInfoPageBackPress(navigation)}>
-                    //         <Feather name="chevron-left" size={32} color="white" />
-                    //     </Pressable>
-                    // ),
+                    headerRight: () => (
+                        <Pressable onPress={() => {
+                            router.replace('/LandingPage');
+                        }}>
+                            <Feather name="home" size={24} color="white" />
+                        </Pressable>
+                    ),
                 })}
             /> 
             <Stack.Screen 
@@ -244,10 +164,7 @@ export default function RootLayout() {
                 title: "Profile",
                 headerBackButtonDisplayMode: "minimal",
                 headerTintColor: "white",
-                headerTitleStyle: {
-                    fontSize: 24,
-                    color: "white",
-                },
+                headerTitleStyle: appStyles.headerTitleStyle,
                 headerStyle: {
                         backgroundColor: Colors.selectedColor,
                     },

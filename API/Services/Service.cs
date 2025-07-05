@@ -18,6 +18,29 @@ public class Service {
         mapper = _mapper;
     }
 
+    public async Task<List<ContentPartialDTO>> GetRecommendations(ContentDetail detail) {
+        var genreNames = detail.Genres.Select(g => g.Name.ToLower()).ToList();
+        var streamingServiceNames = detail.StreamingOptions.Select(s => s.StreamingService.Name.ToLower()).ToList();
+
+        return await context.ContentDetail
+            .Include(c => c.Genres)
+            .Include(c => c.StreamingOptions)
+                .ThenInclude(s => s.StreamingService)
+            .Where(c => c.TMDB_ID != detail.TMDB_ID && (
+                c.Genres.Any(g => genreNames.Contains(g.Name.ToLower())) ||
+                c.StreamingOptions.Any(s => streamingServiceNames.Contains(s.StreamingService.Name.ToLower()))
+            ))
+            .OrderByDescending(c =>
+                // Weight: shared genres + shared streaming services
+                c.Genres.Count(g => genreNames.Contains(g.Name.ToLower())) +
+                c.StreamingOptions.Count(s => streamingServiceNames.Contains(s.StreamingService.Name.ToLower()))
+            )
+            .Take(5)
+            .Select(c => mapper.Map<ContentDetail, ContentPartialDTO>(c))
+            .ToListAsync();
+
+    }
+
     public async Task<User?> GetFullUserByID(string userID) {
         return await context.User
             .Include(u => u.ListsOwned)

@@ -2,19 +2,19 @@
 
 import { Colors } from '@/constants/Colors';
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Pressable, Linking, ActivityIndicator } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Pressable, Linking, ActivityIndicator, FlatList } from 'react-native';
 import Heart from './components/heartComponent';
-import { useLocalSearchParams } from 'expo-router/build/hooks';
+import { useLocalSearchParams, useRouter } from 'expo-router/build/hooks';
 import { MaterialIcons } from '@expo/vector-icons';
 import { appStyles, RalewayFont } from '@/styles/appStyles';
 import { SvgUri } from 'react-native-svg';
 import { TMDB_MEDIA_TYPE } from './types/tmdbType';
-import { ContentData, ContentRequestData, ListMinimalData, StreamingOptionData } from './types/dataTypes';
+import { ContentData, ContentInfoData, ContentPartialData, ContentRequestData, ListMinimalData, StreamingOptionData } from './types/dataTypes';
 import { useUserDataStore } from './stores/userDataStore';
 import { FAVORITE_TAB, isItemInList, moveItemToList } from './helpers/StreamTrack/listHelper';
 import MoveModal from './components/moveModalComponent';
 import { StarRating } from './components/starRatingComponent';
-import { getContentDetails } from './helpers/StreamTrack/contentHelper';
+import { getContentInfo } from './helpers/StreamTrack/contentHelper';
 import { auth } from '@/firebaseConfig';
 import { getCachedContent, useContentDataStore } from './stores/contentDataStore';
 import AlertMessage, { Alert } from './components/alertMessageComponent';
@@ -28,6 +28,7 @@ interface InfoPageParams {
 }
 
 export default function InfoPage() {
+    const router = useRouter();
 
     const { tmdbID, verticalPoster, horizontalPoster } = useLocalSearchParams() as InfoPageParams;
 
@@ -39,17 +40,15 @@ export default function InfoPage() {
 
     const [lists, setLists] = useState<ListMinimalData[] | null>([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]);
 
-    const [content, setContent] = useState<ContentData | null>();
+    const [info, setInfo] = useState<ContentInfoData | null>();
+    const [selectedContent, setSelectedContent] = useState<ContentPartialData>(null);
 
     const [isLoading, setIsLoading] = useState(true);
     
     const [listModalVisible, setListModalVisible] = useState(false);
+    const [recommendedListModalVisible, setRecommendedListModalVisible] = useState(false);
 
     const [activeTab, setActiveTab] = useState<string>('About');
- 
-//    const [recommendedContent, setRecommendedContent] = useState<PosterContent[]>([]);
-//    const [selectedRecommendation, setSelectedRecommendation] = useState<PosterContent | null>(null);
-    const [infoModalVisible, setInfoModalVisible] = useState(false);
 
     const getServicePrice = (option: StreamingOptionData) : string => {
         if (option && option.streamingService && option.price) {
@@ -79,21 +78,32 @@ export default function InfoPage() {
                 )));
     };
 
+    const handlePress = (content: ContentPartialData) => {
+        router.push({
+            pathname: '/InfoPage',
+            params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, horizontalPoster: content.horizontalPoster },
+        });
+    }
+    
+    const handleLongPress = (content: ContentPartialData) => {
+        setSelectedContent(content); setRecommendedListModalVisible(true);
+    }
+
     useEffect(() => {
         const fetchContent = async () => {
             if (!tmdbID) return;
 
             const token = await auth.currentUser.getIdToken();
     
-            let content: ContentData | null = getCachedContent(tmdbID);
+            let content: ContentInfoData | null = getCachedContent(tmdbID);
 
             try {
                 if (!content) {
-                    content = await getContentDetails(token, {tmdbID:tmdbID, VerticalPoster:verticalPoster, HorizontalPoster:horizontalPoster} as ContentRequestData);
+                    content = await getContentInfo(token, {tmdbID:tmdbID, VerticalPoster:verticalPoster, HorizontalPoster:horizontalPoster} as ContentRequestData);
                 }
             } finally {
                 if (content) {
-                    setContent(content);
+                    setInfo(content);
                     cacheContent(content);
                 }
                 setIsLoading(false);
@@ -107,28 +117,28 @@ export default function InfoPage() {
         case 'About':
             return (
             <View style={styles.content}>
-                {content?.rating > 0 &&
+                {info?.content?.rating > 0 &&
                     <View style={{flexDirection: "row", justifyContent: "flex-start", alignItems: "center"}}>
                         <Text style={styles.sectionTitle}>Rating  </Text>
-                        {content && <StarRating rating={content?.rating}/> }
+                        {info && <StarRating rating={info?.content?.rating}/> }
                     </View>
                 }
 
                 <View style={{flexDirection: "row", justifyContent: "flex-start", alignItems: "center"}}>
-                <Text style={styles.sectionTitle}>{!content ? tmdbID.split('/')[0] === TMDB_MEDIA_TYPE.MOVIE ? "Movie" : "Series" : (
-                    `${content.showType.charAt(0).toUpperCase() + content.showType.slice(1).toLowerCase()}`
+                <Text style={styles.sectionTitle}>{!info ? tmdbID.split('/')[0] === TMDB_MEDIA_TYPE.MOVIE ? "Movie" : "Series" : (
+                    `${info?.content?.showType.charAt(0).toUpperCase() + info?.content?.showType.slice(1).toLowerCase()}`
                     )}</Text>
                 <Text style={[styles.text, {fontSize: 18, paddingLeft: 15, paddingTop: 10, textAlign: 'left', textAlignVertical: "center"}]}>
-                    {getRuntime(content)}
+                    {getRuntime(info?.content)}
                 </Text>
                 </View>
 
                 <Text style={styles.sectionTitle}>Overview</Text>
-                <Text style={styles.text}>{content && content.overview}</Text>
+                <Text style={styles.text}>{info && info?.content?.overview}</Text>
 
                 <Text style={[styles.sectionTitle, {marginBottom: 0} ]}>Where to Watch</Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', columnGap: 10, paddingBottom: 10}}>
-                    {content && content.streamingOptions.filter(s => !s.price).map((streamingOption, index) => (
+                    {info && info?.content?.streamingOptions.filter(s => !s.price).map((streamingOption, index) => (
                         <Pressable
                             key={index+streamingOption.deepLink}
                             style={styles.streamingLogo}
@@ -147,7 +157,7 @@ export default function InfoPage() {
                             />
                         </Pressable>
                     ))}
-                     {content && content.streamingOptions.filter(s => s.price).map((streamingOption, index) => (
+                     {info && info?.content?.streamingOptions.filter(s => s.price).map((streamingOption, index) => (
                         <Pressable
                             key={index+streamingOption.deepLink}
                             style={styles.streamingLogo}
@@ -171,45 +181,47 @@ export default function InfoPage() {
 
                 <Text style={styles.sectionTitle}>Genres</Text>
                 <Text style={styles.text}>{
-                    content && content.genres.map((genre) => (
+                    info && info?.content?.genres.map((genre) => (
                         genre.name
                     )).join(' | ')}
                 </Text>
 
                 <Text style={styles.sectionTitle}>Cast</Text>
                 <Text style={styles.text}>
-                {content && content.cast.join(' | ')}
+                {info && info?.content?.cast.join(' | ')}
                 </Text>
             </View>
             );
         case 'Recommended':
             return (
             <View style={styles.content}>
-                <Text style={styles.sectionTitle}>Recommended</Text>
-                <Text style={styles.text}>Explore more movies like this!</Text>
-                {/* <FlatList
-                    data={recommendedContent}
+                <Text style={[styles.sectionTitle, {paddingBottom: 10}]}>Explore similar content!</Text>
+                <FlatList<ContentPartialData>
+                    data={info?.recommendations}
                     horizontal
                     showsHorizontalScrollIndicator={false}
-                    nestedScrollEnabled
-                    keyExtractor={(item) => item.id}
+                    keyExtractor={item => item.tmdbID}
+                    contentContainerStyle={styles.railListContent}
                     renderItem={({ item }) => (
                         <Pressable
-                        style={appStyles.movieCard}
-                        onPress={() => router.push({
-                                            pathname: '/InfoPage',
-                                            params: { id: item.id },
-                                            })}
-                        onLongPress={() => {setSelectedRecommendation(item); setInfoModalVisible(true);}}
+                            style={({ pressed }) => [
+                                styles.card,
+                                pressed && styles.cardPressed,
+                            ]}
+                            onPress={() => handlePress(item)}
+                            onLongPress={() => handleLongPress(item)}
+                            android_ripple={{ color: Colors.grayCell }}
                         >
-                        <Image
-                            source={{uri: item && item.posters.vertical }}
-                            style={appStyles.movieImage}
-                        />
-                        <Text style={appStyles.movieTitle}>{item.title}</Text>
+                            <View style={styles.imageWrapper}>
+                                <Image
+                                    source={{ uri: item.verticalPoster || item.horizontalPoster }}
+                                    style={styles.image}
+                                    resizeMode="cover"
+                                />
+                            </View>
                         </Pressable>
                     )}
-                /> */}
+                />
             </View>
             );
         default:
@@ -228,15 +240,15 @@ export default function InfoPage() {
             <ScrollView showsVerticalScrollIndicator={false}>
                 <View style={styles.movieContainer}>
                     {/* Movie Poster */}
-                    <Image source={{ uri: content && content.verticalPoster }} style={styles.posterImage} />
+                    <Image source={{ uri: info && info?.content?.verticalPoster }} style={styles.posterImage} />
                     {/* Movie Info */}
                     <View style={styles.infoSection}>
-                        <Text style={styles.title}>{content?.title}</Text>
+                        <Text style={styles.title}>{info?.content?.title}</Text>
                         <View style={styles.attributeContainer}>
                             <Text style={[styles.text, {fontSize: 18, textAlignVertical: "center"}]}>
-                                {(content?.releaseYear > 0 ? content?.releaseYear+ "    " 
-                                        : (content?.releaseYear > 0 
-                                        ? content.releaseYear+ "    " : "")) + getRuntime(content)}
+                                {(info?.content?.releaseYear > 0 ? info?.content?.releaseYear+ "    " 
+                                        : (info?.content?.releaseYear > 0 
+                                        ? info.content?.releaseYear+ "    " : "")) + getRuntime(info?.content)}
                             </Text>
                         </View>
                         <View style={[styles.attributeContainer, {marginTop: 5}]} >
@@ -248,9 +260,9 @@ export default function InfoPage() {
                             </TouchableOpacity>
                             
                             <Heart 
-                                heartColor={isItemInList(lists, FAVORITE_TAB, tmdbID ? tmdbID : content ? content.tmdbID : "") ? Colors.selectedHeartColor : Colors.unselectedHeartColor}
+                                heartColor={isItemInList(lists, FAVORITE_TAB, tmdbID ? tmdbID : info ? info?.content?.tmdbID : "") ? Colors.selectedHeartColor : Colors.unselectedHeartColor}
                                 size={45}
-                                onPress={async () => await moveItemToList(content, FAVORITE_TAB, lists, setLists, setIsLoading, setListModalVisible)}
+                                onPress={async () => await moveItemToList(info?.content, FAVORITE_TAB, lists, setLists, setIsLoading, setListModalVisible)}
                             />
                         </View>
                     </View>
@@ -278,12 +290,26 @@ export default function InfoPage() {
 
             {/* Lists */}
             <MoveModal
-                selectedContent={content}
+                selectedContent={info?.content}
                 lists={lists}
                 showLabel={false}
                 showHeart={false}
                 visibility={listModalVisible}
                 setVisibilityFunc={setListModalVisible}
+                setIsLoadingFunc={setIsLoading}
+                moveItemFunc={moveItemToList}
+                isItemInListFunc={isItemInList}
+                setListsFunc={setLists}
+                setAlertMessageFunc={setAlertMessage}
+                setAlertTypeFunc={setAlertType}
+            />
+            <MoveModal
+                selectedContent={selectedContent}
+                lists={lists}
+                showLabel={false}
+                showHeart={false}
+                visibility={recommendedListModalVisible}
+                setVisibilityFunc={setRecommendedListModalVisible}
                 setIsLoadingFunc={setIsLoading}
                 moveItemFunc={moveItemToList}
                 isItemInListFunc={isItemInList}
@@ -394,5 +420,68 @@ const styles = StyleSheet.create({
       color: Colors.reviewTextColor,
       marginVertical: 4,
       paddingBottom: 10,
+    },
+
+    railListContent: {
+        paddingHorizontal: 4,
+    },
+    card: {
+        width: screenWidth * 0.22,
+        marginRight: 15,
+        borderRadius: 10,
+        backgroundColor: Colors.altBackgroundColor,
+        overflow: 'hidden',
+        alignItems: 'center',
+        elevation: 1,
+        shadowColor: '#000',
+        shadowOpacity: 0.10,
+        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 1 },
+    },
+    cardPressed: {
+        transform: [{ scale: 0.97 }],
+        opacity: 0.96,
+    },
+    imageWrapper: {
+        width: '100%',
+        aspectRatio: 11 / 16,
+        borderRadius: 10,
+        overflow: 'hidden',
+        backgroundColor: Colors.grayCell,
+    },
+    image: {
+        width: '100%',
+        height: '100%',
+    },
+    cardTitle: {
+        color: Colors.selectedTextColor,
+        fontSize: 14,
+        fontWeight: '600',
+        marginTop: 7,
+        marginBottom: 8,
+        textAlign: 'center',
+        paddingHorizontal: 4,
+    },
+    nothingFoundContainer: {
+        padding: 48,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    nothingFoundText: {
+        color: Colors.grayCell,
+        fontSize: 18,
+        marginBottom: 12,
+    },
+    clearButton: {
+        backgroundColor: Colors.selectedColor,
+        paddingVertical: 12,
+        paddingHorizontal: 26,
+        borderRadius: 10,
+        marginTop: 5,
+    },
+    clearButtonText: {
+        color: Colors.selectedTextColor,
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 });

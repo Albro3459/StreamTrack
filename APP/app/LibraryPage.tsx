@@ -123,8 +123,11 @@ export default function LibraryPage() {
             numColumns={3}
             keyExtractor={(content, index) => `${content.tmdbID}-${index}-${list}`}
             renderItem={({ item: content }) => (
-            <TouchableOpacity
-                style={styles.movieCard}
+            <Pressable
+                style={({ pressed }) => [
+                    styles.movieCard,
+                    pressed && appStyles.pressed,
+                ]}
                 onPress={() => {
                     router.push({
                         pathname: '/InfoPage',
@@ -144,7 +147,7 @@ export default function LibraryPage() {
                     style={styles.movieImage}
                 />
                 <Text style={styles.movieTitle}>{content.title}</Text>
-            </TouchableOpacity>
+            </Pressable>
             )}
         />
         );
@@ -187,7 +190,7 @@ export default function LibraryPage() {
                     )}
                 />
                 <Pressable onPress={() => setCreateListModalVisible(true)} >
-                        <Ionicons name="add-circle-outline" size={35} color="white" />
+                        <Ionicons name="add-circle-outline" size={28} color="white" />
                 </Pressable>
             </View>
 
@@ -258,6 +261,7 @@ const styles = StyleSheet.create({
         paddingVertical: 15,
         paddingLeft: 15,
         paddingRight: "3.5%",
+        alignItems: "center"
     },
     tabItem: {
         paddingVertical: 5,

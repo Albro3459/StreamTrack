@@ -86,10 +86,10 @@ export default function SearchPage() {
                 {/* Search Bar */}
                 <View style={[styles.searchBarContainer, {paddingHorizontal: 16}]} >
                     <Pressable 
-                        style={{paddingTop: 5,  ...appStyles.shadow}} 
+                        style={{...appStyles.shadow}} 
                         onPress={async () => await search(searchText)}
                     >
-                        <Feather name="search" size={28} color="white" />
+                        <Feather name="search" size={24} color="white" />
                     </Pressable>
                     <TextInput
                         ref={searchInputRef}
@@ -123,8 +123,10 @@ export default function SearchPage() {
                     showsVerticalScrollIndicator={false}
                     renderItem={({ item: content }) => (
                     <Pressable
+                        style={({ pressed }) => [
+                            pressed && appStyles.pressed,
+                        ]}
                         onPress={() => {
-                        //   Global.backPressLoadSearch = true;
                             router.push({
                                 pathname: '/InfoPage',
                                 params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, horizontalPoster: content.horizontalPoster },
@@ -186,7 +188,9 @@ const styles = StyleSheet.create({
     searchBarContainer: { 
         flexDirection: "row", 
         columnGap: 10, 
+        marginBottom: 20,
         justifyContent: "center",
+        alignItems: "center",
         ...appStyles.shadow 
     },
     searchBar: {
@@ -195,7 +199,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 15,
         borderRadius: 10,
         color: '#FFFFFF',
-        marginBottom: 20,
         fontSize: 16,
     },
 });

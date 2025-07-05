@@ -120,7 +120,8 @@ export default function LandingPage () {
 
         const combinedGesture = Gesture.Exclusive(longPressGesture, tapGesture);
         
-        return (<GestureDetector gesture={combinedGesture}>
+        return (
+        <GestureDetector gesture={combinedGesture}>
             <View style={styles.slide}>
                 <Image
                     source={{ uri: content.horizontalPoster }}
@@ -198,7 +199,7 @@ export default function LandingPage () {
                                     <Pressable
                                         style={({ pressed }) => [
                                             styles.card,
-                                            pressed && styles.cardPressed,
+                                            pressed && appStyles.pressed,
                                         ]}
                                         onPress={() => handlePress(item)}
                                         onLongPress={() => handleLongPress(item)}
@@ -353,7 +354,6 @@ const styles = StyleSheet.create({
 
     section: {
         marginBottom: 24,
-        height: screenWidth * 0.45, // ~9/16 compared to card's width
     },
     sectionTitle: {
         fontSize: 18,
@@ -378,10 +378,6 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.10,
         shadowRadius: 6,
         shadowOffset: { width: 0, height: 1 },
-    },
-    cardPressed: {
-        transform: [{ scale: 0.97 }],
-        opacity: 0.96,
     },
     imageWrapper: {
         width: '100%',

@@ -56,6 +56,11 @@ export type ListData = {
     // permission: string;
 };
 
+export type ContentInfoData = {
+    content: ContentData;
+    recommendations: ContentPartialData[];
+};
+
 export type PopularContentData = {
     carousel: ContentSimpleData[];
     main: Record<string, ContentSimpleData[]>;

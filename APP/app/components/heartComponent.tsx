@@ -16,6 +16,9 @@ const Heart: React.FC<HeartTypes> = ({heartColor = Colors.selectedHeartColor, si
     return (
         <Pressable 
             onPress={onPress}
+            style={({ pressed }) => [
+                pressed && appStyles.pressed,
+            ]}
         >
             <Icon 
                 name="heart" 

@@ -16,6 +16,11 @@ const shadow = {
 };
 
 export const appStyles = StyleSheet.create({
+    headerTitleStyle: {
+        fontSize: 20,
+        color: "white",
+    },
+
     overlay: {
         ...StyleSheet.absoluteFillObject,
         backgroundColor: 'rgba(0,0,0,0.4)', // dark tint
@@ -41,6 +46,11 @@ export const appStyles = StyleSheet.create({
         fontSize: 14,
         marginTop: 5,
         textAlign: "center",
+    },
+
+    pressed: {
+        transform: [{ scale: 0.97 }],
+        opacity: 0.96,
     },
 
     inputContainer: {
