@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Carousel from "react-native-reanimated-carousel";
-import { Pressable, View, Image, StyleSheet, TouchableOpacity, Text, ScrollView, ActivityIndicator, Dimensions, FlatList, RefreshControl } from "react-native";
+import { Pressable, View, Image, StyleSheet, Text, ScrollView, ActivityIndicator, Dimensions, FlatList, RefreshControl } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { appStyles, RalewayFont } from "@/styles/appStyles";
@@ -168,7 +168,7 @@ export default function LandingPage () {
                     {/* Dots below carousel */}
                     <View style={styles.dotsContainer}>
                         {popularContent?.carousel?.map((_, i) => (
-                            <TouchableOpacity
+                            <Pressable
                                 key={i}
                                 style={[
                                     styles.dot,
@@ -221,9 +221,9 @@ export default function LandingPage () {
                     ) : (
                     <View style={styles.nothingFoundContainer}>
                         <Text style={styles.nothingFoundText}>Nothing found.</Text>
-                        {/* <TouchableOpacity onPress={clearAllFilters} style={styles.clearButton}>
+                        {/* <Pressable onPress={clearAllFilters} style={styles.clearButton}>
                             <Text style={styles.clearButtonText}>Clear Filters</Text>
-                        </TouchableOpacity> */}
+                        </Pressable> */}
                     </View>
                     )}
 
@@ -248,12 +248,12 @@ export default function LandingPage () {
         
             {/* Library Button & Overlay */}
             <View style={styles.libraryOverlay}>
-                <TouchableOpacity
+                <Pressable
                     style={styles.libraryButton}
                     onPress={() => router.push('/LibraryPage')} // Navigate to the Library page
                 >
                     <Text style={styles.libraryButtonText}>Library</Text>
-                </TouchableOpacity>
+                </Pressable>
             </View>
 
             {/* Loading Overlay */}

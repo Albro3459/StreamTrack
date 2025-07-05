@@ -2,7 +2,7 @@
 
 import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { Pressable, Button, TouchableOpacity, View } from "react-native";
+import { Pressable, Button, View } from "react-native";
 import { Fontisto, Feather } from '@expo/vector-icons';
 import { Colors } from "@/constants/Colors";
 import { useEffect } from "react";
@@ -80,12 +80,12 @@ export default function RootLayout() {
                         </Pressable>
                     ),
                     headerRight: () => (
-                        <TouchableOpacity onPress={() => router.push({
+                        <Pressable onPress={() => router.push({
                                     pathname: '/ProfilePage',
                                     params: { isSigningUp: 0 }, // Have to pass as number or string
                                 })}>
                             <Feather name="user" size={24} color="white" />
-                        </TouchableOpacity>
+                        </Pressable>
                     ),
                 })}
             />
@@ -108,12 +108,12 @@ export default function RootLayout() {
                     //     </Pressable>
                     // ),
                     headerRight: () => (
-                        <TouchableOpacity onPress={() => {
+                        <Pressable onPress={() => {
                             // ClearLoadState();
                             router.replace('/LandingPage');
                         }}>
                             <Feather name="home" size={24} color="white" />
-                        </TouchableOpacity>
+                        </Pressable>
                     ),
                 })}
             />
@@ -130,11 +130,11 @@ export default function RootLayout() {
                         backgroundColor: Colors.selectedColor,
                     },
                     headerRight: () => (
-                        <TouchableOpacity onPress={() => {
+                        <Pressable onPress={() => {
                             router.push('/SpinnerPage');
                         }}>
                             <Fontisto name="spinner" size={24} color="white" />
-                        </TouchableOpacity>
+                        </Pressable>
                     ),
                 })}
             />

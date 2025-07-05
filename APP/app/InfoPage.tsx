@@ -2,7 +2,7 @@
 
 import { Colors } from '@/constants/Colors';
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Pressable, Linking, ActivityIndicator, FlatList } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, Pressable, Dimensions, Linking, ActivityIndicator, FlatList } from 'react-native';
 import Heart from './components/heartComponent';
 import { useLocalSearchParams, useRouter } from 'expo-router/build/hooks';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -252,12 +252,12 @@ export default function InfoPage() {
                             </Text>
                         </View>
                         <View style={[styles.attributeContainer, {marginTop: 5}]} >
-                            <TouchableOpacity
+                            <Pressable
                                 style={appStyles.button}
                                 onPress={() => setListModalVisible(true)}
                             >
                                 <Text style={[appStyles.buttonText, {fontSize: 16}]}>Save to List</Text>
-                            </TouchableOpacity>
+                            </Pressable>
                             
                             <Heart 
                                 heartColor={isItemInList(lists, FAVORITE_TAB, tmdbID ? tmdbID : info ? info?.content?.tmdbID : "") ? Colors.selectedHeartColor : Colors.unselectedHeartColor}
@@ -270,7 +270,7 @@ export default function InfoPage() {
 
                 <View style={styles.tabContainer}>
                     {['About', 'Recommended'].map((tab) => (
-                        <TouchableOpacity
+                        <Pressable
                         key={tab}
                         style={[
                             styles.tab,
@@ -281,7 +281,7 @@ export default function InfoPage() {
                         <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
                             {tab}
                         </Text>
-                        </TouchableOpacity>
+                        </Pressable>
                     ))}
                 </View>
 

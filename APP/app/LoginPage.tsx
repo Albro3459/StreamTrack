@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, ActivityIndicator } from "react-native";
+import { View, Text, TextInput, Alert, StyleSheet, ActivityIndicator, Pressable } from "react-native";
 import { auth } from "@/firebaseConfig";
 import { useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
@@ -93,27 +93,27 @@ export default function LoginPage() {
                     />
                 ) : (
                     <View style={styles.row}>
-                        <TouchableOpacity onPress={() => Alert.alert("Forgot Email", "Feature coming soon")}>
+                        <Pressable onPress={() => Alert.alert("Forgot Email", "Feature coming soon")}>
                             <Text style={styles.linkText}>Forgot Email?</Text>
-                        </TouchableOpacity>
-                        <TouchableOpacity onPress={() => Alert.alert("Forgot Password", "Feature coming soon")}>
+                        </Pressable>
+                        <Pressable onPress={() => Alert.alert("Forgot Password", "Feature coming soon")}>
                             <Text style={styles.linkText}>Forgot Password?</Text>
-                        </TouchableOpacity>
+                        </Pressable>
                     </View>
                 )}
             </View>
             <View style={appStyles.buttonContainer}>
-                <TouchableOpacity style={[appStyles.button, {marginBottom: 15}]} onPress={handleAuth}>
+                <Pressable style={[appStyles.button, {marginBottom: 15}]} onPress={handleAuth}>
                     <Text style={appStyles.buttonText}>{isSignUp ? "Sign Up" : "Sign In"}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
+                </Pressable>
+                <Pressable
                     style={[appStyles.button, appStyles.secondaryButton]}
                     onPress={() => setIsSignUp(!isSignUp)}
                 >
                     <Text style={[appStyles.buttonText, appStyles.secondaryButtonText]}>
                         {isSignUp ? "Sign In" : "Sign Up"}
                     </Text>
-                </TouchableOpacity>
+                </Pressable>
             </View>
 
             {/* Overlay */}

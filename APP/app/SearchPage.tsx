@@ -10,11 +10,12 @@ import { Feather } from '@expo/vector-icons';
 import { TMDBSearch } from './helpers/contentAPIHelper';
 import { TMDB_Content, TMDB, TMDB_MEDIA_TYPE } from './types/tmdbType';
 import { useUserDataStore } from './stores/userDataStore';
-import { ContentPartialData, ListData, ListMinimalData } from './types/dataTypes';
+import { ContentData, ContentPartialData, ListData, ListMinimalData } from './types/dataTypes';
 import { FAVORITE_TAB, isItemInAnyList, isItemInList, moveItemToList, sortLists } from './helpers/StreamTrack/listHelper';
 import MoveModal from './components/moveModalComponent';
 import { StarRating } from './components/starRatingComponent';
 import AlertMessage, { Alert } from './components/alertMessageComponent';
+import { useContentDataStore } from './stores/contentDataStore';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -22,6 +23,7 @@ export default function SearchPage() {
     const router = useRouter();
     
     const { userData } = useUserDataStore();
+    const { contentCache } = useContentDataStore();
     
     const [alertMessage, setAlertMessage] = useState<string>("");
     const [alertType, setAlertType] = useState<Alert>(Alert.Error);
@@ -41,6 +43,12 @@ export default function SearchPage() {
     const [selectedContent, setSelectedContent] = useState<ContentPartialData>(null);
 
     const [contents, setContents] = useState<ContentPartialData[]>([]);
+
+    const noResultsOrTrySearching: (searchText: string, showNoResults: boolean, isSearching: boolean) => boolean = (
+        searchText: string, showNoResults: boolean, isSearching: boolean
+    ) => { 
+            return searchText.length > 0 && showNoResults && !isSearching
+    };
 
     const search = async (searchText: string) => {
         setShowNoResults(true);
@@ -109,13 +117,61 @@ export default function SearchPage() {
                 </View>
 
                 {/* Movie Cards */}
-                {(!contents || contents.length <= 0) ? (
-                    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 16 }}>
-                        <Text style={{ fontSize: 16, color: 'gray', textAlign: 'center', marginTop: -80 }}>
-                        {searchText.length > 0 && showNoResults && !isSearching ? "No Results :(" : "Try Searching for a Show or Movie!"}
-                        </Text>
-                    </View>
-                ) : (
+                {(!contents || contents.length <= 0) ? 
+                    (!contentCache || contentCache.length <= 0) || noResultsOrTrySearching(searchText, showNoResults, isSearching) ? (
+                        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 16 }}>
+                            <Text style={{ fontSize: 16, color: 'gray', textAlign: 'center', marginTop: -80 }}>
+                            {noResultsOrTrySearching(searchText, showNoResults, isSearching) ? "No Results :(" : "Try Searching for a Show or Movie!"}
+                            </Text>
+                        </View>
+                    ) : (
+                        <View style={{paddingHorizontal: 55, height: screenHeight-230}}>
+                            <Text style={[styles.sectionTitle, {paddingBottom: 10}]}>Recently Viewed</Text>
+                            <FlatList<ContentData>
+                                ref={flatListRef}
+                                data={contentCache?.map(i => i.content)}
+                                keyExtractor={(item) => item.tmdbID}
+                                showsVerticalScrollIndicator={false}
+                                renderItem={({ item: content }) => (
+                                <Pressable
+                                    style={({ pressed }) => [
+                                        pressed && appStyles.pressed,
+                                    ]}
+                                    onPress={() => {
+                                        router.push({
+                                            pathname: '/InfoPage',
+                                            params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, horizontalPoster: content.horizontalPoster },
+                                        });
+                                    }}
+                                    onLongPress={() => {setSelectedContent(content); setMoveModalVisible(true);}}
+                                >
+                                    <View style={[appStyles.cardContainer]}>
+                                        <Image source={{ uri: content.verticalPoster }} style={appStyles.cardPoster} />
+                                        <View style={[
+                                            appStyles.cardContent,
+                                            {
+                                                flexDirection: "column",
+                                                minHeight: 80,
+                                            }
+                                            ]}>
+                                           <View style={{flex: 1, justifyContent: "center"}}>
+                                                <Text style={[appStyles.cardTitle, {marginBottom: 0, marginTop: 10}]} numberOfLines={2}>{content.title}</Text>
+                                            </View>
+                                            <View style={{flex: 1}} />
+                                            <StarRating rating={content.rating}/>
+                                        </View>
+                                        <Heart 
+                                            heartColor={isItemInList(lists, FAVORITE_TAB, content.tmdbID) ? Colors.selectedHeartColor : Colors.unselectedHeartColor}
+                                            size={40}
+                                            onPress={async () => await moveItemToList(content, FAVORITE_TAB, lists, setLists, setIsSearching, setMoveModalVisible)}
+                                        />
+                                    </View>
+                                </Pressable>
+                                )}
+                            />
+                        </View>
+                    )
+                : (
                 <FlatList<ContentPartialData>
                     ref={flatListRef}
                     data={contents}
@@ -200,5 +256,11 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         color: '#FFFFFF',
         fontSize: 16,
+    },
+    sectionTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginVertical: 8,
+      color: 'white',
     },
 });

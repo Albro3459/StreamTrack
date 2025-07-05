@@ -4,7 +4,6 @@ import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
   Text,
-  TouchableOpacity,
   FlatList,
   StyleSheet,
   Image,
@@ -170,7 +169,7 @@ export default function LibraryPage() {
                     nestedScrollEnabled
                     keyExtractor={(listName, index) => listName}
                     renderItem={({ item: listName }) => (
-                        <TouchableOpacity
+                        <Pressable
                             style={[styles.tabItem, activeTab === listName && styles.activeTabItem, {paddingHorizontal:8}, (lists && lists.length <= 4) && {paddingHorizontal: 12}]}
                             onPress={async () => handleTabPress(listName)}
                         >
@@ -186,7 +185,7 @@ export default function LibraryPage() {
                             {listName}
                             </Text>
                         )}
-                        </TouchableOpacity>
+                        </Pressable>
                     )}
                 />
                 <Pressable onPress={() => setCreateListModalVisible(true)} >

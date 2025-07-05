@@ -1,6 +1,6 @@
 import { Colors } from "@/constants/Colors";
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity, StatusBar} from "react-native";
+import { View, Text, StyleSheet, Pressable, StatusBar} from "react-native";
 
 export enum Alert {
     Error = "error",
@@ -23,9 +23,9 @@ const AlertMessage: React.FC<AlertProps> = ({
   return (
     <View style={[styles.overlay, styles[type]]}>
       <Text style={type === Alert.Successs ? styles.successText : styles.errorText}>{message}</Text>
-        <TouchableOpacity onPress={() => setMessage("")} style={styles.closeBtn}>
+        <Pressable onPress={() => setMessage("")} style={styles.closeBtn}>
           <Text style={[styles.closeText, type === Alert.Successs ? styles.successText : styles.errorText]}>X</Text>
-        </TouchableOpacity>
+        </Pressable>
     </View>
   );
 };
