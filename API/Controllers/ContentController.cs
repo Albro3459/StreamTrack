@@ -46,6 +46,7 @@ public class ContentController : ControllerBase {
         { "Apple TV", "Popular on Apple TV" },
         { "Paramount+", "Popular on Paramount+" },
         { "Peacock", "Popular on Peacock" },
+
         { "Only&Netflix", "Only on Netflix" },
         // { "Only&Hulu", "Only on Hulu" }, // Not enough of them lol
         { "Only&Max", "Only on Max" },
@@ -191,7 +192,7 @@ public class ContentController : ControllerBase {
             .Take(maxSections)
             .Select(pair => new {
                 Section = pair.Value,  // display name
-                Contents = sortingService.filterSectionContent(pair.Key, contents, maxContents)
+                Contents = sortingService.filterSectionContent(pair.Key, contents.OrderBy(_ => rng.Next()).ToList(), maxContents)
             })
             .Where(pair => pair.Contents.Count > 0) // filter out empty sections (filtering failed)
             .ToDictionary(
