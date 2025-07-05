@@ -19,7 +19,7 @@ const isBadPoster = (url: string): boolean => {
     return false;
 };
 
-export const fetchByServiceAndGenre = async (service: SERVICE, genre: GENRE, show_type: SHOW_TYPE, order_by: ORDER_BY, order_direction: ORDER_DIRECTION): Promise<ContentData[] | null> => {
+export const fetchByServiceAndGenre = async (RATING_CUTOFF: number, service: SERVICE, genre: GENRE, show_type: SHOW_TYPE, order_by: ORDER_BY, order_direction: ORDER_DIRECTION): Promise<ContentData[] | null> => {
     const options = {
         method: 'GET',
         url: RapidAPI_Base_Url+"search/filters",
@@ -41,7 +41,8 @@ export const fetchByServiceAndGenre = async (service: SERVICE, genre: GENRE, sho
 
     const contents: Content[] = response.data.shows as Content[];
 
-    const contentData: ContentData[] = contents.map(c => convertContentToContentData(c));
+    const contentData: ContentData[] = contents.filter(c => c.rating >= RATING_CUTOFF)
+                                                .map(c => convertContentToContentData(c));
 
     await Promise.all(contentData.map(async c => {
         const badVerticalPoster: boolean = isBadPoster(c.verticalPoster);

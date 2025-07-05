@@ -51,7 +51,8 @@ public class StreamTrackDbContext : DbContext {
         modelBuilder.Entity<ContentPartial>()
             .HasOne(p => p.Detail)
             .WithOne(d => d.Partial)
-            .HasForeignKey<ContentDetail>(d => d.TMDB_ID);
+            .HasForeignKey<ContentDetail>(d => d.TMDB_ID)
+            .OnDelete(DeleteBehavior.Cascade); // Deleting Partial deletes Detail
 
         modelBuilder.Entity<ContentDetail>()
             .HasMany(c => c.Genres)

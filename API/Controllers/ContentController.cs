@@ -223,10 +223,13 @@ public class ContentController : ControllerBase {
         var tmdbIds = dtos.Select(d => d.TMDB_ID).ToList();
 
         // Find popular and NOT in a list (to delete :) )
-        List<ContentDetail> previouslyPopular = await context.ContentDetail
-                                .Include(c => c.Partial).ThenInclude(p => p.Lists)
-                                .Where(c => c.IsPopular && !tmdbIds.Contains(c.TMDB_ID) &&
-                                            (c.Partial == null || c.Partial.Lists.Count == 0)
+        List<ContentPartial> previouslyPopular = await context.ContentPartial
+                                .Include(p => p.Lists)
+                                .Include(p => p.Detail)
+                                .Where(p =>
+                                    ((p.Detail == null) || (p.Detail != null && p.Detail.IsPopular))
+                                    && !tmdbIds.Contains(p.TMDB_ID)
+                                    && p.Lists.Count == 0
                                 ).ToListAsync();
 
         var existingContents = await context.ContentDetail.Where(c => tmdbIds.Contains(c.TMDB_ID)).ToListAsync();
@@ -263,7 +266,11 @@ public class ContentController : ControllerBase {
         }
 
         if (previouslyPopular.Count > 0) {
-            context.ContentDetail.RemoveRange(previouslyPopular);
+            Console.WriteLine("Should Delete");
+            context.ContentPartial.RemoveRange(previouslyPopular);
+        }
+        else {
+            Console.WriteLine("Not Deleting");
         }
 
         try {

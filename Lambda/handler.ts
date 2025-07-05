@@ -17,8 +17,12 @@ import { GENRE, ORDER_BY, ORDER_DIRECTION, SERVICE, SHOW_TYPE } from "./types/co
 
 // }
 
-const genres: GENRE[] = [GENRE.ACTION, GENRE.COMEDY, GENRE.DRAMA, GENRE.THRILLER, GENRE.SCIFI, GENRE.ROMANCE, GENRE.HORROR, GENRE.WESTERN];
-const services: SERVICE[] = [SERVICE.NETFLIX, SERVICE.HULU, SERVICE.HBO, SERVICE.PRIME, SERVICE.DISNEY, SERVICE.APPLE, SERVICE.PARAMOUNT, SERVICE.PEACOCK];
+const RATING_CUTOFF: number = 70;
+// const genres: GENRE[] = [GENRE.ACTION, GENRE.COMEDY, GENRE.DRAMA, GENRE.THRILLER, GENRE.SCIFI, GENRE.ROMANCE, GENRE.HORROR, GENRE.WESTERN];
+const genres: GENRE[] = [GENRE.COMEDY];
+// const services: SERVICE[] = [SERVICE.NETFLIX, SERVICE.HULU, SERVICE.HBO, SERVICE.PRIME, SERVICE.DISNEY, SERVICE.APPLE, SERVICE.PARAMOUNT, SERVICE.PEACOCK];
+const services: SERVICE[] = [SERVICE.NETFLIX];
+
 const order_by: ORDER_BY = ORDER_BY.POPULARITY_1WEEK;
 const order_direction: ORDER_DIRECTION = ORDER_DIRECTION.ASC;
 
@@ -38,15 +42,15 @@ export const handler = async () => {
         for (const genre of genres) {
             for (const show_type of Object.values(SHOW_TYPE)) {
                 try {
-                    const results: ContentData[] | null = await fetchByServiceAndGenre(service, genre, show_type, order_by, order_direction);
-                    if (!results) throw "failed to fetch posters";
+                    const results: ContentData[] | null = await fetchByServiceAndGenre(RATING_CUTOFF, service, genre, show_type, order_by, order_direction);
+                    if (results === null || results === undefined) throw "failed to fetch posters";
                     for (const item of results) {
                         uniqueContentMap.set(item.tmdbID, item);
                     }
                     requestCount++;
                     itemCount += results.length;
                     console.log("Current API Request Count: " + requestCount + " / 128");
-                    console.log("Content count in this request: " + results.length);
+                    console.log("Content count in this request that passed the rating cutoff: " + results.length);
                     console.log("Content IDs just added: " + JSON.stringify(results.map(c => c.tmdbID)) + "\n");
                     console.log(`Request Details: {Service: ${service} | Genre: ${genre} | Type: ${show_type}}`);
                 } catch (error) {
