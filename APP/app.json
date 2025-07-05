@@ -37,6 +37,9 @@
     },
     "assetBundlePatterns": [
       "assets/**/*"
-    ]
+    ],
+    "router": {
+      "serverComponents": false
+    }
   }
 }

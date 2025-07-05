@@ -1,9 +1,16 @@
+"use client";
+
 import { appStyles } from "@/styles/appStyles";
 import { Modal, Pressable, View, Text } from "react-native";
 import Heart from "./heartComponent";
-import { FAVORITE_TAB, sortLists } from "../helpers/StreamTrack/listHelper";
+import { createNewUserList, FAVORITE_TAB, sortLists } from "../helpers/StreamTrack/listHelper";
 import { Colors } from "@/constants/Colors";
 import { ContentPartialData, ListMinimalData } from "../types/dataTypes";
+import { useState } from "react";
+import { auth } from "@/firebaseConfig";
+import { setUserData, useUserDataStore } from "../stores/userDataStore";
+import { User } from "firebase/auth";
+import CreateNewListModal from "./createNewListComponent";
 
 interface MoveModalProps {
     selectedContent: ContentPartialData;
@@ -28,11 +35,52 @@ interface MoveModalProps {
     setListsFunc: React.Dispatch<React.SetStateAction<ListMinimalData[]>>;
 }
 
-export const MoveModal: React.FC<MoveModalProps> = ({ selectedContent, lists, showLabel = true, showHeart = true, visibility, setVisibilityFunc, setIsLoadingFunc, setAutoPlayFunc, moveItemFunc, isItemInListFunc, setListsFunc}) => {
+export default function MoveModal({ 
+    selectedContent,
+    lists, 
+    showLabel = true, 
+    showHeart = true, 
+    visibility, 
+    setVisibilityFunc, 
+    setIsLoadingFunc, 
+    setAutoPlayFunc, 
+    moveItemFunc, 
+    isItemInListFunc, 
+    setListsFunc
+} : MoveModalProps) {
+
+    const {userData} = useUserDataStore();
+
+    const [createListModalVisible, setCreateListModalVisible] = useState<boolean>(false);
+    const [newListName, setNewListName] = useState<string>("");
+
+    const handelCreateNewTab = async (listName: string) => {
+        if (listName.trim()) {
+            setIsLoadingFunc(true);
+            const user: User | null = auth.currentUser;
+            if (!user) {
+                setIsLoadingFunc(false);
+                setCreateListModalVisible(false);
+                return;
+            }
+            const token = await user.getIdToken();
+            const newList: ListMinimalData = await createNewUserList(token, listName);
+            setListsFunc(prev => sortLists([...prev, newList]));
+            userData.user.listsOwned.push(newList);
+            setUserData(userData);
+
+            await moveItemFunc(selectedContent, listName, userData.user.listsOwned, setListsFunc, setIsLoadingFunc, setVisibilityFunc, setAutoPlayFunc); // Fire and Forget
+            setNewListName("");
+            setCreateListModalVisible(false);
+            // setVisibilityFunc(false);
+            setIsLoadingFunc(false);
+        }
+    };
 
     if (!selectedContent) return null;
 
     return (
+        <>
         <Modal
             transparent={true}
             visible={visibility}
@@ -70,6 +118,21 @@ export const MoveModal: React.FC<MoveModalProps> = ({ selectedContent, lists, sh
                                 </Pressable>)}
                         )}
 
+                        {/* Create new list and add item button */}
+                        <Pressable
+                            key={`LandingPage-${selectedContent.tmdbID}-CreateNewList`}
+                            style={[
+                                appStyles.modalButton, {backgroundColor: Colors.goldColor}
+                            ]}
+                            onPress={() => {setVisibilityFunc(false); setCreateListModalVisible(true);}}
+                        >
+                            <Text style={[
+                                appStyles.modalButtonText, {color: Colors.altBackgroundColor}
+                            ]}>
+                                Create New List & Add
+                            </Text>
+                        </Pressable>
+
                         {/* Render FAVORITE_TAB at the bottom */}
                         {showHeart && lists.find(l => l.listName === FAVORITE_TAB) && (
                             <View
@@ -89,7 +152,14 @@ export const MoveModal: React.FC<MoveModalProps> = ({ selectedContent, lists, sh
                 </View>
             </Pressable>
         </Modal>
+        
+        <CreateNewListModal
+            visible={createListModalVisible}
+            listName={newListName}
+            setListNameFunc={setNewListName}
+            onCreateFunc={handelCreateNewTab}
+            onRequestCloseFunc={() => setCreateListModalVisible(false)}
+        />
+        </>
     );
 };
-
-export default {};

@@ -1,3 +1,5 @@
+"use client";
+
 import { SHOW_TYPE } from "./contentType";
 
 // Types I used to send and receive from my StreamTrack API

@@ -1,3 +1,5 @@
+"use client";
+
 import { Text, TextInput, View, StyleSheet, ScrollView, Pressable, ActivityIndicator, Dimensions } from "react-native";
 import React, { useState } from 'react';
 import { PressableBubblesGroup,} from './components/formComponents';
@@ -186,18 +188,6 @@ const styles = StyleSheet.create({
     textInput: {
         ...appStyles.textInput,
         width: "90%",
-        alignSelf: "center",
-    },
-    textBox: {
-        backgroundColor: Colors.grayCell,
-        width: "90%",
-        minHeight: 200,
-        borderRadius: 15,
-        marginBottom: 20,
-        fontSize: 18,
-        color: Colors.altBackgroundColor,
-        padding: 15,
-        textAlignVertical: "top",
         alignSelf: "center",
     },
     labelText: {

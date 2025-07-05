@@ -1,3 +1,5 @@
+"use client";
+
 import { ContentPartialData, ListMinimalData, UserData } from "@/app/types/dataTypes";
 import { DataAPIURL } from "@/secrets/DataAPIUrl";
 import { User } from "firebase/auth";
@@ -40,7 +42,6 @@ export const moveItemToList = async (content: ContentPartialData, listName: stri
                                 setAutoPlay?: React.Dispatch<React.SetStateAction<boolean>>      
 ) => {
     // Only works for user owned lists for now
-
     try {
         setIsLoading(true);
         let list: ListMinimalData = lists.find(l => l.listName === listName);

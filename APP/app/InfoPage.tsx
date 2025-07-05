@@ -1,3 +1,5 @@
+"use client";
+
 import { Colors } from '@/constants/Colors';
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, ScrollView, TouchableOpacity, Dimensions, Pressable, Linking, ActivityIndicator } from 'react-native';
@@ -10,7 +12,7 @@ import { TMDB_MEDIA_TYPE } from './types/tmdbType';
 import { ContentData, ContentRequestData, ListMinimalData, StreamingOptionData } from './types/dataTypes';
 import { useUserDataStore } from './stores/userDataStore';
 import { FAVORITE_TAB, isItemInList, moveItemToList } from './helpers/StreamTrack/listHelper';
-import { MoveModal } from './components/moveModalComponent';
+import MoveModal from './components/moveModalComponent';
 import { StarRating } from './components/starRatingComponent';
 import { getContentDetails } from './helpers/StreamTrack/contentHelper';
 import { auth } from '@/firebaseConfig';
@@ -128,7 +130,7 @@ export default function InfoPage() {
                             style={styles.streamingLogo}
                             onPress={() => {
                                 if (streamingOption.deepLink) {
-                                    Linking.openURL(streamingOption.deepLink).catch(err => console.error("Failed to open URL:", err));
+                                    Linking.openURL(streamingOption.deepLink).catch(err => console.warn("Failed to open URL:", err));
                                 } else {
                                     console.log("No link available");
                                 }
@@ -147,7 +149,7 @@ export default function InfoPage() {
                             style={styles.streamingLogo}
                             onPress={() => {
                                 if (streamingOption.deepLink) {
-                                    Linking.openURL(streamingOption.deepLink).catch(err => console.error("Failed to open URL:", err));
+                                    Linking.openURL(streamingOption.deepLink).catch(err => console.warn("Failed to open URL:", err));
                                 } else {
                                     console.log("No link available");
                                 }
@@ -215,33 +217,33 @@ export default function InfoPage() {
         <View style={styles.screen}>
             <ScrollView showsVerticalScrollIndicator={false}>
                 <View style={styles.movieContainer}>
-                {/* Movie Poster */}
-                <Image source={{ uri: content && content.verticalPoster }} style={styles.posterImage} />
-                {/* Movie Info */}
-                <View style={styles.infoSection}>
-                    <Text style={styles.title}>{content?.title}</Text>
-                    <View style={styles.attributeContainer}>
-                        <Text style={[styles.text, {fontSize: 18, textAlignVertical: "center"}]}>
-                            {(content?.releaseYear > 0 ? content?.releaseYear+ "    " 
-                                    : (content?.releaseYear > 0 
-                                    ? content.releaseYear+ "    " : "")) + getRuntime(content)}
-                        </Text>
+                    {/* Movie Poster */}
+                    <Image source={{ uri: content && content.verticalPoster }} style={styles.posterImage} />
+                    {/* Movie Info */}
+                    <View style={styles.infoSection}>
+                        <Text style={styles.title}>{content?.title}</Text>
+                        <View style={styles.attributeContainer}>
+                            <Text style={[styles.text, {fontSize: 18, textAlignVertical: "center"}]}>
+                                {(content?.releaseYear > 0 ? content?.releaseYear+ "    " 
+                                        : (content?.releaseYear > 0 
+                                        ? content.releaseYear+ "    " : "")) + getRuntime(content)}
+                            </Text>
+                        </View>
+                        <View style={[styles.attributeContainer, {marginTop: 5}]} >
+                            <TouchableOpacity
+                                style={appStyles.button}
+                                onPress={() => setListModalVisible(true)}
+                            >
+                                <Text style={[appStyles.buttonText, {fontSize: 16}]}>Save to List</Text>
+                            </TouchableOpacity>
+                            
+                            <Heart 
+                                heartColor={isItemInList(lists, FAVORITE_TAB, tmdbID ? tmdbID : content ? content.tmdbID : "") ? Colors.selectedHeartColor : Colors.unselectedHeartColor}
+                                size={45}
+                                onPress={async () => await moveItemToList(content, FAVORITE_TAB, lists, setLists, setIsLoading, setListModalVisible)}
+                            />
+                        </View>
                     </View>
-                    <View style={[styles.attributeContainer, {marginTop: 5}]} >
-                        <TouchableOpacity
-                            style={appStyles.button}
-                            onPress={() => setListModalVisible(true)}
-                        >
-                            <Text style={[appStyles.buttonText, {fontSize: 16}]}>Save to List</Text>
-                        </TouchableOpacity>
-                        
-                        <Heart 
-                            heartColor={isItemInList(lists, FAVORITE_TAB, tmdbID ? tmdbID : content ? content.tmdbID : "") ? Colors.selectedHeartColor : Colors.unselectedHeartColor}
-                            size={45}
-                            onPress={async () => await moveItemToList(content, FAVORITE_TAB, lists, setLists, setIsLoading, setListModalVisible)}
-                        />
-                    </View>
-                </View>
                 </View>
 
                 <View style={styles.tabContainer}>
@@ -296,7 +298,7 @@ const styles = StyleSheet.create({
     },
     movieContainer: {
         paddingVertical: "4%",
-        borderRadius: 15,
+        borderRadius: 10,
         marginVertical: "5%",
         alignItems: "center",
     },
@@ -308,8 +310,9 @@ const styles = StyleSheet.create({
     posterImage: {
       width: 200,
       height: 300,
-      borderRadius: 10,
+      borderRadius: 15,
       marginBottom: 16,
+      ...appStyles.shadow
     },
     infoSection: {
       alignItems: "center", // Centers text under the poster
@@ -321,6 +324,7 @@ const styles = StyleSheet.create({
         color: "white",
         fontFamily: RalewayFont,
         paddingBottom: 10,
+        ...appStyles.shadow
     },
     buttonContainer: {
       flexDirection: "row",
@@ -330,13 +334,13 @@ const styles = StyleSheet.create({
     tabContainer: {
       flexDirection: 'row',
       columnGap: 10,
-      borderRadius: 8,
+      borderRadius: 10,
     },
     tab: {
       padding: 12,
       alignItems: 'center',
-      borderTopLeftRadius: 8,
-      borderTopRightRadius: 8,
+      borderTopLeftRadius: 10,
+      borderTopRightRadius: 10,
       backgroundColor: Colors.selectedColor,
     },
     activeTab: {

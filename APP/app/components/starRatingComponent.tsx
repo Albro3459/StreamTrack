@@ -1,3 +1,5 @@
+"use client";
+
 import { Colors } from "@/constants/Colors";
 import { appStyles } from "@/styles/appStyles";
 import { MaterialIcons } from "@expo/vector-icons";

@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useRef, useState } from "react";
 import Carousel from "react-native-reanimated-carousel";
 import { Pressable, View, Image, StyleSheet, TouchableOpacity, Text, ScrollView, ActivityIndicator, Dimensions, FlatList, RefreshControl } from "react-native";
@@ -7,7 +9,7 @@ import { appStyles, RalewayFont } from "@/styles/appStyles";
 import { useUserDataStore } from "./stores/userDataStore";
 import { fetchPopularContent, usePopularContentStore } from "./stores/popularContentStore";
 import { ContentSimpleData, ListMinimalData } from "./types/dataTypes";
-import { MoveModal } from "./components/moveModalComponent";
+import MoveModal from "./components/moveModalComponent";
 import { isItemInList, moveItemToList, sortLists } from "./helpers/StreamTrack/listHelper";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { runOnJS } from 'react-native-reanimated';
@@ -34,7 +36,7 @@ export default function LandingPage () {
 
     const [carouselIndex, setCarouselIndex] = useState<number>(0);
     const carouselRef = useRef(null);
-    const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const timerRef = useRef<NodeJS.Timeout | number | null>(null);
 
     const [isLoading, setIsLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -133,7 +135,7 @@ export default function LandingPage () {
                         refreshing={refreshing}
                         onRefresh={onRefresh}
                         tintColor={Colors.selectedTextColor} // iOS spinner color
-                        colors={[Colors.selectedColor]} // Android spinner color
+                        colors={[Colors.selectedTextColor]} // Android spinner color
                     />
                 }
             >
@@ -294,7 +296,7 @@ const styles = StyleSheet.create({
 
     slide: {
         flex: 1,
-        borderRadius: 18,
+        borderRadius: 15,
         overflow: "hidden",
         justifyContent: "flex-end",
     },
@@ -327,7 +329,7 @@ const styles = StyleSheet.create({
     dot: {
         width: 7,
         height: 7,
-        borderRadius: 4,
+        borderRadius: 10,
         backgroundColor: Colors.grayCell,
         marginHorizontal: 2,
     },
@@ -373,15 +375,12 @@ const styles = StyleSheet.create({
         width: '100%',
         aspectRatio: 11 / 16,
         borderRadius: 10,
-        // borderTopLeftRadius: 12,
-        // borderTopRightRadius: 12,
         overflow: 'hidden',
         backgroundColor: Colors.grayCell,
     },
     image: {
         width: '100%',
         height: '100%',
-        borderRadius: 0,
     },
     cardTitle: {
         color: Colors.selectedTextColor,
@@ -406,7 +405,7 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.selectedColor,
         paddingVertical: 12,
         paddingHorizontal: 26,
-        borderRadius: 7,
+        borderRadius: 10,
         marginTop: 5,
     },
     clearButtonText: {

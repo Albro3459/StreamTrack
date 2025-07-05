@@ -1,3 +1,5 @@
+"use client";
+
 import { create } from 'zustand';
 import { PopularContentData } from '../types/dataTypes';
 import { getPopularContent } from '../helpers/StreamTrack/contentHelper';

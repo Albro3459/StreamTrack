@@ -1,3 +1,5 @@
+"use client";
+
 import { Pressable, StyleSheet } from "react-native";
 import Icon from 'react-native-vector-icons/FontAwesome';
 

@@ -1,3 +1,5 @@
+"use client";
+
 import { clearContentCache } from "../stores/contentDataStore";
 import { clearGenreData, fetchGenreData } from "../stores/genreDataStore";
 import { clearPopularContent, fetchPopularContent } from "../stores/popularContentStore";

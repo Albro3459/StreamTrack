@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect } from "react";
 import { View, Image, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";

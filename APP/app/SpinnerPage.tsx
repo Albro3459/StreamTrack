@@ -1,8 +1,10 @@
+"use client";
+
 import React, { useEffect, useRef, useState } from 'react';
 import {Dimensions, SafeAreaView, StyleSheet, Text, View, Image, TouchableOpacity, Pressable, Alert, Modal, FlatList, TextInput, Keyboard, KeyboardAvoidingView, ActivityIndicator} from 'react-native';
 import { GestureHandlerRootView, TouchableWithoutFeedback} from 'react-native-gesture-handler';
 import DropDownPicker from 'react-native-dropdown-picker';
-import { Spinner } from './components/spinnerComponent';
+// import { Spinner } from './components/spinnerComponent';
 // import { Content, PosterContent, Posters } from './types/contentType';
 // import { getContentById, getPostersFromContent, searchByKeywords } from './helpers/fetchHelper';
 import { router, SplashScreen, usePathname } from 'expo-router';

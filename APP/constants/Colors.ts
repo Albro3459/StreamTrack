@@ -1,3 +1,4 @@
+"use client";
 
 export const Colors = {
     backgroundColor: "#1c2237",

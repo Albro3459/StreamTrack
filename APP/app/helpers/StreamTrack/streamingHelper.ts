@@ -1,3 +1,5 @@
+"use client";
+
 import { StreamingServiceData } from "@/app/types/dataTypes";
 import { DataAPIURL } from "@/secrets/DataAPIUrl";
 

@@ -1,3 +1,5 @@
+"use client";
+
 import { DataAPIURL } from "@/secrets/DataAPIUrl";
 import { ContentPartialData, UpdateUserProfileData, UserMinimalData } from "../../types/dataTypes";
 

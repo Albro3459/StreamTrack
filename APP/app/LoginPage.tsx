@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, ActivityIndicator } from "react-native";
 import { auth } from "@/firebaseConfig";
@@ -83,6 +85,7 @@ export default function LoginPage() {
                     <TextInput
                         style={appStyles.textInput}
                         placeholder="Confirm Password"
+                        placeholderTextColor={Colors.italicTextColor}
                         value={confirmPassword}
                         onChangeText={setConfirmPassword}
                         onSubmitEditing={() => {isSignUp && handleAuth()}}

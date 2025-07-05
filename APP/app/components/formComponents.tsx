@@ -1,3 +1,5 @@
+"use client";
+
 import React, { Dispatch, SetStateAction } from "react";
 import { View, Text, Pressable } from "react-native";
 import { Feather } from "@expo/vector-icons";

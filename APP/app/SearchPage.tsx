@@ -1,3 +1,5 @@
+"use client";
+
 import { Colors } from '@/constants/Colors';
 import React, { useEffect, useRef, useState } from 'react';
 import { View, Text, TextInput, FlatList, Image, StyleSheet, Pressable, Keyboard, Dimensions, ActivityIndicator } from 'react-native';
@@ -10,7 +12,7 @@ import { TMDB_Content, TMDB, TMDB_MEDIA_TYPE } from './types/tmdbType';
 import { useUserDataStore } from './stores/userDataStore';
 import { ContentPartialData, ListData, ListMinimalData } from './types/dataTypes';
 import { FAVORITE_TAB, isItemInAnyList, isItemInList, moveItemToList, sortLists } from './helpers/StreamTrack/listHelper';
-import { MoveModal } from './components/moveModalComponent';
+import MoveModal from './components/moveModalComponent';
 import { StarRating } from './components/starRatingComponent';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");

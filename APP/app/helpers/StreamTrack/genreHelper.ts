@@ -1,3 +1,5 @@
+"use client";
+
 import { DataAPIURL } from "@/secrets/DataAPIUrl";
 import { GenreData } from "../../types/dataTypes";
 

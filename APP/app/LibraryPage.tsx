@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useState, useRef } from 'react';
 import {
   View,
@@ -24,7 +26,8 @@ import { ContentPartialData, ListMinimalData } from './types/dataTypes';
 import { createNewUserList, FAVORITE_TAB, getContentsInList, isItemInList, moveItemToList, sortLists } from './helpers/StreamTrack/listHelper';
 import { User } from 'firebase/auth';
 import { auth } from '@/firebaseConfig';
-import { MoveModal } from './components/moveModalComponent';
+import MoveModal from './components/moveModalComponent';
+import CreateNewListModal from './components/createNewListComponent';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -42,7 +45,7 @@ export default function LibraryPage() {
     const [activeTab, setActiveTab] = useState<string | null>(lists[0].listName);
 
     const [newListName, setNewListName] = useState<string>("");
-    const [createNewListModal, setCreateNewListModal] = useState(false);
+    const [createListModalVisible, setCreateListModalVisible] = useState(false);
 
     const [isLoading, setIsLoading] = useState(true);
     const [selectedContentData, setSelectedContentData] = useState<ContentPartialData | null>(null);
@@ -53,13 +56,13 @@ export default function LibraryPage() {
             const user: User | null = auth.currentUser;
             if (!user) {
                 setIsLoading(false);
-                setMoveModalVisible(false);
+                setCreateListModalVisible(false);
                 return;
             }
             const token = await user.getIdToken();
             const newList: ListMinimalData = await createNewUserList(token, listName);
             setNewListName("");
-            setCreateNewListModal(false);
+            setCreateListModalVisible(false);
             setLists(prev => sortLists([...prev, newList]));
             userData.user.listsOwned.push(newList);
             setUserData(userData);
@@ -100,9 +103,8 @@ export default function LibraryPage() {
   
         return (
         <FlatList<ContentPartialData>
-            // data={(lists.find(l => l.listName === activeTab) && userData.contents) ? userData.contents.filter(c => lists.find(l => l.listName === activeTab).tmdbIDs.includes(c.tmdbID)) : []}
             data={userData?.contents && getContentsInList(userData.contents, lists, activeTab)}
-            numColumns={2}
+            numColumns={3}
             keyExtractor={(content, index) => `${content.tmdbID}-${index}-${list}`}
             renderItem={({ item: content }) => (
             <TouchableOpacity
@@ -162,50 +164,10 @@ export default function LibraryPage() {
                         </TouchableOpacity>
                     )}
                 />
-                <Pressable onPress={() => setCreateNewListModal(true)} >
+                <Pressable onPress={() => setCreateListModalVisible(true)} >
                         <Ionicons name="add-circle-outline" size={35} color="white" />
                 </Pressable>
             </View>
-                
-            {/* Create List Modal */}
-            <Modal
-                transparent={true}
-                visible={createNewListModal}
-                animationType="fade"
-                onRequestClose={() => setCreateNewListModal(false)}
-            >
-                <Pressable
-                    style={styles.modalOverlay}
-                    onPress={() => setCreateNewListModal(false)}
-                >
-                <View style={styles.modalContent}>
-                    <Text style={styles.modalTitle}>Add New List</Text>
-                    <TextInput
-                        style={styles.textInput}
-                        placeholder="Enter list name"
-                        placeholderTextColor={"darkgrey"}
-                        value={newListName}
-                        onChangeText={setNewListName}
-                        onSubmitEditing={async () => await handelCreateNewTab(newListName)}
-                        autoFocus
-                    />
-                    <View style={styles.buttonRow}>
-                        <Pressable
-                            style={styles.cancelButton}
-                            onPress={() => setCreateNewListModal(false)}
-                        >
-                            <Text style={styles.cancelButtonText}>Cancel</Text>
-                        </Pressable>
-                        <Pressable
-                            style={styles.button}
-                            onPress={async () => await handelCreateNewTab(newListName)}
-                        >
-                            <Text style={styles.buttonText}>Add</Text>
-                        </Pressable>
-                    </View>
-                </View>
-                </Pressable>
-            </Modal>
 
             {/* Pager View */}
             <PagerView
@@ -216,7 +178,7 @@ export default function LibraryPage() {
                 onPageSelected={(e) => setActiveTab(lists[e.nativeEvent.position].listName)}
             >
                 {lists.map(l => ({listName: l.listName, contents: userData?.contents && getContentsInList(userData.contents, lists, l.listName)})).map((list) => (
-                    <View key={list.listName}>{renderTabContent(list.contents, list.listName)}</View>
+                    <View style={{paddingHorizontal: 5}} key={list.listName}>{renderTabContent(list.contents, list.listName)}</View>
                 ))}
             </PagerView>
 
@@ -230,6 +192,15 @@ export default function LibraryPage() {
                 moveItemFunc={moveItemToList}
                 isItemInListFunc={isItemInList}
                 setListsFunc={setLists}
+            />
+
+            {/* Create List Modal */}
+            <CreateNewListModal
+                visible={createListModalVisible}
+                listName={newListName}
+                setListNameFunc={setNewListName}
+                onCreateFunc={handelCreateNewTab}
+                onRequestCloseFunc={() => setCreateListModalVisible(false)}
             />
 
             {/* Overlay */}
@@ -264,7 +235,7 @@ const styles = StyleSheet.create({
     tabItem: {
         paddingVertical: 5,
         paddingHorizontal: 8,
-        borderRadius: 5,
+        borderRadius: 10,
         alignItems: "center",
         justifyContent: "center",
     },
@@ -287,8 +258,8 @@ const styles = StyleSheet.create({
     },
     movieImage: { 
         aspectRatio: 11/16, 
-        minWidth: screenWidth/3.3, 
-        minHeight: screenWidth / 2.2, 
+        width: screenWidth * 0.22, 
+        height: screenWidth * 0.32, 
         borderRadius: 10,
         ...appStyles.shadow,
     },
@@ -299,60 +270,4 @@ const styles = StyleSheet.create({
         marginTop: 5,
         ...appStyles.shadow,
     },
-
-    modalOverlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    modalContent: {
-        backgroundColor: Colors.altBackgroundColor,
-        borderRadius: 10,
-        padding: 20,
-        width: '67%',
-        alignItems: 'center',
-        ...appStyles.shadow
-    },
-    modalTitle: {
-        color: '#fff',
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginBottom: 10,
-    },
-    textInput: {
-        width: '100%',
-        borderWidth: 1,
-        backgroundColor: Colors.grayCell,
-        borderColor: Colors.backgroundColor,
-        borderRadius: 5,
-        padding: 10,
-        marginBottom: 20,
-        color: Colors.backgroundColor,
-    },
-    buttonRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        width: '100%',
-        columnGap: 10
-    },
-    cancelButton: {
-        ...appStyles.button,
-        ...appStyles.secondaryButton,
-        width: undefined,
-        flex: 1
-    },
-    cancelButtonText: {
-        ...appStyles.buttonText,
-        ...appStyles.secondaryButtonText,
-    },
-    button: {
-        ...appStyles.button,
-        width: undefined,
-        flex: 1
-    },
-    buttonText: {
-       ...appStyles.buttonText,
-    },
-
 });

@@ -1,3 +1,5 @@
+"use client";
+
 import { TMDB_BEARER_TOKEN } from '@/secrets/API_keys';
 import { TMDB_MEDIA_TYPE, TMDB } from '../types/tmdbType';
 

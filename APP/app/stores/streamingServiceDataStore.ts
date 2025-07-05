@@ -1,3 +1,5 @@
+"use client";
+
 import { create } from 'zustand';
 import { StreamingServiceData } from '../types/dataTypes';
 import { getStreamingServiceData } from '../helpers/StreamTrack/streamingHelper';

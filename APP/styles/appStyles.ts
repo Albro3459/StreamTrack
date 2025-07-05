@@ -1,3 +1,5 @@
+"use client";
+
 import { Dimensions, StyleSheet } from "react-native";
 import { Colors } from "../constants/Colors";
 
@@ -32,7 +34,7 @@ export const appStyles = StyleSheet.create({
     movieImage: {
         height: 16*7,
         aspectRatio: 11 / 16,
-        borderRadius: 8,
+        borderRadius: 10,
     },
     movieTitle: {
         color: Colors.selectedTextColor,
@@ -43,7 +45,7 @@ export const appStyles = StyleSheet.create({
 
     inputContainer: {
         backgroundColor: Colors.altBackgroundColor,
-        borderRadius: 15,
+        borderRadius: 10,
         ...shadow
     },
     textInput: {
@@ -96,7 +98,7 @@ export const appStyles = StyleSheet.create({
     cardPoster: {
         height: 80,
         width: 60,
-        borderRadius: 5,
+        borderRadius: 10,
         marginRight: 10,
          ...shadow
     },
@@ -164,7 +166,7 @@ export const appStyles = StyleSheet.create({
     modalButton: {
         backgroundColor: Colors.grayCell,
         padding: 10,
-        borderRadius: 5,
+        borderRadius: 10,
         margin: 5,
         width: '100%',
         height: 40,
@@ -181,41 +183,5 @@ export const appStyles = StyleSheet.create({
         color: Colors.selectedTextColor,
         fontWeight: "600",
         fontSize: 16,
-    },
-    
-
-
-    // OLD but can't delete just yet
-    reviewCard: {
-        flexDirection: "row",
-        backgroundColor: Colors.altBackgroundColor,
-        borderRadius: 10,
-        padding: 10,
-        marginBottom: 10,
-    },
-    avatar: {
-        width: 50,
-        height: 50,
-        borderRadius: 25,
-        marginRight: 10,
-    },
-    reviewTextContainer: {
-        flex: 1,
-    },
-    reviewUser: {
-        fontSize: 16,
-        fontWeight: "bold",
-        color: "#fff",
-    },
-    reviewText: {
-        fontSize: 14,
-        color: Colors.reviewTextColor,
-        marginVertical: 5,
-    },
-    reviewMovie: {
-        fontSize: 14,
-        color: Colors.italicTextColor,
-        marginBottom: 5,
-        fontStyle: "italic",
     },
 });

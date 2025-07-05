@@ -1,3 +1,5 @@
+"use client";
+
 import { create } from 'zustand';
 import { getGenreData } from '../helpers/StreamTrack/genreHelper';
 import { GenreData } from '../types/dataTypes';
