@@ -47,7 +47,7 @@ public class ContentController : ControllerBase {
         { "Paramount+", "Popular on Paramount+" },
         { "Peacock", "Popular on Peacock" },
         { "Only&Netflix", "Only on Netflix" },
-        { "Only&Hulu", "Only on Hulu" },
+        // { "Only&Hulu", "Only on Hulu" }, // Not enough of them lol
         { "Only&Max", "Only on Max" },
         { "Only&Prime Video", "Only on Prime Video" },
         { "Only&Disney+", "Only on Disney+" },
