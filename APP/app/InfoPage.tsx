@@ -17,6 +17,7 @@ import { StarRating } from './components/starRatingComponent';
 import { getContentDetails } from './helpers/StreamTrack/contentHelper';
 import { auth } from '@/firebaseConfig';
 import { getCachedContent, useContentDataStore } from './stores/contentDataStore';
+import AlertMessage, { Alert } from './components/alertMessageComponent';
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -32,6 +33,9 @@ export default function InfoPage() {
 
     const { userData } = useUserDataStore();
     const { cacheContent } = useContentDataStore();
+
+    const [alertMessage, setAlertMessage] = useState<string>("");
+    const [alertType, setAlertType] = useState<Alert>(Alert.Error);
 
     const [lists, setLists] = useState<ListMinimalData[] | null>([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]);
 
@@ -215,6 +219,12 @@ export default function InfoPage() {
 
     return (
         <View style={styles.screen}>
+            <AlertMessage
+                type={alertType}
+                message={alertMessage}
+                setMessage={setAlertMessage}
+            />
+
             <ScrollView showsVerticalScrollIndicator={false}>
                 <View style={styles.movieContainer}>
                     {/* Movie Poster */}
@@ -278,6 +288,8 @@ export default function InfoPage() {
                 moveItemFunc={moveItemToList}
                 isItemInListFunc={isItemInList}
                 setListsFunc={setLists}
+                setAlertMessageFunc={setAlertMessage}
+                setAlertTypeFunc={setAlertType}
             />
 
             {/* Overlay */}

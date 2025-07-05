@@ -28,6 +28,7 @@ import { User } from 'firebase/auth';
 import { auth } from '@/firebaseConfig';
 import MoveModal from './components/moveModalComponent';
 import CreateNewListModal from './components/createNewListComponent';
+import AlertMessage, { Alert } from './components/alertMessageComponent';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -40,6 +41,9 @@ export default function LibraryPage() {
 
     const { userData } = useUserDataStore();
 
+    const [alertMessage, setAlertMessage] = useState<string>("");
+    const [alertType, setAlertType] = useState<Alert>(Alert.Error);
+
     const [lists, setLists] = useState<ListMinimalData[] | null>(sortLists([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]));
 
     const [activeTab, setActiveTab] = useState<string | null>(lists[0].listName);
@@ -51,23 +55,35 @@ export default function LibraryPage() {
     const [selectedContentData, setSelectedContentData] = useState<ContentPartialData | null>(null);
     const [moveModalVisible, setMoveModalVisible] = useState(false);
 
-    const handelCreateNewTab = async (listName: string) => {
-        if (listName.trim()) {
-            const user: User | null = auth.currentUser;
-            if (!user) {
-                setIsLoading(false);
-                setCreateListModalVisible(false);
-                return;
+    const handelCreateNewTab = async (listName: string, lists: ListMinimalData[], 
+                    setAlertMessageFunc: React.Dispatch<React.SetStateAction<string>>,
+                    setAlertTypeFunc: React.Dispatch<React.SetStateAction<Alert>>
+    ) => {
+        try {
+            listName = listName.trim();
+            if (listName && !lists.map(l => l.listName.toLowerCase()).includes(listName.toLowerCase())) {
+                const user: User | null = auth.currentUser;
+                if (!user) {
+                    setAlertMessageFunc("User doesn't exist");
+                    setAlertTypeFunc(Alert.Error);
+                    return;
+                }
+                const token = await user.getIdToken();
+                const newList: ListMinimalData = await createNewUserList(token, listName);
+                setNewListName("");
+                setLists(prev => sortLists([...prev, newList]));
+                userData.user.listsOwned.push(newList);
+                setUserData(userData);
+                setActiveTab(listName);
+                pagerViewRef.current?.setPage(lists.map(l => l.listName).indexOf(listName));
+            } else {
+                console.warn(`List "${listName}" already exists`);
+                setAlertMessageFunc(`List "${listName}" already exists`);
+                setAlertTypeFunc(Alert.Error);
             }
-            const token = await user.getIdToken();
-            const newList: ListMinimalData = await createNewUserList(token, listName);
-            setNewListName("");
+        } finally {
+            setIsLoading(false);
             setCreateListModalVisible(false);
-            setLists(prev => sortLists([...prev, newList]));
-            userData.user.listsOwned.push(newList);
-            setUserData(userData);
-            setActiveTab(listName);
-            pagerViewRef.current?.setPage(lists.map(l => l.listName).indexOf(listName));
         }
     };
 
@@ -136,6 +152,12 @@ export default function LibraryPage() {
 
     return (
         <View style={styles.container}>
+            <AlertMessage
+                type={alertType}
+                message={alertMessage}
+                setMessage={setAlertMessage}
+            />
+
             {/* Tab Bar */}
             <View style={[styles.tabBar, (lists && lists.length <= 4) && {paddingLeft: 24}]}>
                 <FlatList<string>
@@ -192,15 +214,20 @@ export default function LibraryPage() {
                 moveItemFunc={moveItemToList}
                 isItemInListFunc={isItemInList}
                 setListsFunc={setLists}
+                setAlertMessageFunc={setAlertMessage}
+                setAlertTypeFunc={setAlertType}
             />
 
             {/* Create List Modal */}
             <CreateNewListModal
                 visible={createListModalVisible}
                 listName={newListName}
+                lists={lists}
                 setListNameFunc={setNewListName}
                 onCreateFunc={handelCreateNewTab}
                 onRequestCloseFunc={() => setCreateListModalVisible(false)}
+                setAlertMessageFunc={setAlertMessage}
+                setAlertTypeFunc={setAlertType}
             />
 
             {/* Overlay */}

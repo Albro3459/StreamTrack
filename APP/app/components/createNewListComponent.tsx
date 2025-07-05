@@ -2,24 +2,43 @@
 
 import { Colors } from "@/constants/Colors";
 import { appStyles } from "@/styles/appStyles";
-import React from "react";
+import React, { useEffect } from "react";
 import { Modal, View, Text, TextInput, Pressable, StyleSheet } from "react-native";
+import { ListMinimalData } from "../types/dataTypes";
+import { Alert } from "./alertMessageComponent";
 
 interface CreateNewListModalProps {
     visible: boolean;
     listName: string;
+    lists: ListMinimalData[];
     setListNameFunc: (name: string) => void;
-    onCreateFunc: (name: string) => Promise<void>;
+    onCreateFunc: (name: string, lists: ListMinimalData[], 
+                    setAlertMessageFunc: React.Dispatch<React.SetStateAction<string>>,
+                    setAlertTypeFunc: React.Dispatch<React.SetStateAction<Alert>>
+    ) => Promise<void>;
     onRequestCloseFunc: () => void;
+
+    setAlertMessageFunc: React.Dispatch<React.SetStateAction<string>>;
+    setAlertTypeFunc: React.Dispatch<React.SetStateAction<Alert>>;
 }
 
 export default function CreateNewListModal({
     visible,
     listName,
+    lists,
     setListNameFunc,
     onCreateFunc,
     onRequestCloseFunc,
+    setAlertMessageFunc,
+    setAlertTypeFunc
 } : CreateNewListModalProps) {
+    
+    useEffect(() => {
+        if (visible) { // Clear text field on load
+            setListNameFunc("");
+        }
+    }, [visible]);
+
     return (<Modal
                 transparent
                 visible={visible}
@@ -35,14 +54,14 @@ export default function CreateNewListModal({
                         placeholderTextColor="darkgrey"
                         value={listName}
                         onChangeText={setListNameFunc}
-                        onSubmitEditing={async () => await onCreateFunc(listName)}
+                        onSubmitEditing={async () => await onCreateFunc(listName, lists, setAlertMessageFunc, setAlertTypeFunc)}
                         autoFocus
                     />
                     <View style={styles.buttonRow}>
                         <Pressable style={styles.cancelButton} onPress={onRequestCloseFunc}>
                             <Text style={styles.cancelButtonText}>Cancel</Text>
                         </Pressable>
-                        <Pressable style={styles.button} onPress={async () => await onCreateFunc(listName)}>
+                        <Pressable style={styles.button} onPress={async () => await onCreateFunc(listName, lists, setAlertMessageFunc, setAlertTypeFunc)}>
                             <Text style={styles.buttonText}>Add</Text>
                         </Pressable>
                     </View>

@@ -14,6 +14,7 @@ import { ContentPartialData, ListData, ListMinimalData } from './types/dataTypes
 import { FAVORITE_TAB, isItemInAnyList, isItemInList, moveItemToList, sortLists } from './helpers/StreamTrack/listHelper';
 import MoveModal from './components/moveModalComponent';
 import { StarRating } from './components/starRatingComponent';
+import AlertMessage, { Alert } from './components/alertMessageComponent';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -21,14 +22,15 @@ export default function SearchPage() {
     const router = useRouter();
     
     const { userData } = useUserDataStore();
+    
+    const [alertMessage, setAlertMessage] = useState<string>("");
+    const [alertType, setAlertType] = useState<Alert>(Alert.Error);
 
     const flatListRef = useRef<FlatList>(null);
     const searchInputRef = useRef<TextInput>(null);  
-
     
     const [isSearching, setIsSearching] = useState(false);
     const [showNoResults, setShowNoResults] = useState(false);
-
 
     const [searchText, setSearchText] = useState('');
 
@@ -76,6 +78,11 @@ export default function SearchPage() {
     return (
         <Pressable style={{height: screenHeight-70}} onPress={Keyboard.dismiss}>
             <View style={[styles.container]}>
+                <AlertMessage
+                    type={alertType}
+                    message={alertMessage}
+                    setMessage={setAlertMessage}
+                />
                 {/* Search Bar */}
                 <View style={[styles.searchBarContainer, {paddingHorizontal: 16}]} >
                     <Pressable 
@@ -153,6 +160,8 @@ export default function SearchPage() {
                     moveItemFunc={moveItemToList}
                     isItemInListFunc={isItemInList}
                     setListsFunc={setLists}
+                    setAlertMessageFunc={setAlertMessage}
+                    setAlertTypeFunc={setAlertType}
                 />
 
                 {/* Loading Overlay */}

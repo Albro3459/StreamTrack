@@ -14,6 +14,7 @@ import { isItemInList, moveItemToList, sortLists } from "./helpers/StreamTrack/l
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { runOnJS } from 'react-native-reanimated';
 import { auth } from "@/firebaseConfig";
+import AlertMessage, { Alert } from "./components/alertMessageComponent";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -26,6 +27,9 @@ export default function LandingPage () {
     
     const { userData } = useUserDataStore();
     const { popularContent } = usePopularContentStore();
+
+    const [alertMessage, setAlertMessage] = useState<string>("");
+    const [alertType, setAlertType] = useState<Alert>(Alert.Error);
 
     const [lists, setLists] = useState<ListMinimalData[] | null>(sortLists([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]));
 
@@ -129,6 +133,12 @@ export default function LandingPage () {
 
     return (
         <View style={styles.container} >
+            <AlertMessage
+                type={alertType}
+                message={alertMessage}
+                setMessage={setAlertMessage}
+            />
+            
             <ScrollView style={{ marginBottom: LIBRARY_OVERLAY_HEIGHT}} showsVerticalScrollIndicator={false}
                 refreshControl={
                     <RefreshControl
@@ -231,6 +241,8 @@ export default function LandingPage () {
                 moveItemFunc={moveItemToList}
                 isItemInListFunc={isItemInList}
                 setListsFunc={setLists}
+                setAlertMessageFunc={setAlertMessage}
+                setAlertTypeFunc={setAlertType}
             />
         
             {/* Library Button & Overlay */}

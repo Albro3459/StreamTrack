@@ -11,6 +11,7 @@ import { auth } from "@/firebaseConfig";
 import { setUserData, useUserDataStore } from "../stores/userDataStore";
 import { User } from "firebase/auth";
 import CreateNewListModal from "./createNewListComponent";
+import { Alert } from "./alertMessageComponent";
 
 interface MoveModalProps {
     selectedContent: ContentPartialData;
@@ -33,6 +34,9 @@ interface MoveModalProps {
     isItemInListFunc: (lists: ListMinimalData[], listName: string, tmdbID: string) => boolean;
 
     setListsFunc: React.Dispatch<React.SetStateAction<ListMinimalData[]>>;
+
+    setAlertMessageFunc: React.Dispatch<React.SetStateAction<string>>;
+    setAlertTypeFunc: React.Dispatch<React.SetStateAction<Alert>>;
 }
 
 export default function MoveModal({ 
@@ -46,7 +50,9 @@ export default function MoveModal({
     setAutoPlayFunc, 
     moveItemFunc, 
     isItemInListFunc, 
-    setListsFunc
+    setListsFunc,
+    setAlertMessageFunc,
+    setAlertTypeFunc
 } : MoveModalProps) {
 
     const {userData} = useUserDataStore();
@@ -54,26 +60,38 @@ export default function MoveModal({
     const [createListModalVisible, setCreateListModalVisible] = useState<boolean>(false);
     const [newListName, setNewListName] = useState<string>("");
 
-    const handelCreateNewTab = async (listName: string) => {
-        if (listName.trim()) {
-            setIsLoadingFunc(true);
-            const user: User | null = auth.currentUser;
-            if (!user) {
-                setIsLoadingFunc(false);
-                setCreateListModalVisible(false);
-                return;
+    const handelCreateNewTab = async (listName: string, lists: ListMinimalData[], 
+                        setAlertMessageFunc: React.Dispatch<React.SetStateAction<string>>,
+                        setAlertTypeFunc: React.Dispatch<React.SetStateAction<Alert>>
+    ) => {
+        try {
+            listName = listName.trim();
+            if (listName && !lists.map(l => l.listName.toLowerCase()).includes(listName.toLowerCase())) {
+                setIsLoadingFunc(true);
+                const user: User | null = auth.currentUser;
+                if (!user) {
+                    setAlertMessageFunc("User doesn't exist");
+                    setAlertTypeFunc(Alert.Error);
+                    return;
+                }
+                const token = await user.getIdToken();
+                const newList: ListMinimalData = await createNewUserList(token, listName);
+                setListsFunc(prev => sortLists([...prev, newList]));
+                userData.user.listsOwned.push(newList);
+                setUserData(userData);
+    
+                await moveItemFunc(selectedContent, listName, userData.user.listsOwned, setListsFunc, setIsLoadingFunc, setVisibilityFunc, setAutoPlayFunc); // Fire and Forget
+                // setVisibilityFunc(false);
+                setNewListName("");
             }
-            const token = await user.getIdToken();
-            const newList: ListMinimalData = await createNewUserList(token, listName);
-            setListsFunc(prev => sortLists([...prev, newList]));
-            userData.user.listsOwned.push(newList);
-            setUserData(userData);
-
-            await moveItemFunc(selectedContent, listName, userData.user.listsOwned, setListsFunc, setIsLoadingFunc, setVisibilityFunc, setAutoPlayFunc); // Fire and Forget
-            setNewListName("");
-            setCreateListModalVisible(false);
-            // setVisibilityFunc(false);
+            else {
+                console.warn(`List "${listName}" already exists`);
+                setAlertMessageFunc(`List "${listName}" already exists`);
+                setAlertTypeFunc(Alert.Error);
+            }
+        } finally {
             setIsLoadingFunc(false);
+            setCreateListModalVisible(false);
         }
     };
 
@@ -156,9 +174,12 @@ export default function MoveModal({
         <CreateNewListModal
             visible={createListModalVisible}
             listName={newListName}
+            lists={lists}
             setListNameFunc={setNewListName}
             onCreateFunc={handelCreateNewTab}
             onRequestCloseFunc={() => setCreateListModalVisible(false)}
+            setAlertMessageFunc={setAlertMessageFunc}
+            setAlertTypeFunc={setAlertTypeFunc}
         />
         </>
     );
