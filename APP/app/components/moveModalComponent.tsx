@@ -76,12 +76,17 @@ export default function MoveModal({
                 }
                 const token = await user.getIdToken();
                 const newList: ListMinimalData = await createNewUserList(token, listName);
-                setListsFunc(prev => sortLists([...prev, newList]));
-                userData.user.listsOwned.push(newList);
-                setUserData(userData);
+                const newLists: ListMinimalData[] = sortLists([...lists, newList]);
+                setListsFunc(newLists);
+                setUserData({
+                    ...userData,
+                    user: {
+                        ...userData.user,
+                        listsOwned: [...userData.user.listsOwned, newList],
+                    }
+                });
     
-                await moveItemFunc(selectedContent, listName, userData.user.listsOwned, setListsFunc, setIsLoadingFunc, setVisibilityFunc, setAutoPlayFunc); // Fire and Forget
-                // setVisibilityFunc(false);
+                await moveItemFunc(selectedContent, listName, newLists, setListsFunc, setIsLoadingFunc, setVisibilityFunc, setAutoPlayFunc); // Fire and Forget
                 setNewListName("");
             }
             else {
@@ -111,7 +116,7 @@ export default function MoveModal({
             >
                 <View style={[appStyles.modalContent, showHeart && {paddingBottom: 10}]}>
                     {showLabel && <Text style={appStyles.modalTitle}>
-                        Save to...
+                        Add to...
                     </Text>}
                     <>
                         {/* Render all tabs except FAVORITE_TAB */}
@@ -158,9 +163,7 @@ export default function MoveModal({
                                 style={{ paddingTop: 10 }}
                             >
                             <Heart
-                                heartColor={
-                                    isItemInListFunc(lists, FAVORITE_TAB, selectedContent.tmdbID) ? Colors.selectedHeartColor : Colors.unselectedHeartColor
-                                }
+                                isSelected={() => isItemInListFunc(lists, FAVORITE_TAB, selectedContent.tmdbID)}
                                 size={35}
                                 onPress={async () => await moveItemFunc(selectedContent, FAVORITE_TAB, lists, setListsFunc, setIsLoadingFunc, setVisibilityFunc, setAutoPlayFunc)}
                             />

@@ -1,7 +1,7 @@
 "use client";
 
 import { Colors } from '@/constants/Colors';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, TextInput, FlatList, Image, StyleSheet, Pressable, Keyboard, Dimensions, ActivityIndicator } from 'react-native';
 import Heart from './components/heartComponent';
 import { useRouter } from 'expo-router';
@@ -16,6 +16,7 @@ import MoveModal from './components/moveModalComponent';
 import { StarRating } from './components/starRatingComponent';
 import AlertMessage, { Alert } from './components/alertMessageComponent';
 import { useContentDataStore } from './stores/contentDataStore';
+import { useFocusEffect } from '@react-navigation/native';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -77,11 +78,13 @@ export default function SearchPage() {
         }
     };
 
-    useEffect(() => {
-        if (userData) {
-            setLists([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]);
-        }
-    }, [userData]);
+    useFocusEffect(
+        useCallback(() => {
+            if (userData) {
+                setLists(sortLists([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]));
+            }
+        }, [userData])
+    );
 
     return (
         <Pressable style={{height: screenHeight-70}} onPress={Keyboard.dismiss}>
@@ -116,7 +119,7 @@ export default function SearchPage() {
                     />
                 </View>
 
-                {/* Movie Cards */}
+                {/* Recently Viewed */}
                 {(!contents || contents.length <= 0) ? 
                     (!contentCache || contentCache.length <= 0) || noResultsOrTrySearching(searchText, showNoResults, isSearching) ? (
                         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 16 }}>
@@ -145,13 +148,13 @@ export default function SearchPage() {
                                     }}
                                     onLongPress={() => {setSelectedContent(content); setMoveModalVisible(true);}}
                                 >
-                                    <View style={[appStyles.cardContainer]}>
-                                        <Image source={{ uri: content.verticalPoster }} style={appStyles.cardPoster} />
+                                    <View style={[appStyles.cardContainer, {paddingRight: 15}]}>
+                                        <Image source={{ uri: content.verticalPoster }} style={[appStyles.cardPoster, {height: 70, borderRadius: 7}]} />
                                         <View style={[
                                             appStyles.cardContent,
                                             {
                                                 flexDirection: "column",
-                                                minHeight: 80,
+                                                minHeight: 70,
                                             }
                                             ]}>
                                            <View style={{flex: 1, justifyContent: "center"}}>
@@ -161,8 +164,8 @@ export default function SearchPage() {
                                             <StarRating rating={content.rating}/>
                                         </View>
                                         <Heart 
-                                            heartColor={isItemInList(lists, FAVORITE_TAB, content.tmdbID) ? Colors.selectedHeartColor : Colors.unselectedHeartColor}
-                                            size={40}
+                                            isSelected={() => isItemInList(lists, FAVORITE_TAB, content.tmdbID)}
+                                            size={30}
                                             onPress={async () => await moveItemToList(content, FAVORITE_TAB, lists, setLists, setIsSearching, setMoveModalVisible)}
                                         />
                                     </View>
@@ -191,15 +194,15 @@ export default function SearchPage() {
                         onLongPress={() => {setSelectedContent(content); setMoveModalVisible(true);}}
                     >
                         <View style={[appStyles.cardContainer, {marginHorizontal: 16}]}>
-                            <Image source={{ uri: content.verticalPoster }} style={appStyles.cardPoster} />
+                            <Image source={{ uri: content.verticalPoster }} style={[appStyles.cardPoster, {width: 60}]} />
                             <View style={appStyles.cardContent}>
                                 <Text style={appStyles.cardTitle}>{content.title}</Text>
-                                <Text style={appStyles.cardDescription} numberOfLines={4}>{content.overview}</Text>
+                                <Text style={appStyles.cardDescription} numberOfLines={3}>{content.overview}</Text>
                                 <StarRating rating={content.rating}/>
                             </View>
                             <Heart 
-                                heartColor={isItemInList(lists, FAVORITE_TAB, content.tmdbID) ? Colors.selectedHeartColor : Colors.unselectedHeartColor}
-                                size={40}
+                                isSelected={() => isItemInList(lists, FAVORITE_TAB, content.tmdbID)}
+                                size={35}
                                 onPress={async () => await moveItemToList(content, FAVORITE_TAB, lists, setLists, setIsSearching, setMoveModalVisible)}
                             />
                         </View>

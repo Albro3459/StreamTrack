@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Carousel from "react-native-reanimated-carousel";
 import { Pressable, View, Image, StyleSheet, Text, ScrollView, ActivityIndicator, Dimensions, FlatList, RefreshControl } from "react-native";
-import { useFocusEffect, useRouter } from "expo-router";
+import { useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { appStyles, RalewayFont } from "@/styles/appStyles";
 import { useUserDataStore } from "./stores/userDataStore";
@@ -15,6 +15,7 @@ import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { runOnJS } from 'react-native-reanimated';
 import { auth } from "@/firebaseConfig";
 import AlertMessage, { Alert } from "./components/alertMessageComponent";
+import { useFocusEffect } from "@react-navigation/native";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -79,11 +80,13 @@ export default function LandingPage () {
         };
     }, [carouselIndex, popularContent?.carousel?.length]);
 
-    useEffect(() => {
-        if (userData) {
-            setLists(sortLists([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]));
-        }
-    }, [userData]);
+    useFocusEffect(
+        useCallback(() => {
+            if (userData) {
+                setLists(sortLists([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]));
+            }
+        }, [userData])
+    );
 
     useEffect(() => {
         const store = usePopularContentStore.getState(); 

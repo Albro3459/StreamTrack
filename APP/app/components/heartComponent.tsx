@@ -7,12 +7,12 @@ import { Colors } from "@/constants/Colors";
 import { appStyles } from "@/styles/appStyles";
 
 interface HeartTypes {
-    heartColor?: string;
+    isSelected?: () => boolean;
     size?: number;
     onPress?: (any) => void;
 }
 
-const Heart: React.FC<HeartTypes> = ({heartColor = Colors.selectedHeartColor, size = 40, onPress = () => {}}) => {
+const Heart: React.FC<HeartTypes> = ({isSelected = () => true, size = 40, onPress = () => {}}) => {
     return (
         <Pressable 
             onPress={onPress}
@@ -21,9 +21,9 @@ const Heart: React.FC<HeartTypes> = ({heartColor = Colors.selectedHeartColor, si
             ]}
         >
             <Icon 
-                name="heart" 
+                name={isSelected() ? "heart" : "heart-o"}
                 size={size} 
-                color={heartColor ? heartColor : Colors.selectedHeartColor} 
+                color={isSelected() ? Colors.selectedHeartColor : Colors.unselectedHeartColor} 
                 style={appStyles.shadow}
             />
         </Pressable>

@@ -10,14 +10,16 @@ import { appStyles, RalewayFont } from '@/styles/appStyles';
 import { SvgUri } from 'react-native-svg';
 import { TMDB_MEDIA_TYPE } from './types/tmdbType';
 import { ContentData, ContentInfoData, ContentPartialData, ContentRequestData, ListMinimalData, StreamingOptionData } from './types/dataTypes';
-import { useUserDataStore } from './stores/userDataStore';
-import { FAVORITE_TAB, isItemInList, moveItemToList } from './helpers/StreamTrack/listHelper';
+import { setUserData, useUserDataStore } from './stores/userDataStore';
+import { createNewUserList, FAVORITE_TAB, isItemInList, moveItemToList, sortLists } from './helpers/StreamTrack/listHelper';
 import MoveModal from './components/moveModalComponent';
 import { StarRating } from './components/starRatingComponent';
 import { getContentInfo } from './helpers/StreamTrack/contentHelper';
 import { auth } from '@/firebaseConfig';
 import { getCachedContent, useContentDataStore } from './stores/contentDataStore';
 import AlertMessage, { Alert } from './components/alertMessageComponent';
+import CreateNewListModal from './components/createNewListComponent';
+import { User } from 'firebase/auth';
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -41,12 +43,15 @@ export default function InfoPage() {
     const [lists, setLists] = useState<ListMinimalData[] | null>([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]);
 
     const [info, setInfo] = useState<ContentInfoData | null>();
-    const [selectedContent, setSelectedContent] = useState<ContentPartialData>(null);
+    const [selectedRecommendation, setSelectedRecommendation] = useState<ContentPartialData>(null);
 
     const [isLoading, setIsLoading] = useState(true);
     
     const [listModalVisible, setListModalVisible] = useState(false);
     const [recommendedListModalVisible, setRecommendedListModalVisible] = useState(false);
+
+    const [newListName, setNewListName] = useState<string>("");
+    const [createListModalVisible, setCreateListModalVisible] = useState(false);
 
     const [activeTab, setActiveTab] = useState<string>('About');
 
@@ -78,6 +83,46 @@ export default function InfoPage() {
                 )));
     };
 
+    const handelCreateNewTab = async (listName: string, lists: ListMinimalData[], 
+                            setAlertMessageFunc: React.Dispatch<React.SetStateAction<string>>,
+                            setAlertTypeFunc: React.Dispatch<React.SetStateAction<Alert>>
+        ) => {
+            try {
+                listName = listName.trim();
+                if (listName && !lists.map(l => l.listName.toLowerCase()).includes(listName.toLowerCase())) {
+                    setIsLoading(true);
+                    const user: User | null = auth.currentUser;
+                    if (!user) {
+                        setAlertMessageFunc("User doesn't exist");
+                        setAlertTypeFunc(Alert.Error);
+                        return;
+                    }
+                    const token = await user.getIdToken();
+                    const newList: ListMinimalData = await createNewUserList(token, listName);
+                    const newLists: ListMinimalData[] = sortLists([...lists, newList]);
+                    setLists(newLists);
+                    setUserData({
+                        ...userData,
+                        user: {
+                            ...userData.user,
+                            listsOwned: [...userData.user.listsOwned, newList],
+                        }
+                    });
+        
+                    await moveItemToList(info.content, listName, newLists, setLists, setIsLoading); // Fire and Forget
+                    setNewListName("");
+                }
+                else {
+                    console.warn(`List "${listName}" already exists`);
+                    setAlertMessageFunc(`List "${listName}" already exists`);
+                    setAlertTypeFunc(Alert.Error);
+                }
+            } finally {
+                setIsLoading(false);
+                setCreateListModalVisible(false);
+            }
+        };
+
     const handlePress = (content: ContentPartialData) => {
         router.push({
             pathname: '/InfoPage',
@@ -86,7 +131,7 @@ export default function InfoPage() {
     }
     
     const handleLongPress = (content: ContentPartialData) => {
-        setSelectedContent(content); setRecommendedListModalVisible(true);
+        setSelectedRecommendation(content); setRecommendedListModalVisible(true);
     }
 
     useEffect(() => {
@@ -117,26 +162,17 @@ export default function InfoPage() {
         case 'About':
             return (
             <View style={styles.content}>
-                {info?.content?.rating > 0 &&
+                {/* {info?.content?.rating > 0 &&
                     <View style={{flexDirection: "row", justifyContent: "flex-start", alignItems: "center"}}>
                         <Text style={styles.sectionTitle}>Rating  </Text>
                         {info && <StarRating rating={info?.content?.rating}/> }
                     </View>
-                }
-
-                <View style={{flexDirection: "row", justifyContent: "flex-start", alignItems: "center"}}>
-                <Text style={styles.sectionTitle}>{!info ? tmdbID.split('/')[0] === TMDB_MEDIA_TYPE.MOVIE ? "Movie" : "Series" : (
-                    `${info?.content?.showType.charAt(0).toUpperCase() + info?.content?.showType.slice(1).toLowerCase()}`
-                    )}</Text>
-                <Text style={[styles.text, {fontSize: 18, paddingLeft: 15, paddingTop: 10, textAlign: 'left', textAlignVertical: "center"}]}>
-                    {getRuntime(info?.content)}
-                </Text>
-                </View>
+                } */}
 
                 <Text style={styles.sectionTitle}>Overview</Text>
                 <Text style={styles.text}>{info && info?.content?.overview}</Text>
 
-                <Text style={[styles.sectionTitle, {marginBottom: 0} ]}>Where to Watch</Text>
+                <Text style={[styles.sectionTitle, {marginBottom: 0} ]}>Where to Stream</Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', columnGap: 10, paddingBottom: 10}}>
                     {info && info?.content?.streamingOptions.filter(s => !s.price).map((streamingOption, index) => (
                         <Pressable
@@ -251,17 +287,22 @@ export default function InfoPage() {
                                         ? info.content?.releaseYear+ "    " : "")) + getRuntime(info?.content)}
                             </Text>
                         </View>
-                        <View style={[styles.attributeContainer, {marginTop: 5}]} >
+
+                        <StarRating rating={info?.content?.rating} size={22} />
+
+                        <View style={[styles.attributeContainer, {marginTop: 18}]} >
                             <Pressable
-                                style={appStyles.button}
-                                onPress={() => setListModalVisible(true)}
+                                style={[appStyles.button, (lists.length > 1) ? {width: 140} : {width: undefined, paddingHorizontal: 10}]}
+                                onPress={() => (lists.length > 1) ? setListModalVisible(true) : setCreateListModalVisible(true)}
                             >
-                                <Text style={[appStyles.buttonText, {fontSize: 16}]}>Save to List</Text>
+                                <Text style={[appStyles.buttonText, {fontSize: 16}]}>
+                                    {(lists.length > 1) ? "Add to List" : "Create & Add to List"}
+                                </Text>
                             </Pressable>
                             
-                            <Heart 
-                                heartColor={isItemInList(lists, FAVORITE_TAB, tmdbID ? tmdbID : info ? info?.content?.tmdbID : "") ? Colors.selectedHeartColor : Colors.unselectedHeartColor}
-                                size={45}
+                            <Heart
+                                isSelected={() => isItemInList(lists, FAVORITE_TAB, tmdbID ? tmdbID : info ? info?.content?.tmdbID : "")}
+                                size={35}
                                 onPress={async () => await moveItemToList(info?.content, FAVORITE_TAB, lists, setLists, setIsLoading, setListModalVisible)}
                             />
                         </View>
@@ -304,7 +345,7 @@ export default function InfoPage() {
                 setAlertTypeFunc={setAlertType}
             />
             <MoveModal
-                selectedContent={selectedContent}
+                selectedContent={selectedRecommendation}
                 lists={lists}
                 showLabel={false}
                 showHeart={false}
@@ -314,6 +355,18 @@ export default function InfoPage() {
                 moveItemFunc={moveItemToList}
                 isItemInListFunc={isItemInList}
                 setListsFunc={setLists}
+                setAlertMessageFunc={setAlertMessage}
+                setAlertTypeFunc={setAlertType}
+            />
+
+            {/* Create List Modal */}
+            <CreateNewListModal
+                visible={createListModalVisible}
+                listName={newListName}
+                lists={lists}
+                setListNameFunc={setNewListName}
+                onCreateFunc={handelCreateNewTab}
+                onRequestCloseFunc={() => setCreateListModalVisible(false)}
                 setAlertMessageFunc={setAlertMessage}
                 setAlertTypeFunc={setAlertType}
             />
@@ -346,11 +399,12 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     posterImage: {
-      width: 200,
-      height: 300,
-      borderRadius: 15,
-      marginBottom: 16,
-      ...appStyles.shadow
+        aspectRatio: 11/16,
+        width: 200,
+        height: 300,
+        borderRadius: 15,
+        marginBottom: 16,
+        ...appStyles.shadow
     },
     infoSection: {
       alignItems: "center", // Centers text under the poster

@@ -103,11 +103,11 @@ export const appStyles = StyleSheet.create({
         borderRadius: 10,
         marginBottom: 15,
         padding: 10,
+        paddingRight: 15,
         ...shadow
     },
     cardPoster: {
-        height: 80,
-        width: 60,
+        aspectRatio: 11/16,
         borderRadius: 10,
         marginRight: 10,
          ...shadow

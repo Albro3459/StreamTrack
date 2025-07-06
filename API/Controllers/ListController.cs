@@ -32,32 +32,32 @@ public class ListController : ControllerBase {
     }
 
     // Only used for testing with Swagger
-    // // GET: API/List/Get
-    // [HttpGet("Get")]
-    // public async Task<ActionResult<ListsAllDTO>> GetUserLists() {
-    //     // Get the user's auth token to get the firebase uuid to get the correct user's data
-    //     // User's can only get their own data
+    // GET: API/List/Get
+    [HttpGet("Get")]
+    public async Task<ActionResult<ListsAllDTO>> GetUserLists() {
+        // Get the user's auth token to get the firebase uuid to get the correct user's data
+        // User's can only get their own data
 
-    //     string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-    //     if (string.IsNullOrEmpty(uid))
-    //         return Unauthorized();
+        if (string.IsNullOrEmpty(uid))
+            return Unauthorized();
 
-    //     User? user = await service.GetFullUserByID(uid);
-    //     if (user == null) {
-    //         return NotFound();
-    //     }
+        User? user = await service.GetFullUserByID(uid);
+        if (user == null) {
+            return NotFound();
+        }
 
-    //     UserDataDTO userDTO = await service.MapUserToFullUserDTO(user);
+        UserDataDTO userDTO = await service.MapUserToFullUserDTO(user);
 
-    //     ListsAllDTO allLists = new ListsAllDTO {
-    //         ListsOwned = userDTO.ListsOwned,
-    //         ListsSharedWithMe = userDTO.ListsSharedWithMe,
-    //         ListsSharedWithOthers = userDTO.ListsSharedWithOthers,
-    //     };
+        ListsAllDTO allLists = new ListsAllDTO {
+            ListsOwned = userDTO.ListsOwned,
+            ListsSharedWithMe = userDTO.ListsSharedWithMe,
+            ListsSharedWithOthers = userDTO.ListsSharedWithOthers,
+        };
 
-    //     return allLists;
-    // }
+        return allLists;
+    }
 
     // POST: API/List/{listName}/Create
     [HttpPost("{listName}/Create")]
@@ -88,6 +88,34 @@ public class ListController : ControllerBase {
         dto.IsOwner = true;
 
         return dto;
+    }
+
+    // DELETE: API/List/{listName}/Remove
+    [HttpDelete("{listName}/Remove/")]
+    public async Task<ActionResult<ListMinimalDTO>> RemoveUserList(string listName) {
+        // Right now only works for user owned lists
+        string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(uid))
+            return Unauthorized();
+
+        listName = Uri.UnescapeDataString(listName).ToLower();
+
+        var user = await context.User
+                            .Include(u => u.ListsOwned)
+                            .FirstOrDefaultAsync(u => u.UserID == uid);
+        if (user == null)
+            return NotFound();
+
+        var list = user.ListsOwned.FirstOrDefault(l => l.ListName.ToLower() == listName);
+        if (list == null)
+            return NotFound();
+
+        context.List.Remove(list);
+
+        await context.SaveChangesAsync();
+
+        return Ok();
     }
 
     // POST: API/List/{listName}/Add

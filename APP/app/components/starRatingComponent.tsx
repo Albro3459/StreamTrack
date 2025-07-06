@@ -6,10 +6,12 @@ import { MaterialIcons } from "@expo/vector-icons";
 import { View } from "react-native";
 
 interface StarRatingTypes {
-    rating: number;
+    rating: number | null;
+    size?: number;
 }
 
-export const StarRating: React.FC<StarRatingTypes> = ({rating}) => {
+export const StarRating: React.FC<StarRatingTypes> = ({rating, size = 16}) => {
+    rating = rating ?? 0;
     return (
         <View style={appStyles.ratingContainer}>
             {Array.from({ length: 5 }).map((_, index) => {
@@ -20,7 +22,7 @@ export const StarRating: React.FC<StarRatingTypes> = ({rating}) => {
                     <MaterialIcons
                         key={index}
                         name={isFullStar ? 'star' : isHalfStar ? 'star-half' : 'star-border'}
-                        size={16}
+                        size={size}
                         color={Colors.goldColor}
                         style={appStyles.shadow}
                     />

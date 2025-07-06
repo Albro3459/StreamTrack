@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -28,6 +28,7 @@ import { auth } from '@/firebaseConfig';
 import MoveModal from './components/moveModalComponent';
 import CreateNewListModal from './components/createNewListComponent';
 import AlertMessage, { Alert } from './components/alertMessageComponent';
+import { useFocusEffect } from '@react-navigation/native';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -105,6 +106,14 @@ export default function LibraryPage() {
 
         setLists(sortLists(lists));
     };
+
+    useFocusEffect(
+        useCallback(() => {
+            if (userData) {
+                setLists(sortLists([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]));
+            }
+        }, [userData])
+    );
 
     useEffect(() => {
         if (lists && isLoading) {

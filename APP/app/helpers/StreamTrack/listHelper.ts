@@ -38,7 +38,7 @@ export const isItemInAnyList = (lists: ListMinimalData[], tmdbID: string) => {
 export const moveItemToList = async (content: ContentPartialData, listName: string, lists: ListMinimalData[], 
                                 setLists: React.Dispatch<React.SetStateAction<ListMinimalData[]>>,
                                 setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
-                                setMoveModalVisible: React.Dispatch<React.SetStateAction<boolean>>,      
+                                setMoveModalVisible?: React.Dispatch<React.SetStateAction<boolean>>,      
                                 setAutoPlay?: React.Dispatch<React.SetStateAction<boolean>>      
 ) => {
     // Only works for user owned lists for now
@@ -55,28 +55,35 @@ export const moveItemToList = async (content: ContentPartialData, listName: stri
         const token = await user.getIdToken();
 
         const shouldRemove: boolean = list.tmdbIDs.includes(content.tmdbID);
-        list = shouldRemove 
+        const updatedList: ListMinimalData = shouldRemove 
                 ? await removeContentFromUserList(token, list.listName, content.tmdbID)
                 : await addContentToUserList(token, list.listName, content);
-        if (list) {
+        if (updatedList) {
             const userData: UserData = { ...useUserDataStore.getState().userData };
-            userData.user.listsOwned = userData.user.listsOwned.map(l => l.listName === list.listName ? list : l);
-            setLists(sortLists([...userData.user.listsOwned, ...userData.user.listsSharedWithMe]));
+            const newListsOwned: ListMinimalData[] = userData.user.listsOwned.map(l => l.listName === updatedList.listName ? updatedList : l);
+            setLists(sortLists([...newListsOwned, ...userData.user.listsSharedWithMe]));
 
             const isInOtherList = lists.some(l => l.listName !== listName && l.tmdbIDs.includes(content.tmdbID));
-            let contents = [...userData.contents];
+            let newContents = [...userData.contents];
             if (shouldRemove && !isInOtherList) {
-                contents = contents.filter(c => c.tmdbID !== content.tmdbID);
-            } else if (!contents.some(c => c.tmdbID === content.tmdbID)) {
-                contents.push({ tmdbID: content.tmdbID, title: content.title, releaseYear: content.releaseYear, verticalPoster: content.verticalPoster, horizontalPoster: content.horizontalPoster } as ContentPartialData);
+                newContents = newContents.filter(c => c.tmdbID !== content.tmdbID);
+            } else if (!newContents.some(c => c.tmdbID === content.tmdbID)) {
+                newContents.push({ tmdbID: content.tmdbID, title: content.title, releaseYear: content.releaseYear, verticalPoster: content.verticalPoster, horizontalPoster: content.horizontalPoster } as ContentPartialData);
             }
-            setUserData({...userData, contents} as UserData, true);
+            setUserData({
+                ...userData,
+                user: {
+                    ...userData.user,
+                    listsOwned: newListsOwned
+                },
+                contents: newContents
+            } as UserData, true);
         }
     } catch (e: any) {
         console.log("Error move item func: ", e);
     } finally {
         setIsLoading(false);
-        setMoveModalVisible(false);
+        if (setMoveModalVisible) setMoveModalVisible(false);
         if (setAutoPlay) setAutoPlay(true);
     }
 };
