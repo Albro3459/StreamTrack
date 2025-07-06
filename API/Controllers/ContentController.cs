@@ -73,30 +73,30 @@ public class ContentController : ControllerBase {
         mapper = _mapper;
     }
 
-    // GET: API/Content/GetDetails/{tmdbID}
-    [HttpGet("GetDetails/{*tmdbID}")]
-    public async Task<ActionResult<ContentDTO>> GetContentDetailsByID(string tmdbID) {
-        // Get the user's auth token to get the firebase uuid to get the correct user's data
-        // User's can only get their own data
+    // // GET: API/Content/GetDetails/{tmdbID}
+    // [HttpGet("GetDetails/{tmdbID}")]
+    // public async Task<ActionResult<ContentDTO>> GetContentDetailsByID(string tmdbID) {
+    //     // Get the user's auth token to get the firebase uuid to get the correct user's data
+    //     // User's can only get their own data
 
-        string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    //     string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (string.IsNullOrEmpty(uid))
-            return Unauthorized();
+    //     if (string.IsNullOrEmpty(uid))
+    //         return Unauthorized();
 
-        tmdbID = Uri.UnescapeDataString(tmdbID);
+    //     tmdbID = Uri.UnescapeDataString(tmdbID);
 
-        ContentDetail? content = await context.ContentDetail
-                .Include(c => c.Genres)
-                .Include(c => c.StreamingOptions)
-                    .ThenInclude(s => s.StreamingService)
-                .FirstOrDefaultAsync(c => c.TMDB_ID == tmdbID);
-        if (content == null) {
-            return NotFound();
-        }
+    //     ContentDetail? content = await context.ContentDetail
+    //             .Include(c => c.Genres)
+    //             .Include(c => c.StreamingOptions)
+    //                 .ThenInclude(s => s.StreamingService)
+    //             .FirstOrDefaultAsync(c => c.TMDB_ID == tmdbID);
+    //     if (content == null) {
+    //         return NotFound();
+    //     }
 
-        return mapper.Map<ContentDetail, ContentDTO>(content);
-    }
+    //     return mapper.Map<ContentDetail, ContentDTO>(content);
+    // }
 
     // I dont think it needs to save because it only needs to be saved if its in a list or popular,
     //   but if it was in a list or popular, it would already be in the DB

@@ -85,7 +85,7 @@ export const addContentToUserList = async (token: string | null, listName: strin
     try {
         if (!token) return null;
 
-        const url = DataAPIURL + `API/List/${listName}/Add`;
+        const url = DataAPIURL + `API/List/${encodeURIComponent(listName)}/Add`;
         
         // console.log(JSON.stringify(body, null, 4));
         
@@ -121,7 +121,7 @@ export const removeContentFromUserList = async (token: string | null, listName: 
     try {
         if (!token) return null;
 
-        const url = DataAPIURL + `API/List/${listName}/Remove/${tmdbID}`;
+        const url = DataAPIURL + `API/List/${encodeURIComponent(listName)}/Remove/${encodeURIComponent(tmdbID)}`;
 
         const options = {
             method: 'DELETE',
@@ -154,7 +154,7 @@ export const createNewUserList = async (token: string | null, listName: string):
     try {
         if (!token) return null;
 
-        const url = DataAPIURL + `API/List/${listName}/Create`;
+        const url = DataAPIURL + `API/List/${encodeURIComponent(listName)}/Create`;
                 
         const options = {
             method: 'POST',
