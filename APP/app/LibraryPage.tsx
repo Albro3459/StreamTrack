@@ -36,7 +36,8 @@ SplashScreen.preventAutoHideAsync();
 
 export default function LibraryPage() {
     const router = useRouter();
-    const pagerViewRef = useRef(null);
+    const pagerViewRef = useRef(null); // Which tab is seleted
+    const flatListRef = useRef<FlatList<string>>(null); // Scrolling the tab names to show current one
 
     const { userData } = useUserDataStore();
 
@@ -45,7 +46,7 @@ export default function LibraryPage() {
 
     const [lists, setLists] = useState<ListMinimalData[] | null>(sortLists([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]));
 
-    const [activeTab, setActiveTab] = useState<string | null>(lists[0].listName);
+    const [activeTab, setActiveTab] = useState<string | null>(FAVORITE_TAB);
 
     const [newListName, setNewListName] = useState<string>("");
     const [createListModalVisible, setCreateListModalVisible] = useState(false);
@@ -70,15 +71,27 @@ export default function LibraryPage() {
                 const token = await user.getIdToken();
                 const newList: ListMinimalData = await createNewUserList(token, listName);
                 setNewListName("");
-                setLists(prev => sortLists([...prev, newList]));
-                userData.user.listsOwned.push(newList);
-                setUserData(userData);
+                const newLists: ListMinimalData[] = sortLists([...lists, newList]);
+                setLists(newLists);
+                setUserData({
+                    ...userData,
+                    user: {
+                        ...userData.user,
+                        listsOwned: [...userData.user.listsOwned, newList],
+                    }
+                });
+
                 setActiveTab(listName);
-                pagerViewRef.current?.setPage(lists.map(l => l.listName).indexOf(listName));
+                const index = newLists.findIndex(l => l.listName === listName);
+                pagerViewRef.current?.setPage(index);
+                flatListRef.current.scrollToIndex({ index: index, animated: true });
             } else {
                 console.warn(`List "${listName}" already exists`);
                 setAlertMessageFunc(`List "${listName}" already exists`);
                 setAlertTypeFunc(Alert.Error);
+                const index = lists.findIndex(l => l.listName === listName);
+                pagerViewRef.current?.setPage(index);
+                flatListRef.current.scrollToIndex({ index: index, animated: true });
             }
         } finally {
             setIsLoading(false);
@@ -92,12 +105,6 @@ export default function LibraryPage() {
 
         setLists(sortLists(lists));
     };
-
-    useEffect(() => {
-        if (userData) {
-            setLists(sortLists([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]));
-        }
-    }, [userData]);
 
     useEffect(() => {
         if (lists && isLoading) {
@@ -164,6 +171,7 @@ export default function LibraryPage() {
             <View style={[styles.tabBar, (lists && lists.length <= 4) && {paddingLeft: 24}]}>
                 <FlatList<string>
                     data={lists.map(l => l.listName)}
+                    ref={flatListRef}
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     nestedScrollEnabled
@@ -196,14 +204,26 @@ export default function LibraryPage() {
             {/* Pager View */}
             <PagerView
                 style={{ flex: 1, marginTop: 20, marginBottom: 50 }}
-                initialPage={0}
+                initialPage={lists.map(l => l.listName).indexOf(activeTab) ?? 0}
                 key={lists.map(l => l.listName).join('-')}
                 ref={pagerViewRef}
                 onPageSelected={(e) => setActiveTab(lists[e.nativeEvent.position].listName)}
             >
-                {lists.map(l => ({listName: l.listName, contents: userData?.contents && getContentsInList(userData.contents, lists, l.listName)})).map((list) => (
+                {/* Renders all lists :(
+                 {lists.map(l => ({listName: l.listName, contents: userData?.contents && getContentsInList(userData.contents, lists, l.listName)})).map((list) => (
                     <View style={{paddingHorizontal: 5}} key={list.listName}>{renderTabContent(list.contents, list.listName)}</View>
-                ))}
+                ))} */}
+
+                {lists.map((list, index) => {
+                    const isActive = (i: number) => (i >= 0 && i === lists.findIndex(item => item.listName === activeTab));
+                    // Only rendering neighboring tabs
+                    if ((isActive(index) || isActive(index - 1) || isActive(index + 1)) && userData?.contents) {
+                        const contents = getContentsInList(userData.contents, lists, list.listName);
+                        return <View style={{paddingHorizontal: 5}} key={list.listName}>{renderTabContent(contents, list.listName)}</View>;
+                    } else {
+                        return <View style={{paddingHorizontal: 5}} key={list.listName} />;
+                    }
+                })}
             </PagerView>
 
             <MoveModal
