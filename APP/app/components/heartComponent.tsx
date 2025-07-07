@@ -10,12 +10,14 @@ interface HeartTypes {
     isSelected?: () => boolean;
     size?: number;
     onPress?: (any) => void;
+    disabled?: boolean;
 }
 
-const Heart: React.FC<HeartTypes> = ({isSelected = () => true, size = 40, onPress = () => {}}) => {
+const Heart: React.FC<HeartTypes> = ({isSelected = () => true, size = 40, onPress = () => {}, disabled = false}) => {
     return (
         <Pressable 
             onPress={onPress}
+            disabled={disabled}
             style={({ pressed }) => [
                 pressed && appStyles.pressed,
             ]}

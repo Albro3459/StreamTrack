@@ -299,6 +299,7 @@ export default function InfoPage() {
                             <Pressable
                                 style={[appStyles.button, (lists.length > 1) ? {width: 140} : {width: undefined, paddingHorizontal: 10}]}
                                 onPress={() => (lists.length > 1) ? setListModalVisible(true) : setCreateListModalVisible(true)}
+                                disabled={!info || !info.content}
                             >
                                 <Text style={[appStyles.buttonText, {fontSize: 16}]}>
                                     {(lists.length > 1) ? "Add to List" : "Create & Add to List"}
@@ -309,6 +310,7 @@ export default function InfoPage() {
                                 isSelected={() => isItemInList(lists, FAVORITE_TAB, tmdbID ? tmdbID : info ? info?.content?.tmdbID : "")}
                                 size={35}
                                 onPress={async () => await moveItemToList(info?.content, FAVORITE_TAB, lists, setLists, setIsLoading, setListModalVisible)}
+                                disabled={!info || !info.content}
                             />
                         </View>
                     </View>

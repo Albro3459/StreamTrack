@@ -14,10 +14,16 @@ public enum ShowType {
 public enum StreamingOptionType {
     [JsonPropertyName("addon")]
     AddOn,
+
     [JsonPropertyName("buy")]
     Buy,
+
+    [JsonPropertyName("free")]
+    Free,
+
     [JsonPropertyName("rent")]
     Rent,
+
     [JsonPropertyName("subscription")]
     Subscription
 }
@@ -67,7 +73,7 @@ public class APIImageResolution {
 
 public class APIStreamingOption {
     public APIService service { get; set; } = new();
-    public StreamingOptionType type { get; set; } = StreamingOptionType.Subscription; // "addon", "buy", "rent", "subscription", maybe default to subscription
+    public StreamingOptionType type { get; set; } = StreamingOptionType.Subscription; // "addon", "buy", "free", "rent", "subscription", maybe default to subscription
     public string link { get; set; } = string.Empty;
     public string? videoLink { get; set; }
     public string quality { get; set; } = string.Empty;

@@ -12,7 +12,7 @@ export const TMDBSearch = async (keyword: string): Promise<TMDB> => {
     // Content IDs will have integer values like "11"
         // Take that to use for details in RapidAPIGetByID and prepend the media_type so "movie/11" or "tv/xxx"
 
-    const url = TMDB_Base_Url + keyword.trim() + TMDB_Ending;
+    const url = TMDB_Base_Url + encodeURIComponent(keyword.trim()) + TMDB_Ending;
     const options = {
         method: 'GET',
         headers: {

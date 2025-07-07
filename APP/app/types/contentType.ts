@@ -5,6 +5,14 @@ export enum SHOW_TYPE {
     SERIES = "series"
 }
 
+export enum STREAMING_OPTION_TYPE {
+    ADDON = 'addon',
+    BUY = 'buy',
+    FREE = 'free',
+    RENT = 'rent',
+    SUBSCRIPTION = 'subscription'
+}
+
 // type Genre = {
 //     id: string;
 //     name: string;
@@ -44,7 +52,7 @@ export enum SHOW_TYPE {
 
 // export type StreamingOption = {
 //     service: Service;
-//     type: 'addon' | 'buy' | 'rent' | 'subscription';
+//     type: STREAMING_OPTION_TYPE,
 //     link: string;
 //     videoLink?: string; // Optional
 //     quality: string;

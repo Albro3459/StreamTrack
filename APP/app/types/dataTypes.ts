@@ -1,6 +1,6 @@
 "use client";
 
-import { SHOW_TYPE } from "./contentType";
+import { SHOW_TYPE, STREAMING_OPTION_TYPE } from "./contentType";
 
 // Types I used to send and receive from my StreamTrack API
 
@@ -125,7 +125,7 @@ export type StreamingServiceData = {
 export type StreamingOptionData = {
     content?: ContentData; // Nullable so when sending content we don't have circular references
     streamingService: StreamingServiceData;
-    type: string;
+    type: STREAMING_OPTION_TYPE;
     price?: string | null;
     deepLink: string;
 };
