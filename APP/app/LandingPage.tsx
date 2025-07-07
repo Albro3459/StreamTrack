@@ -61,31 +61,6 @@ export default function LandingPage () {
         }
     };
 
-    useEffect(() => {
-        const lastIndex = popularContent?.carousel?.length ? popularContent.carousel.length - 1 : 0;
-        if (carouselIndex === lastIndex && popularContent?.carousel?.length > 1) {
-            // Only start timer if at last slide
-            timerRef.current = setTimeout(() => {
-                setCarouselIndex(0);
-                if (carouselRef.current) {
-                    carouselRef.current.scrollTo({ index: 0, animated: false });
-                }
-            }, CAROUSEL_AUTOPLAY_INTERVAL);
-        } else {
-            // If index changes away from last slide, clear the timer
-            if (timerRef.current) {
-                clearTimeout(timerRef.current);
-                timerRef.current = null;
-            }
-        }
-        return () => { // clean up
-            if (timerRef.current) {
-                clearTimeout(timerRef.current);
-                timerRef.current = null;
-            }
-        };
-    }, [carouselIndex, popularContent?.carousel?.length]);
-
     useFocusEffect(
         useCallback(() => {
             if (userData) {
@@ -163,7 +138,7 @@ export default function LandingPage () {
                 <View style={{ marginBottom: 24, alignItems: "center" }}>
                     <Carousel<ContentSimpleData>
                         ref={carouselRef}
-                        loop={false} // Causes bugs when clicking dots :(
+                        loop={true} // Causes bugs when clicking dots :(
                         width={screenWidth * 0.90}
                         height={screenWidth * 0.50}
                         windowSize={3}
@@ -177,16 +152,12 @@ export default function LandingPage () {
                     {/* Dots below carousel */}
                     <View style={styles.dotsContainer}>
                         {popularContent?.carousel?.map((_, i) => (
-                            <Pressable
+                            <View 
                                 key={i}
                                 style={[
                                     styles.dot,
                                     carouselIndex === i && styles.dotActive
                                 ]}
-                                onPress={() => {
-                                    setCarouselIndex(i);
-                                    carouselRef.current?.scrollTo({ index: i, animated: true });
-                                }}
                             />
                         ))}
                     </View>
