@@ -5,6 +5,7 @@ import { Modal, Pressable, View, Text } from "react-native";
 import Heart from "./heartComponent";
 import { FAVORITE_TAB, handleCreateNewTab, sortLists } from "../helpers/StreamTrack/listHelper";
 import { Colors } from "@/constants/Colors";
+import { Ionicons } from '@expo/vector-icons';
 import { ContentPartialData, ListMinimalData } from "../types/dataTypes";
 import { useState } from "react";
 import CreateNewListModal from "./createNewListComponent";
@@ -72,13 +73,23 @@ export default function MoveModal({
             onRequestClose={() => { setVisibilityFunc(false); setAutoPlayFunc && setAutoPlayFunc(true); }}
         >
             <Pressable
-                style={appStyles.modalOverlay}
+                style={[appStyles.modalOverlay]}
                 onPress={() =>  { setVisibilityFunc(false); setAutoPlayFunc && setAutoPlayFunc(true); }}
             >
                 <View style={[appStyles.modalContent, showHeart && {paddingBottom: 10}]}>
-                    {showLabel && <Text style={appStyles.modalTitle}>
-                        Add to...
-                    </Text>}
+                    <View style={{ position: "relative", alignItems: "center", width: "100%", minHeight: 30 }}>
+                        {showLabel && (
+                            <Text style={appStyles.modalTitle}>
+                                Add to List
+                            </Text>
+                        )}
+                        <Pressable
+                            onPress={() => {setVisibilityFunc(false); setCreateListModalVisible(true);}}
+                            style={{ position: "absolute", right: 0, top: -5 }}
+                        >
+                            <Ionicons name="add" size={28} color="white" />
+                        </Pressable>
+                    </View>
                     <>
                         {/* Render all tabs except FAVORITE_TAB */}
                         {sortLists(lists)
@@ -103,7 +114,7 @@ export default function MoveModal({
                         )}
 
                         {/* Create new list and add item button */}
-                        <Pressable
+                        {/* <Pressable
                             key={`LandingPage-${selectedContent.tmdbID}-CreateNewList`}
                             style={[
                                 appStyles.modalButton, {backgroundColor: Colors.goldColor}
@@ -115,7 +126,7 @@ export default function MoveModal({
                             ]}>
                                 Create New List & Add
                             </Text>
-                        </Pressable>
+                        </Pressable> */}
 
                         {/* Render FAVORITE_TAB at the bottom */}
                         {showHeart && lists.find(l => l.listName === FAVORITE_TAB) && (
@@ -139,6 +150,8 @@ export default function MoveModal({
             visible={createListModalVisible}
             setVisibilityFunc={setCreateListModalVisible}
             setIsLoadingFunc={setIsLoadingFunc}
+
+            title={"Create & Add to New List"}
 
             listName={newListName}
             setListNameFunc={setNewListName}

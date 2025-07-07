@@ -12,6 +12,8 @@ interface CreateNewListModalProps {
     setVisibilityFunc: React.Dispatch<React.SetStateAction<boolean>>,
     setIsLoadingFunc: React.Dispatch<React.SetStateAction<boolean>>,
 
+    title?: string;
+
     listName: string;
     setListNameFunc: (listName: string) => void;
     lists: ListMinimalData[];
@@ -62,6 +64,8 @@ export default function CreateNewListModal({
     setVisibilityFunc,
     setIsLoadingFunc,
 
+    title = "Create New List",
+
     listName,
     setListNameFunc,
     lists,
@@ -93,7 +97,7 @@ export default function CreateNewListModal({
             >
                 <Pressable style={styles.modalOverlay} onPress={onRequestCloseFunc}>
                 <View style={styles.modalContent}>
-                    <Text style={styles.modalTitle}>Add New List</Text>
+                    <Text style={styles.modalTitle}>{title}</Text>
                     <TextInput
                         style={styles.textInput}
                         placeholder="Enter list name"

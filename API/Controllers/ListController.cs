@@ -22,6 +22,7 @@ public class ListController : ControllerBase {
     private readonly IServiceProvider serviceProvider;
     private readonly IMapper mapper;
     private const int MAX_USER_LIST_COUNT = 10;
+    private const int MAX_USER_LIST_ITEM_COUNT = 1000;
 
     public ListController(StreamTrackDbContext _context, Service _service, Services.APIService _rapidAPIService, BackgroundTaskQueue _taskQueue, IServiceProvider _serviceProvider, IMapper _mapper) {
         context = _context;
@@ -139,6 +140,9 @@ public class ListController : ControllerBase {
 
         List? list = lists.Where(l => l.ListName.ToLower().Trim().Equals(listName.ToLower().Trim())).FirstOrDefault();
         if (list == null) return NotFound();
+        if (list.ContentPartials.Count >= MAX_USER_LIST_ITEM_COUNT) {
+            return BadRequest();
+        }
 
         ContentPartial? partial = await context.ContentPartial
                                         .Include(c => c.Detail)

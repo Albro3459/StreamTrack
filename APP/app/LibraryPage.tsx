@@ -29,7 +29,6 @@ import CreateNewListModal from './components/createNewListComponent';
 import AlertMessage, { Alert } from './components/alertMessageComponent';
 import { useFocusEffect } from '@react-navigation/native';
 import { getPoster } from './helpers/StreamTrack/contentHelper';
-import { fetchPopularContent } from './stores/popularContentStore';
 import { auth } from '@/firebaseConfig';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
@@ -192,7 +191,7 @@ export default function LibraryPage() {
                     )}
                 />
                 <Pressable onPress={() => setCreateListModalVisible(true)} >
-                        <Ionicons name="add-circle-outline" size={28} color="white" />
+                        <Ionicons name="add" size={28} color="white" />
                 </Pressable>
             </View>
 
@@ -225,7 +224,7 @@ export default function LibraryPage() {
                 selectedContent={selectedContent}
                 lists={lists}
 
-                showLabel={false}
+                // showLabel={false}
                 visibility={moveModalVisible}
 
                 setVisibilityFunc={setMoveModalVisible}

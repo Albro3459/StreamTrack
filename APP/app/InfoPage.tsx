@@ -341,7 +341,7 @@ export default function InfoPage() {
                 selectedContent={info?.content}
                 lists={lists}
 
-                showLabel={false}
+                // showLabel={false}
                 showHeart={false}
                 visibility={listModalVisible}
                 
@@ -360,7 +360,7 @@ export default function InfoPage() {
                 selectedContent={selectedRecommendation}
                 lists={lists}
 
-                showLabel={false}
+                // showLabel={false}
                 showHeart={false}
                 visibility={recommendedListModalVisible}
 

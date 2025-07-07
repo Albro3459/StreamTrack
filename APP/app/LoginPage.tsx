@@ -75,6 +75,7 @@ export default function LoginPage() {
                     value={email}
                     onChangeText={setEmail}
                     autoCapitalize="none"
+                    keyboardType="email-address"
                 />
                 <View style={appStyles.passwordContainter}>
                     <TextInput
