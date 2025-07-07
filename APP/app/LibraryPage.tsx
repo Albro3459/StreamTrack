@@ -27,6 +27,7 @@ import MoveModal from './components/moveModalComponent';
 import CreateNewListModal from './components/createNewListComponent';
 import AlertMessage, { Alert } from './components/alertMessageComponent';
 import { useFocusEffect } from '@react-navigation/native';
+import { getPoster } from './helpers/StreamTrack/contentHelper';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -119,10 +120,7 @@ export default function LibraryPage() {
                         }}
                     >
                         <Image
-                            source={{
-                                uri: content.verticalPoster || content.horizontalPoster ||
-                                    (console.log(`Library poster missing for: ${content.title} | poster: ${content.verticalPoster}`), "")
-                                }}
+                            source={getPoster(content)}
                             style={[styles.movieImage]}
                         />
                     </Pressable>

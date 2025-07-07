@@ -16,6 +16,7 @@ import { runOnJS } from 'react-native-reanimated';
 import { auth } from "@/firebaseConfig";
 import AlertMessage, { Alert } from "./components/alertMessageComponent";
 import { useFocusEffect } from "@react-navigation/native";
+import { getPoster } from "./helpers/StreamTrack/contentHelper";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -108,7 +109,7 @@ export default function LandingPage () {
         <GestureDetector gesture={combinedGesture}>
             <View style={styles.slide}>
                 <Image
-                    source={{ uri: content.horizontalPoster }}
+                    source={getPoster(content)}
                     style={styles.carouselImage}
                     resizeMode="cover"
                 />
@@ -187,7 +188,7 @@ export default function LandingPage () {
                                     >
                                         <View style={[styles.imageWrapper]}>
                                             <Image
-                                                source={{ uri: content.verticalPoster || content.horizontalPoster }}
+                                                source={getPoster(content)}
                                                 style={styles.image}
                                                 resizeMode="cover"
                                             />

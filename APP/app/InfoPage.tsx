@@ -13,7 +13,7 @@ import { useUserDataStore } from './stores/userDataStore';
 import { FAVORITE_TAB, handleCreateNewTab, isItemInList, moveItemToList } from './helpers/StreamTrack/listHelper';
 import MoveModal from './components/moveModalComponent';
 import { StarRating } from './components/starRatingComponent';
-import { getContentInfo } from './helpers/StreamTrack/contentHelper';
+import { getContentInfo, getPoster } from './helpers/StreamTrack/contentHelper';
 import { auth } from '@/firebaseConfig';
 import { getCachedContent, useContentDataStore } from './stores/contentDataStore';
 import AlertMessage, { Alert } from './components/alertMessageComponent';
@@ -228,7 +228,7 @@ export default function InfoPage() {
                 <View style={styles.movieContainer}>
                     {/* Movie Poster */}
                     <View style={styles.posterContainer}>
-                        <Image source={{ uri: info?.content?.verticalPoster }} style={[styles.posterImage]} />
+                        <Image source={getPoster(info?.content)} style={[styles.posterImage]} />
                     </View>
                     
                     {/* Movie Info */}

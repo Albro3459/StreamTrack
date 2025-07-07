@@ -17,6 +17,7 @@ import { StarRating } from './components/starRatingComponent';
 import AlertMessage, { Alert } from './components/alertMessageComponent';
 import { useContentDataStore } from './stores/contentDataStore';
 import { useFocusEffect } from '@react-navigation/native';
+import { getPoster } from './helpers/StreamTrack/contentHelper';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -150,7 +151,7 @@ export default function SearchPage() {
                                     onLongPress={() => {setSelectedContent(content); setMoveModalVisible(true);}}
                                 >
                                     <View style={[appStyles.cardContainer]}>
-                                        <Image source={{ uri: content.verticalPoster }} style={[appStyles.cardPoster, {height: 70, borderRadius: 7}]} />
+                                        <Image source={getPoster(content)} style={[appStyles.cardPoster, {height: 70, borderRadius: 7}]} />
                                         <View style={[
                                             appStyles.cardContent,
                                             {
@@ -195,7 +196,7 @@ export default function SearchPage() {
                         onLongPress={() => { setSelectedContent(content); setMoveModalVisible(true); }}
                     >
                         <View style={[appStyles.cardContainer, {marginHorizontal: 16}]}>
-                            <Image source={{ uri: content.verticalPoster }} style={[appStyles.cardPoster, {width: 60}]} />
+                            <Image source={getPoster(content)} style={[appStyles.cardPoster, {width: 60}]} />
                             <View style={appStyles.cardContent}>
                                 <Text style={appStyles.cardTitle}>{content.title}</Text>
                                 <Text style={appStyles.cardDescription} numberOfLines={3}>{content.overview}</Text>

@@ -1,8 +1,24 @@
 "use client";
 
 import { Alert } from "@/app/components/alertMessageComponent";
-import { ContentInfoData, ContentPartialData, ContentRequestData, ContentSimpleData, PopularContentData } from "@/app/types/dataTypes";
+import { ContentData, ContentInfoData, ContentPartialData, ContentRequestData, ContentSimpleData, PopularContentData } from "@/app/types/dataTypes";
 import { DataAPIURL } from "@/secrets/DataAPIUrl";
+
+const missingPoster: number = require('@/assets/images/MissingPoster.png') || "";
+
+export type PosterURI = {
+    uri: string;
+}
+
+export const getPoster = (content: ContentPartialData | ContentSimpleData | ContentData) : PosterURI | number => {
+    if (content?.verticalPoster) {
+        return { uri: content?.verticalPoster };
+    } else if (content?.horizontalPoster) {
+        return { uri: content?.horizontalPoster };
+    } else {
+        return missingPoster;
+    }
+}
 
 export const contentSimpleToPartial = (simple: ContentSimpleData): ContentPartialData => {
     return {
