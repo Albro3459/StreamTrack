@@ -34,8 +34,8 @@ export default function ProfilePage() {
     const [alertType, setAlertType] = useState<Alert>(Alert.Error);
 
     // State for text inputs
-    const [firstNameText, setFirstNameText] = useState<string | null>(userData?.user?.firstName ?? null);
-    const [lastNameText, setLastNameText] = useState<string | null>(userData?.user?.lastName ?? null);
+    const [firstNameText, setFirstNameText] = useState<string>(userData?.user?.firstName ?? "");
+    const [lastNameText, setLastNameText] = useState<string>(userData?.user?.lastName ?? "");
     
     const [selectedGenres, setSelectedGenres] = useState<Set<string>>(
         userData?.user?.genreNames ? new Set(userData.user.genreNames) // Objects work weird in sets. Use the strings
@@ -62,31 +62,39 @@ export default function ProfilePage() {
                                 setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                 setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
     ) => {
-        setSaving(true);
-        const user = auth.currentUser;
-        const token = await user?.getIdToken() ?? null;
-
-        const userMinimalData: UserMinimalData = await updateUserProfile(token, firstName.trim(), lastName.trim(), genres, streamingServices, setAlertMessageFunc, setAlertTypeFunc);
-        if (userMinimalData) {
-            const newUserData: UserData = {
-                user: userMinimalData,
-                contents: userData.contents
+        try {
+            setSaving(true);
+            const user = auth.currentUser;
+            const token = user ? await user?.getIdToken() : null;
+    
+            const userMinimalData: UserMinimalData = await updateUserProfile(token, firstName?.trim(), lastName?.trim(), genres, streamingServices, setAlertMessageFunc, setAlertTypeFunc);
+            if (userMinimalData) {
+                const newUserData: UserData = {
+                    user: userMinimalData,
+                    contents: userData.contents
+                }
+                setUserData(newUserData);
             }
-            setUserData(newUserData);
-        }
-        setIsEditing(false);
-        setSaving(false);
-
-        if (Number(isSigningUp) === 1) {
-            router.replace({
-                pathname: '/LandingPage',
-                params: { justSignedUp: 1 }
-            });
+            
+        } catch(e: any) {
+            console.warn("Error saving user profile: ", e);
+            if (setAlertMessageFunc) setAlertMessageFunc('Error saving user profile');
+            if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
+        } finally {
+            setIsEditing(false);
+            setSaving(false);
+    
+            if (Number(isSigningUp) === 1) {
+                router.replace({
+                    pathname: '/LandingPage',
+                    params: { justSignedUp: 1 }
+                });
+            }
         }
     };
 
     useEffect(() => {
-        if (userData) {
+        if (Number(isSigningUp) !== 1 && userData) {
             setFirstNameText(userData.user?.firstName ?? null);
             setLastNameText(userData?.user?.lastName ?? null);
             setSelectedGenres(
@@ -99,7 +107,7 @@ export default function ProfilePage() {
             );
             setIsEditing(false);
         }
-    }, [userData]);
+    }, [isSigningUp, userData]);
 
     return (
         <>
@@ -179,7 +187,7 @@ export default function ProfilePage() {
                     {/* Button container */}
                     <View style={styles.buttonContainer} >
                         {/* Button */}
-                        { isEditing ? (
+                        { isEditing || Number(isSigningUp) === 1 ? (
                             <Pressable style={appStyles.button} onPress={async () => await saveProfile(firstNameText, lastNameText, selectedGenres, selectedStreamingServices, setAlertMessage, setAlertType)}>
                                 <Text style={appStyles.buttonText}>Save</Text>
                             </Pressable>

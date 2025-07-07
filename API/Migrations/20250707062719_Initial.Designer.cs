@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace StreamTrack.Migrations
 {
     [DbContext(typeof(StreamTrackDbContext))]
-    [Migration("20250705114052_Initial")]
+    [Migration("20250707062719_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -72,6 +72,9 @@ namespace StreamTrack.Migrations
 
                     b.Property<string>("ShowType")
                         .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("TTL_UTC")
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Title")

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { View, Image, StyleSheet } from "react-native";
+import { View, Image, StyleSheet, Pressable, Text } from "react-native";
 import { useRouter } from "expo-router";
 
 import { Colors } from "@/constants/Colors";
@@ -10,6 +10,8 @@ import { auth } from "@/firebaseConfig";
 import { checkIfUserExists } from "./helpers/StreamTrack/userHelper";
 import { CACHE, FetchCache } from "./helpers/cacheHelper";
 import AlertMessage, { Alert } from "./components/alertMessageComponent";
+import { LogOut } from "./helpers/authHelper";
+import { appStyles } from "@/styles/appStyles";
 
 export default function Index() {
     const router = useRouter();
@@ -17,14 +19,20 @@ export default function Index() {
     const [alertMessage, setAlertMessage] = useState<string>("");
     const [alertType, setAlertType] = useState<Alert>(Alert.Error);
 
+    const [badUserAccount, setBadUserAccount] = useState<boolean>(false);
+
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             const asyncCheck = async (user: User) => {
                 const token = await user.getIdToken();
                 const userExists: boolean = await checkIfUserExists(token, setAlertMessage, setAlertType);
                 if (userExists) {
+                    setBadUserAccount(false);
                     FetchCache(token, setAlertMessage, setAlertType);
                     router.replace("/LandingPage");
+                } 
+                else {
+                    setBadUserAccount(true);
                 }
             }
 
@@ -39,12 +47,19 @@ export default function Index() {
                 type={alertType}
                 message={alertMessage}
                 setMessage={setAlertMessage}
+                onIndex={true}
             />
             <Image
                 source={require("../assets/images/AppNameImage.png")}
                 style={styles.logo}
                 resizeMode="contain"
             />
+
+            {badUserAccount && (
+                <Pressable style={[appStyles.button, {position: "absolute", bottom: 50, alignSelf: "center"}]} onPress={async () => {await LogOut(auth); router.replace('/LoginPage');}}>
+                    <Text style={appStyles.buttonText}>Reload App</Text>
+                </Pressable>
+            )}
         </View>
     );
 }

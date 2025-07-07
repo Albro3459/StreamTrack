@@ -6,6 +6,7 @@ select * from ListContent;
 
 select * from ContentPartial ORDER BY Title;
 
+select * from ContentDetail;
 select * from ContentDetail where TMDB_ID = 'tv/60573';
 UPDATE ContentDetail
 SET Overview = 'Lebron James'

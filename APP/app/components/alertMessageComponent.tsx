@@ -11,17 +11,19 @@ interface AlertProps {
     type?: Alert;
     message: string;
     setMessage: React.Dispatch<React.SetStateAction<string>>;
+    onIndex?: boolean;
 };
 
 const AlertMessage: React.FC<AlertProps> = ({
     type = Alert.Error,
     message,
-    setMessage
+    setMessage,
+    onIndex
 }) => {
   if (!message) return null;
 
   return (
-    <View style={[styles.overlay, styles[type]]}>
+    <View style={[styles.overlay, styles[type], onIndex && styles.onIndex]}>
       <Text style={type === Alert.Successs ? styles.successText : styles.errorText}>{message}</Text>
         <Pressable onPress={() => setMessage("")} style={styles.closeBtn}>
           <Text style={[styles.closeText, type === Alert.Successs ? styles.successText : styles.errorText]}>X</Text>
@@ -31,6 +33,9 @@ const AlertMessage: React.FC<AlertProps> = ({
 };
 
 const styles = StyleSheet.create({
+    onIndex: {
+        top: 60
+    },
     overlay: {
         position: "absolute",
         top: StatusBar.currentHeight + 10,

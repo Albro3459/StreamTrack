@@ -117,8 +117,6 @@ public class APIService {
         return false;
     }
 
-
-    // Probably should get the TMDB posters when needed eventually
     private async Task<ContentDetail> MapToContentDetail(APIContent content, string verticalPoster, string horizontalPoster) {
         var details = new ContentDetail {
             TMDB_ID = content.tmdbId,
@@ -138,8 +136,22 @@ public class APIService {
             HorizontalPoster = !string.IsNullOrWhiteSpace(horizontalPoster) ? horizontalPoster : content.imageSet.horizontalPoster.w1080 ?? "",
         };
 
-        List<string> genreNames = content.genres.Select(g => g.name).ToList();
-        details.Genres = await context.Genre.Where(g => genreNames.Contains(g.Name)).ToListAsync();
+        // List<string> genreNames = content.genres.Select(g => g.name).ToList();
+        // details.Genres = await context.Genre.Where(g => genreNames.Contains(g.Name)).ToListAsync();
+        List<APIGenre> apiGenres = content.genres; // List<APIGenre>
+        List<string> genreNames = apiGenres.Select(g => g.name).ToList();
+
+        List<Genre> existingGenres = await context.Genre.Where(g => genreNames.Contains(g.Name)).ToListAsync();
+
+        HashSet<string> existingGenreNames = existingGenres.Select(g => g.Name).ToHashSet();
+        List<APIGenre> missingGenres = apiGenres.Where(g => !existingGenreNames.Contains(g.name)).ToList();
+
+        var newGenres = new List<Genre>();
+        foreach (var apiGenre in missingGenres) {
+            Genre genre = await MapToGenre(apiGenre);
+            newGenres.Add(genre);
+        }
+        details.Genres = existingGenres.Concat(newGenres).ToList();
 
         // Go single threaded and use a map to avoid duplicates
         if (content.streamingOptions.TryGetValue("us", out List<APIStreamingOption>? options)) {
@@ -158,6 +170,20 @@ public class APIService {
         }
 
         return details;
+    }
+
+    private async Task<Genre> MapToGenre(APIGenre apiGenre) {
+        var genre = context.Genre.Local.FirstOrDefault(g => g.Name == apiGenre.name);
+        if (genre != null)
+            return genre;
+
+        genre = await context.Genre.FirstOrDefaultAsync(g => g.Name == apiGenre.name);
+        if (genre != null)
+            return genre;
+
+        genre = new Genre(apiGenre.name);
+        await context.Genre.AddAsync(genre);
+        return genre;
     }
 
     private async Task<StreamingOption> MapToStreamingOption(APIStreamingOption option, ContentDetail contentDetail) {

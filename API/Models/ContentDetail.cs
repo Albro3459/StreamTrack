@@ -56,4 +56,7 @@ public class ContentDetail : SoftDeletableEntity {
     [Required]
     public string HorizontalPoster { get; set; } = string.Empty;
 
+    [Required]
+    public DateTime TTL_UTC { get; set; } = DateTime.UtcNow.AddDays(1);
+
 }

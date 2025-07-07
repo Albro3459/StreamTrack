@@ -1,6 +1,6 @@
 "use client";
 
-import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
+import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, UserCredential } from "firebase/auth";
 import { createUser } from "./StreamTrack/userHelper";
 import { CACHE, ClearCache, FetchCache } from "./cacheHelper";
 import { Alert } from "../components/alertMessageComponent";
@@ -11,7 +11,7 @@ export const SignIn = async (auth: Auth, email: string, password: string,
 ) => {
     ClearCache(CACHE.USER);
     if (!auth) return;
-    email = email.trim();
+    email = email?.trim();
     if (!email.includes('@') || !email.includes('.')) {
         return;
     }
@@ -33,16 +33,22 @@ export const SignUp = async (auth: Auth, email: string, password: string,
 ) => {
     ClearCache(CACHE.USER);
     if (!auth) return;
-    email = email.trim();
+    email = email?.trim();
     if (!email.includes('@') || !email.includes('.')) {
         return;
     }
-    await createUserWithEmailAndPassword(auth, email, password);
+    const userCreds: UserCredential = await createUserWithEmailAndPassword(auth, email, password);
 
-    const user = auth.currentUser;
-    const token = await user?.getIdToken() ?? null;
-    await createUser(token, setAlertMessageFunc, setAlertTypeFunc);
-    token && FetchCache(token, setAlertMessageFunc, setAlertTypeFunc);
+    const user = userCreds.user;
+    if (user) {
+        const token = await user?.getIdToken() ?? null;
+        await createUser(token, setAlertMessageFunc, setAlertTypeFunc);
+        token && FetchCache(token, setAlertMessageFunc, setAlertTypeFunc);
+    } else {
+        console.warn('Sign Up user failed'); 
+        if (setAlertMessageFunc) setAlertMessageFunc('Sign Up user failed'); 
+        if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
+    }
 };
 
 export default {};

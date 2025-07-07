@@ -98,7 +98,7 @@ public class ContentController : ControllerBase {
     //     return mapper.Map<ContentDetail, ContentDTO>(content);
     // }
 
-    // I dont think it needs to save because it only needs to be saved if its in a list or popular,
+    // Doesn't save new content because it only needs to be saved if its in a list or popular,
     //   but if it was in a list or popular, it would already be in the DB
     // POST: API/Content/Info?shouldRefresh={shouldRefresh}
     [HttpPost("Info")]
@@ -124,13 +124,15 @@ public class ContentController : ControllerBase {
                     return NotFound();
                 }
             }
-            else if (shouldRefresh.GetValueOrDefault()) {
+            else if (detail.TTL_UTC < DateTime.UtcNow || shouldRefresh.GetValueOrDefault()) {
                 ContentDetail? updatedDetail = await rapidAPIService.FetchContentDetailsByTMDBIDAsync(requestDTO);
                 if (updatedDetail == null) {
                     return NotFound();
                 }
                 // UPDATE
                 context.Entry(detail).CurrentValues.SetValues(updatedDetail); // Updates basic properties
+                detail.TTL_UTC = DateTime.UtcNow.AddDays(1);
+                context.Entry(detail).Property(d => d.TTL_UTC).IsModified = true;
 
                 // Mark JSON fields as updated for EfCore
                 detail.Cast = updatedDetail.Cast;

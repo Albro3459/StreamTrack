@@ -156,13 +156,13 @@ export const updateUserProfile = async (token: string | null, firstName: string 
                                         setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ) : Promise<UserMinimalData | null> => {
     try {
-        if (!token) return null;
+        if (!token) return null;    
 
         const url = DataAPIURL + "API/User/Update";
 
         const body: UpdateUserProfileData = {
-            ...(firstName && { FirstName: firstName.trim() }),
-            ...(lastName && { LastName: lastName.trim() }),
+            ...(firstName && { FirstName: firstName?.trim() }),
+            ...(lastName && { LastName: lastName?.trim() }),
             Genres: Array.from(genres),
             StreamingServices: Array.from(streamingServices)
         }

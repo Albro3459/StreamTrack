@@ -67,7 +67,7 @@ export const handleCreateNewTab = async (
         return;
     } else {
         let finalLists: ListMinimalData[] = [...lists];
-        listName = listName.trim();
+        listName = listName?.trim();
         if (listName) {
             try {
                 if (!lists.map(l => l.listName.toLowerCase()).includes(listName.toLowerCase())) {

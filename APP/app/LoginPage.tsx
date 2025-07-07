@@ -41,7 +41,7 @@ export default function LoginPage() {
                 }
                 
                 setSigning(true);
-                await SignUp(auth, email.trim(), password);
+                await SignUp(auth, email?.trim(), password);
                 router.replace({
                     pathname: '/ProfilePage',
                     params: { isSigningUp: 1 }, // Have to pass as number or string
@@ -49,7 +49,7 @@ export default function LoginPage() {
                 
             } else {
                 setSigning(true);
-                await SignIn(auth, email.trim(), password);
+                await SignIn(auth, email?.trim(), password);
                 router.replace("/LandingPage");
             }
         } catch (e: any) {
