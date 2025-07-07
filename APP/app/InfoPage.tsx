@@ -9,7 +9,7 @@ import { appStyles, RalewayFont } from '@/styles/appStyles';
 import { SvgUri } from 'react-native-svg';
 import { TMDB_MEDIA_TYPE } from './types/tmdbType';
 import { ContentData, ContentInfoData, ContentPartialData, ContentRequestData, ListMinimalData, StreamingOptionData } from './types/dataTypes';
-import { useUserDataStore } from './stores/userDataStore';
+import { setUserData, useUserDataStore } from './stores/userDataStore';
 import { FAVORITE_TAB, handleCreateNewTab, isItemInList, moveItemToList } from './helpers/StreamTrack/listHelper';
 import MoveModal from './components/moveModalComponent';
 import { StarRating } from './components/starRatingComponent';
@@ -66,7 +66,27 @@ export default function InfoPage() {
                                                                         true // REFRESH
                                                                 );
             if (updatedInfo) {
+                if (updatedInfo.content.tmdbID !== info.content.tmdbID) {
+                    console.warn("TMDB ID changed on refresh somehow");
+                    if (setAlertMessage) setAlertMessage('Error refreshing content'); 
+                    if (setAlertType) setAlertType(Alert.Error);
+                    return;
+                }
                 setInfo(updatedInfo);
+
+                // Update User Data
+                if (userData?.contents.map(c => c.tmdbID).includes(updatedInfo.content.tmdbID)) {
+                    const newContents = [...userData.contents.map(c =>
+                        c.tmdbID === info.content.tmdbID ? {...updatedInfo.content} : {...c}
+                    )];
+                    setUserData({
+                        ...userData,
+                        contents: newContents
+                    });
+                }
+
+                // Update Cache
+                cacheContent(updatedInfo);
             }
         } finally {
             setRefreshing(false);

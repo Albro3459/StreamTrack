@@ -129,8 +129,13 @@ public class ContentController : ControllerBase {
                 if (updatedDetail == null) {
                     return NotFound();
                 }
+                if (updatedDetail.TMDB_ID != requestDTO.TMDB_ID) {
+                    // Should NEVER happen. How would the ID change in the API. Anyways...
+                    System.Console.WriteLine($"Content data TMDB ID changed in RapidAPI: should be {requestDTO.TMDB_ID}, received {updatedDetail.TMDB_ID}");
+                    return BadRequest("Content data TMDB ID changed in RapidAPI.");
+                }
                 // UPDATE
-                context.Entry(detail).CurrentValues.SetValues(updatedDetail); // Updates basic properties
+                mapper.Map(updatedDetail, detail); // Update current entity basic properties
                 detail.TTL_UTC = DateTime.UtcNow.AddDays(1);
                 context.Entry(detail).Property(d => d.TTL_UTC).IsModified = true;
 
@@ -151,6 +156,14 @@ public class ContentController : ControllerBase {
                 foreach (var o in updatedDetail.StreamingOptions) {
                     detail.StreamingOptions.Add(o);
                 }
+
+                ContentPartial? partial = await context.ContentPartial.FirstOrDefaultAsync(c => c.TMDB_ID == requestDTO.TMDB_ID);
+                if (partial == null) return BadRequest();
+
+                mapper.Map(detail, partial); // Update current entity basic properties
+
+                partial.Detail = detail;
+                detail.Partial = partial;
 
                 await context.SaveChangesAsync();
             }

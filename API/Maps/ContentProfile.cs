@@ -5,9 +5,16 @@ using API.DTOs;
 
 public class ContentProfile : Profile {
     public ContentProfile() {
+        CreateMap<ContentDetail, ContentDetail>()
+            .ForMember(d => d.Partial, o => o.Ignore())
+            .ForMember(d => d.Genres, o => o.Ignore())
+            .ForMember(d => d.Cast, o => o.Ignore())
+            .ForMember(d => d.Directors, o => o.Ignore())
+            .ForMember(d => d.StreamingOptions, o => o.Ignore());
+
         CreateMap<ContentDetail, ContentPartial>()
-            .ForMember(dest => dest.Detail, opt => opt.Ignore())  // Prevent cycle
-            .ForMember(dest => dest.Lists, opt => opt.Ignore());  // Detail has no lists anyway
+            .ForMember(dest => dest.Detail, opt => opt.Ignore())
+            .ForMember(dest => dest.Lists, opt => opt.Ignore());
 
         CreateMap<ContentDetail, ContentDTO>();
 
