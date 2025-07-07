@@ -65,7 +65,7 @@ export default function InfoPage() {
         setAlertMessage("");
         setAlertType(Alert.Error);
         try {
-            const updatedInfo: ContentInfoData = await getContentInfo(await auth.currentUser.getIdToken(), 
+            const updatedInfo: ContentInfoData = await getContentInfo(router, await auth.currentUser.getIdToken(), 
                                                                         { tmdbID: info?.content?.tmdbID, 
                                                                             VerticalPoster: info?.content?.verticalPoster, 
                                                                             LargeVerticalPoster: info?.content.largeVerticalPoster,
@@ -152,7 +152,7 @@ export default function InfoPage() {
 
             try {
                 if (!content) {
-                    content = await getContentInfo(token, {tmdbID:tmdbID, VerticalPoster:verticalPoster, LargeVerticalPoster: largeVerticalPoster, HorizontalPoster:horizontalPoster} as ContentRequestData, setAlertMessage, setAlertType);
+                    content = await getContentInfo(router, token, {tmdbID:tmdbID, VerticalPoster:verticalPoster, LargeVerticalPoster: largeVerticalPoster, HorizontalPoster:horizontalPoster} as ContentRequestData, setAlertMessage, setAlertType);
                 }
             } finally {
                 if (content) {

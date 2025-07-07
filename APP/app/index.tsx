@@ -28,7 +28,7 @@ export default function Index() {
                 const userExists: boolean = await checkIfUserExists(token, setAlertMessage, setAlertType);
                 if (userExists) {
                     setBadUserAccount(false);
-                    FetchCache(token, setAlertMessage, setAlertType);
+                    FetchCache(router, token, setAlertMessage, setAlertType);
                     router.replace("/LandingPage");
                 } 
                 else {

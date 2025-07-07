@@ -59,7 +59,7 @@ export default function LandingPage () {
         setAlertMessage("");
         setAlertType(Alert.Error);
         try {
-            await fetchPopularContent(await auth.currentUser.getIdToken(), setAlertMessage, setAlertType);
+            await fetchPopularContent(router, await auth.currentUser.getIdToken(), setAlertMessage, setAlertType);
         } finally {
             setRefreshing(false);
         }

@@ -4,8 +4,9 @@ import { Alert } from "@/app/components/alertMessageComponent";
 import { StreamingServiceData } from "@/app/types/dataTypes";
 import { DataAPIURL } from "@/secrets/DataAPIUrl";
 import { auth, signOut } from "@/firebaseConfig";
+import { Router } from "expo-router";
 
-export const getStreamingServiceData = async (token: string,
+export const getStreamingServiceData = async (router: Router, token: string,
                                                 setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                                 setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ): Promise<StreamingServiceData[] | null> => {
@@ -27,6 +28,10 @@ export const getStreamingServiceData = async (token: string,
             if (result.status === 401) {
                 console.warn("Unauthorized");
                 await signOut(auth);
+                router.replace({
+                    pathname: '/LoginPage',
+                    params: { unauthorized: 1 },
+                });
                 return null;
             }
             const text = await result.text();

@@ -4,15 +4,16 @@ import { create } from 'zustand';
 import { ContentPartialData, UserData, UserMinimalData } from '../types/dataTypes';
 import { getUserContents, getUserMinimalData } from '../helpers/StreamTrack/userHelper';
 import { Alert } from '../components/alertMessageComponent';
+import { Router } from 'expo-router';
 
 // Wrappers
-export const fetchUserData = (token: string,
+export const fetchUserData = (router: Router, token: string,
                                 setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                 setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ) => {
     const store = useUserDataStore.getState();
     if (store.loading) return;
-    store.fetchUserData(token, setAlertMessageFunc, setAlertTypeFunc);
+    store.fetchUserData(router, token, setAlertMessageFunc, setAlertTypeFunc);
 };
 
 export const clearUserData = () => useUserDataStore.getState().clearUserData();
@@ -29,7 +30,7 @@ interface UserDataStore {
   userData: UserData | null;
   loading: boolean;
   error: string | null;
-  fetchUserData: (token: string, 
+  fetchUserData: (router: Router, token: string, 
                     setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                     setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
                 ) => Promise<void>;
@@ -42,14 +43,14 @@ export const useUserDataStore = create<UserDataStore>((set) => ({
   loading: false,
   error: null,
 
-  fetchUserData: async (token: string,
+  fetchUserData: async (router: Router, token: string,
                         setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                         setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
   ) => {
         set({ loading: true, error: null });
 
-        const userMinimalData: UserMinimalData = await getUserMinimalData(token);
-        const contentMinimalData: ContentPartialData[] = await getUserContents(token);
+        const userMinimalData: UserMinimalData = await getUserMinimalData(router, token);
+        const contentMinimalData: ContentPartialData[] = await getUserContents(router, token);
 
         if (userMinimalData && contentMinimalData) {
             set({ userData: {user: userMinimalData, contents: contentMinimalData} as UserData, loading: false });

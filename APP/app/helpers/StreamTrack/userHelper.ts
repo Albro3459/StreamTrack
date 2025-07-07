@@ -4,6 +4,7 @@ import { DataAPIURL } from "@/secrets/DataAPIUrl";
 import { ContentPartialData, UpdateUserProfileData, UserMinimalData } from "../../types/dataTypes";
 import { Alert } from "@/app/components/alertMessageComponent";
 import { auth, signOut } from "@/firebaseConfig";
+import { Router } from "expo-router";
 
 export const checkIfUserExists = async (token: string,
                                         setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
@@ -43,7 +44,7 @@ export const checkIfUserExists = async (token: string,
     }
 };
 
-export const getUserMinimalData = async (token: string,
+export const getUserMinimalData = async (router: Router, token: string,
                                         setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                         setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ): Promise<UserMinimalData | null> => {
@@ -65,6 +66,10 @@ export const getUserMinimalData = async (token: string,
             if (result.status === 401) {
                 console.warn("Unauthorized");
                 await signOut(auth);
+                router.replace({
+                    pathname: '/LoginPage',
+                    params: { unauthorized: 1 },
+                });
                 return null;
             }
             const text = await result.text();
@@ -85,7 +90,7 @@ export const getUserMinimalData = async (token: string,
     }
 };
 
-export const getUserContents = async (token: string,
+export const getUserContents = async (router: Router, token: string,
                                         setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                         setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ): Promise<ContentPartialData[] | null> => {
@@ -107,6 +112,10 @@ export const getUserContents = async (token: string,
             if (result.status === 401) {
                 console.warn("Unauthorized");
                 await signOut(auth);
+                router.replace({
+                    pathname: '/LoginPage',
+                    params: { unauthorized: 1 },
+                });
                 return null;
             }
             const text = await result.text();
@@ -127,7 +136,7 @@ export const getUserContents = async (token: string,
     }
 };
 
-export const createUser = async (token: string | null,
+export const createUser = async (router: Router, token: string | null,
                                     setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                     setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ) => {
@@ -151,6 +160,10 @@ export const createUser = async (token: string | null,
             if (result.status === 401) {
                 console.warn("Unauthorized");
                 await signOut(auth);
+                router.replace({
+                    pathname: '/LoginPage',
+                    params: { unauthorized: 1 },
+                });
                 return null;
             }
             const text = await result.text();
@@ -168,7 +181,7 @@ export const createUser = async (token: string | null,
     }
 };
 
-export const updateUserProfile = async (token: string | null, firstName: string | null, lastName: string | null, 
+export const updateUserProfile = async (router: Router, token: string | null, firstName: string | null, lastName: string | null, 
                                         genres: Set<string>, streamingServices: Set<string>,
                                         setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                         setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
@@ -201,6 +214,10 @@ export const updateUserProfile = async (token: string | null, firstName: string 
             if (result.status === 401) {
                 console.warn("Unauthorized");
                 await signOut(auth);
+                router.replace({
+                    pathname: '/LoginPage',
+                    params: { unauthorized: 1 },
+                });
                 return null;
             }
             const text = await result.text();

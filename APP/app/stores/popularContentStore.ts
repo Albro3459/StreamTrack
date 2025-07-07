@@ -4,15 +4,16 @@ import { create } from 'zustand';
 import { PopularContentData } from '../types/dataTypes';
 import { getPopularContent } from '../helpers/StreamTrack/contentHelper';
 import { Alert } from '../components/alertMessageComponent';
+import { Router } from 'expo-router';
 
 // Wrappers
-export const fetchPopularContent = (token: string,
+export const fetchPopularContent = (router: Router, token: string,
                                     setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                     setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ) => {
     const store = usePopularContentStore.getState();
     if (store.loading) return;
-    store.fetchPopularContent(token, setAlertMessageFunc, setAlertTypeFunc);
+    store.fetchPopularContent(router, token, setAlertMessageFunc, setAlertTypeFunc);
 };
 
 export const clearPopularContent = () => usePopularContentStore.getState().clearUserData();
@@ -22,7 +23,7 @@ interface PopularContentStore {
     popularContent: PopularContentData | null;
     loading: boolean;
     error: string | null;
-    fetchPopularContent: (token: string,
+    fetchPopularContent: (router: Router, token: string,
                             setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                             setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
     ) => Promise<void>;
@@ -34,13 +35,13 @@ export const usePopularContentStore = create<PopularContentStore>((set) => ({
     loading: false,
     error: null,
 
-    fetchPopularContent: async (token: string,
+    fetchPopularContent: async (router: Router, token: string,
                                     setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                     setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
     ) => {
         set({ loading: true, error: null });
 
-        const popularContent: PopularContentData = await getPopularContent(token);
+        const popularContent: PopularContentData = await getPopularContent(router, token);
 
         if (popularContent) {
             set({ popularContent: popularContent, loading: false });

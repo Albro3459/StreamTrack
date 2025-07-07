@@ -4,15 +4,21 @@ import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, StyleSheet, ActivityIndicator, Pressable } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { auth } from "@/firebaseConfig";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { createUser } from "./helpers/StreamTrack/userHelper";
 import { LogOut, SignIn, SignUp } from "./helpers/authHelper";
 import { appStyles } from "@/styles/appStyles";
 import AlertMessage, { Alert } from "./components/alertMessageComponent";
 
+interface LoginPageParams {
+    unauthorized?: number;
+}
+
 export default function LoginPage() {
     const router = useRouter();
+
+    const { unauthorized } = useLocalSearchParams() as LoginPageParams;
 
     const [signing, setSigning] = useState<boolean>(false);
 
@@ -55,7 +61,7 @@ export default function LoginPage() {
                 }
                 
                 setSigning(true);
-                await SignUp(auth, email?.trim(), password, setAlertMessage, setAlertType);
+                await SignUp(auth, router, email?.trim(), password, setAlertMessage, setAlertType);
                 router.replace({
                     pathname: '/ProfilePage',
                     params: { isSigningUp: 1 }, // Have to pass as number or string
@@ -63,12 +69,12 @@ export default function LoginPage() {
                 
             } else {
                 setSigning(true);
-                const success: boolean = await SignIn(auth, email?.trim(), password, setAlertMessage, setAlertType);
-                // if (success) {
-                //     router.replace("/LandingPage");
-                // } else {
-                //     await LogOut(auth);
-                // }
+                const success: boolean = await SignIn(auth, router, email?.trim(), password, setAlertMessage, setAlertType);
+                if (success) {
+                    router.replace("/LandingPage");
+                } else {
+                    await LogOut(auth);
+                }
             }
         } catch (e: any) {
             setAlertMessage(`Sign ${isSignUp ? "Up" : "In"} Failed\n${e.message}`);
@@ -77,6 +83,13 @@ export default function LoginPage() {
             setSigning(false);
         }
     };
+
+    useEffect(() => {
+        if (Number(unauthorized)) {
+            setAlertMessage("User was unauthorized")
+            setAlertType(Alert.Error);
+        }
+    }, [unauthorized]);
 
     return (
         <View style={styles.container}>

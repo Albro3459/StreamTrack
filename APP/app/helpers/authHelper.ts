@@ -4,8 +4,9 @@ import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signO
 import { checkIfUserExists, createUser } from "./StreamTrack/userHelper";
 import { CACHE, ClearCache, FetchCache } from "./cacheHelper";
 import { Alert } from "../components/alertMessageComponent";
+import { Router } from "expo-router";
 
-export const SignIn = async (auth: Auth, email: string, password: string,
+export const SignIn = async (auth: Auth, router: Router, email: string, password: string,
                                 setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                 setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ) : Promise<boolean> => {
@@ -22,13 +23,13 @@ export const SignIn = async (auth: Auth, email: string, password: string,
         if (!await checkIfUserExists(token)) { // intentionally NOT passing error funcs
             // doesnt exist in DB, but does in Firebase, so try to create the user
             const token = await user?.getIdToken() ?? null;
-            const success: boolean = await createUser(token); // intentionally NOT passing error funcs
+            const success: boolean = await createUser(router, token); // intentionally NOT passing error funcs
             if (success) {
-                FetchCache(token, setAlertMessageFunc, setAlertTypeFunc);
+                FetchCache(router, token, setAlertMessageFunc, setAlertTypeFunc);
                 return true;
             }
         } else {
-            FetchCache(token, setAlertMessageFunc, setAlertTypeFunc);
+            FetchCache(router, token, setAlertMessageFunc, setAlertTypeFunc);
             return true;
         }
     }
@@ -46,7 +47,7 @@ export const LogOut = async (auth: Auth) => {
     await signOut(auth);
 };
 
-export const SignUp = async (auth: Auth, email: string, password: string,
+export const SignUp = async (auth: Auth, router: Router, email: string, password: string,
                                 setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                 setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ) => {
@@ -61,8 +62,8 @@ export const SignUp = async (auth: Auth, email: string, password: string,
     const user = userCreds.user;
     if (user) {
         const token = await user?.getIdToken() ?? null;
-        await createUser(token, setAlertMessageFunc, setAlertTypeFunc);
-        token && FetchCache(token, setAlertMessageFunc, setAlertTypeFunc);
+        await createUser(router, token, setAlertMessageFunc, setAlertTypeFunc);
+        token && FetchCache(router, token, setAlertMessageFunc, setAlertTypeFunc);
     } else {
         console.warn('Sign Up user failed'); 
         if (setAlertMessageFunc) setAlertMessageFunc('Sign Up user failed'); 

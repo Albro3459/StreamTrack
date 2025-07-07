@@ -204,6 +204,10 @@ export const addContentToUserList = async (token: string | null, listName: strin
             if (result.status === 401) {
                 console.warn("Unauthorized");
                 await signOut(auth);
+                router.replace({
+                    pathname: '/LoginPage',
+                    params: { unauthorized: 1 },
+                });
                 return null;
             }
             let text = await result.text();
@@ -254,6 +258,10 @@ export const removeContentFromUserList = async (token: string | null, listName: 
             if (result.status === 401) {
                 console.warn("Unauthorized");
                 await signOut(auth);
+                router.replace({
+                    pathname: '/LoginPage',
+                    params: { unauthorized: 1 },
+                });
                 return null;
             }
             const text = await result.text();
@@ -299,6 +307,10 @@ export const createNewUserList = async (token: string | null, listName: string,
             if (result.status === 401) {
                 console.warn("Unauthorized");
                 await signOut(auth);
+                router.replace({
+                    pathname: '/LoginPage',
+                    params: { unauthorized: 1 },
+                });
                 return null;
             }
             const text = await result.text();

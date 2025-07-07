@@ -4,6 +4,7 @@ import { Alert } from "@/app/components/alertMessageComponent";
 import { ContentData, ContentInfoData, ContentPartialData, ContentRequestData, ContentSimpleData, PopularContentData } from "@/app/types/dataTypes";
 import { DataAPIURL } from "@/secrets/DataAPIUrl";
 import { auth, signOut } from "@/firebaseConfig";
+import { Router } from "expo-router";
 
 const missingPoster: number = require('@/assets/images/MissingPoster.png') || "";
 
@@ -55,7 +56,7 @@ export const contentSimpleToPartial = (simple: ContentSimpleData): ContentPartia
     };
 };
 
-export const getContentInfo = async (token: string, content: ContentRequestData,
+export const getContentInfo = async (router: Router, token: string, content: ContentRequestData,
                                         setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                         setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>,
                                         shouldRefresh: boolean = false,
@@ -79,6 +80,10 @@ export const getContentInfo = async (token: string, content: ContentRequestData,
             if (result.status === 401) {
                 console.warn("Unauthorized");
                 await signOut(auth);
+                router.replace({
+                    pathname: '/LoginPage',
+                    params: { unauthorized: 1 },
+                });
                 return null;
             }
             const text = await result.text();
@@ -99,7 +104,7 @@ export const getContentInfo = async (token: string, content: ContentRequestData,
     }
 };
 
-export const getPopularContent = async (token: string,
+export const getPopularContent = async (router: Router, token: string,
                                         setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                         setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ) : Promise<PopularContentData | null> => {
@@ -121,6 +126,10 @@ export const getPopularContent = async (token: string,
             if (result.status === 401) {
                 console.warn("Unauthorized");
                 await signOut(auth);
+                router.replace({
+                    pathname: '/LoginPage',
+                    params: { unauthorized: 1 },
+                });
                 return null;
             }
             const text = await result.text();

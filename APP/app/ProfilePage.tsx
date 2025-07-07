@@ -53,7 +53,7 @@ export default function ProfilePage() {
         setAlertMessage("");
         setAlertType(Alert.Error);
         try {
-            await fetchUserData(await auth.currentUser.getIdToken(), setAlertMessage, setAlertType);
+            await fetchUserData(router, await auth.currentUser.getIdToken(), setAlertMessage, setAlertType);
         } finally {
             setRefreshing(false);
         }
@@ -69,7 +69,7 @@ export default function ProfilePage() {
             const user = auth.currentUser;
             const token = user ? await user?.getIdToken() : null;
     
-            const userMinimalData: UserMinimalData = await updateUserProfile(token, firstName?.trim(), lastName?.trim(), genres, streamingServices, setAlertMessageFunc, setAlertTypeFunc);
+            const userMinimalData: UserMinimalData = await updateUserProfile(router, token, firstName?.trim(), lastName?.trim(), genres, streamingServices, setAlertMessageFunc, setAlertTypeFunc);
             if (userMinimalData) {
                 const newUserData: UserData = {
                     user: userMinimalData,
@@ -194,7 +194,7 @@ export default function ProfilePage() {
                                 <Text style={appStyles.buttonText}>Save</Text>
                             </Pressable>
                         ) : (
-                            <Pressable style={appStyles.button} onPress={async () => { await LogOut(auth); router.push('/LoginPage');}}>
+                            <Pressable style={appStyles.button} onPress={async () => { await LogOut(auth); router.replace('/LoginPage');}}>
                                 <Text style={appStyles.buttonText}>Logout</Text>
                             </Pressable>
                         )}
