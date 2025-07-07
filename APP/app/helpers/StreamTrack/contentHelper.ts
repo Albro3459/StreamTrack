@@ -67,7 +67,7 @@ export const getContentInfo = async (token: string, content: ContentRequestData,
         if (!result.ok) {
             const text = await result.text();
             console.warn(`Error getting content details ${result.status}: ${text}`);
-            if (setAlertMessageFunc) setAlertMessageFunc('Error getting content details'); 
+            if (setAlertMessageFunc) setAlertMessageFunc('Unfortunately, streaming information is currently unavailable for this movie/show'); 
             if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
             return null;
         }

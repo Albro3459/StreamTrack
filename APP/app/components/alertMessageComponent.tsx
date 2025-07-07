@@ -24,7 +24,7 @@ const AlertMessage: React.FC<AlertProps> = ({
 
   return (
     <View style={[styles.overlay, styles[type], onIndex && styles.onIndex]}>
-      <Text style={type === Alert.Successs ? styles.successText : styles.errorText}>{message}</Text>
+        <Text style={[styles.text, type === Alert.Successs ? styles.successText : styles.errorText]}>{message}</Text>
         <Pressable onPress={() => setMessage("")} style={styles.closeBtn}>
           <Text style={[styles.closeText, type === Alert.Successs ? styles.successText : styles.errorText]}>X</Text>
         </Pressable>
@@ -43,10 +43,10 @@ const styles = StyleSheet.create({
         right: 20,
         zIndex: 1000,
         flexDirection: "row",
-        alignItems: "center",
         padding: 12,
         borderRadius: 8,
         elevation: 4,
+        alignItems: "center",
         justifyContent: "space-between",
     },
     error: {
@@ -55,23 +55,25 @@ const styles = StyleSheet.create({
     success: {
         backgroundColor: "green",
     },
+    text: {
+        flex: 1,
+        color: "black",
+    },
     errorText: {
         color: "white",
-        flex: 1,
     },
     successText: {
         color: "black",
-        flex: 1,
+    },    
+    closeText: {
+        fontWeight: "bold",
+        color: "black",
+        fontSize: 16,
     },
     closeBtn: {
         marginLeft: 10,
         paddingHorizontal: 8,
         paddingVertical: 2,
-    },
-    closeText: {
-        fontWeight: "bold",
-        color: "black",
-        fontSize: 16,
     },
 });
 
