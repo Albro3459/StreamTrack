@@ -58,10 +58,12 @@ export default function InfoPage() {
         setRefreshing(true);
         try {
             const updatedInfo: ContentInfoData = await getContentInfo(await auth.currentUser.getIdToken(), 
-                                                                    { tmdbID: info?.content?.tmdbID, 
-                                                                        VerticalPoster: info?.content?.verticalPoster, 
-                                                                        HorizontalPoster: info?.content?.horizontalPoster
-                                                                    } as ContentRequestData, setAlertMessage, setAlertType
+                                                                        { tmdbID: info?.content?.tmdbID, 
+                                                                            VerticalPoster: info?.content?.verticalPoster, 
+                                                                            HorizontalPoster: info?.content?.horizontalPoster
+                                                                        } as ContentRequestData, 
+                                                                        setAlertMessage, setAlertType,
+                                                                        true // REFRESH
                                                                 );
             if (updatedInfo) {
                 setInfo(updatedInfo);

@@ -46,10 +46,11 @@ export const contentSimpleToPartial = (simple: ContentSimpleData): ContentPartia
 
 export const getContentInfo = async (token: string, content: ContentRequestData,
                                         setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
-                                        setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+                                        setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>,
+                                        shouldRefresh: boolean = false,
 ): Promise<ContentInfoData | null> => {
     try {
-        const url = DataAPIURL + "API/Content/Info";
+        const url = DataAPIURL + "API/Content/Info" + (shouldRefresh ? "?shouldRefresh=true" : "");
 
         const options = {
             method: 'POST',

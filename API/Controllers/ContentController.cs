@@ -100,9 +100,9 @@ public class ContentController : ControllerBase {
 
     // I dont think it needs to save because it only needs to be saved if its in a list or popular,
     //   but if it was in a list or popular, it would already be in the DB
-    // POST: API/Content/Info
+    // POST: API/Content/Info?shouldRefresh={shouldRefresh}
     [HttpPost("Info")]
-    public async Task<ActionResult<ContentInfoDTO>> FetchContentInfo([FromBody] ContentRequestDTO requestDTO) {
+    public async Task<ActionResult<ContentInfoDTO>> FetchContentInfo([FromBody] ContentRequestDTO requestDTO, [FromQuery] bool? shouldRefresh = false) {
         // Get the user's auth token to get the firebase uuid to get the correct user's data
         // User's can only get their own data
 
@@ -123,6 +123,34 @@ public class ContentController : ControllerBase {
                 if (detail == null) {
                     return NotFound();
                 }
+            }
+            else if (shouldRefresh.GetValueOrDefault()) {
+                ContentDetail? updatedDetail = await rapidAPIService.FetchContentDetailsByTMDBIDAsync(requestDTO);
+                if (updatedDetail == null) {
+                    return NotFound();
+                }
+                // UPDATE
+                context.Entry(detail).CurrentValues.SetValues(updatedDetail); // Updates basic properties
+
+                // Mark JSON fields as updated for EfCore
+                detail.Cast = updatedDetail.Cast;
+                detail.Directors = updatedDetail.Directors;
+                context.Entry(detail).Property(d => d.Cast).IsModified = true;
+                context.Entry(detail).Property(d => d.Directors).IsModified = true;
+
+                // For Genres (many-to-many), clear and re-add
+                detail.Genres.Clear();
+                foreach (var g in updatedDetail.Genres) {
+                    var existing = await context.Genre.FindAsync(g.Name);
+                    detail.Genres.Add(existing ?? g);
+                }
+
+                detail.StreamingOptions.Clear();
+                foreach (var o in updatedDetail.StreamingOptions) {
+                    detail.StreamingOptions.Add(o);
+                }
+
+                await context.SaveChangesAsync();
             }
         }
         catch (Exception ex) {
