@@ -5,17 +5,18 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { View, Text, TextInput, FlatList, Image, StyleSheet, Pressable, Keyboard, Dimensions, ActivityIndicator } from 'react-native';
 import Heart from './components/heartComponent';
 import { useRouter } from 'expo-router';
+import debounce from 'lodash.debounce';
 import { appStyles } from '@/styles/appStyles';
 import { Feather } from '@expo/vector-icons';
 import { TMDBSearch } from './helpers/contentAPIHelper';
-import { TMDB_Content, TMDB, TMDB_MEDIA_TYPE } from './types/tmdbType';
+import { TMDB } from './types/tmdbType';
 import { useUserDataStore } from './stores/userDataStore';
-import { ContentData, ContentPartialData, ContentSimpleData, ListData, ListMinimalData } from './types/dataTypes';
+import { ContentData, ContentPartialData, ContentSimpleData, ListMinimalData } from './types/dataTypes';
 import { FAVORITE_TAB, isItemInAnyList, isItemInList, moveItemToList, sortLists } from './helpers/StreamTrack/listHelper';
 import MoveModal from './components/moveModalComponent';
 import { StarRating } from './components/starRatingComponent';
 import AlertMessage, { Alert } from './components/alertMessageComponent';
-import { clearContentCache, useContentCacheStore } from './stores/contentCacheStore';
+import { useContentCacheStore } from './stores/contentCacheStore';
 import { useFocusEffect } from '@react-navigation/native';
 import { getPoster } from './helpers/StreamTrack/contentHelper';
 import { usePopularContentStore } from './stores/popularContentStore';
@@ -47,6 +48,12 @@ export default function SearchPage() {
     const [selectedContent, setSelectedContent] = useState<ContentPartialData>(null);
 
     const [contents, setContents] = useState<ContentPartialData[]>([]);
+
+    const debouncedSearch = useRef(
+        debounce(async (text) => {
+            await search(text); // await works here
+        }, 400)
+    ).current;
 
     const noResultsOrTrySearching: (searchText: string, showNoResults: boolean, isSearching: boolean) => boolean = (
         searchText: string, showNoResults: boolean, isSearching: boolean
@@ -122,9 +129,10 @@ export default function SearchPage() {
                         placeholder="Search for a movie or TV show..."
                         placeholderTextColor={Colors.reviewTextColor}
                         value={searchText}
-                        onChangeText={(text) => {
+                        onChangeText={text => {
                             setSearchText(text);
-                            if (showNoResults === true) setShowNoResults(false);
+                            if (showNoResults) setShowNoResults(false);
+                            debouncedSearch(text); // search while typing :)
                         }}
                         onSubmitEditing={async () => await search(searchText) /* Search on enter key press */ }
                         returnKeyType="search" // makes the return key say search
