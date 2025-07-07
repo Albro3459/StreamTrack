@@ -10,13 +10,14 @@ import { useUserDataStore } from "./stores/userDataStore";
 import { fetchPopularContent, usePopularContentStore } from "./stores/popularContentStore";
 import { ContentSimpleData, ListMinimalData } from "./types/dataTypes";
 import MoveModal from "./components/moveModalComponent";
-import { isItemInList, moveItemToList, sortLists } from "./helpers/StreamTrack/listHelper";
+import { FAVORITE_TAB, isItemInList, moveItemToList, sortLists } from "./helpers/StreamTrack/listHelper";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { runOnJS } from 'react-native-reanimated';
 import { auth } from "@/firebaseConfig";
 import AlertMessage, { Alert } from "./components/alertMessageComponent";
 import { useFocusEffect } from "@react-navigation/native";
 import { getPoster, POSTER } from "./helpers/StreamTrack/contentHelper";
+import Heart from "./components/heartComponent";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -192,6 +193,14 @@ export default function LandingPage () {
                                                 style={styles.image}
                                                 resizeMode="cover"
                                             />
+                                            <View style={appStyles.heartIconWrapper}>
+                                                <Heart
+                                                    isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
+                                                    size={20}
+                                                    background={true}
+                                                    onPress={async () => await moveItemToList(content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)}
+                                                />
+                                            </View>
                                         </View>
                                     </Pressable>
                                 )}

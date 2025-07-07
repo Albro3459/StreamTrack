@@ -137,7 +137,7 @@ export default function MoveModal({
                                 style={{ paddingTop: 10 }}
                             >
                             <Heart
-                                isSelected={() => isItemInListFunc(lists, FAVORITE_TAB, selectedContent.tmdbID)}
+                                isSelected={() => isItemInListFunc(lists, FAVORITE_TAB, selectedContent?.tmdbID)}
                                 size={35}
                                 onPress={async () => await moveItemFunc(selectedContent, FAVORITE_TAB, lists, setListsFunc, setIsLoadingFunc, setVisibilityFunc, setAutoPlayFunc)}
                             />

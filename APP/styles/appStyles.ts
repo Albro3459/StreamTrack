@@ -21,6 +21,19 @@ export const appStyles = StyleSheet.create({
         color: "white",
     },
 
+    heartIconWrapper: {
+        position: 'absolute',
+        top: 8,
+        // bottom: 8,
+        right: 8,
+        zIndex: 2,
+    },
+    heartBackground: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'row', // or column, but both icons will stack
+    },
+
     overlay: {
         ...StyleSheet.absoluteFillObject,
         backgroundColor: 'rgba(0,0,0,0.4)', // dark tint

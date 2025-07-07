@@ -22,7 +22,7 @@ public class ListController : ControllerBase {
     private readonly IServiceProvider serviceProvider;
     private readonly IMapper mapper;
     private const int MAX_USER_LIST_COUNT = 10;
-    private const int MAX_USER_LIST_ITEM_COUNT = 2;
+    private const int MAX_USER_LIST_ITEM_COUNT = 1000;
 
     public ListController(StreamTrackDbContext _context, Service _service, Services.APIService _rapidAPIService, BackgroundTaskQueue _taskQueue, IServiceProvider _serviceProvider, IMapper _mapper) {
         context = _context;

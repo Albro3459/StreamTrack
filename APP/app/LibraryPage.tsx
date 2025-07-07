@@ -139,11 +139,19 @@ export default function LibraryPage() {
                             setSelectedContent(content);
                             setMoveModalVisible(true);
                         }}
-                    >
+                    >   
                         <Image
                             source={getPoster(content)}
                             style={[styles.movieImage]}
                         />
+                        <View style={appStyles.heartIconWrapper}>
+                            <Heart
+                                isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
+                                size={20}
+                                background={true}
+                                onPress={async () => await moveItemToList(content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)}
+                            />
+                        </View>
                     </Pressable>
                     <Text style={styles.movieTitle}>{content.title}</Text>
                 </View>

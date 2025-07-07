@@ -141,7 +141,7 @@ export default function SearchPage() {
                     />
                 </View>
 
-                {/* Recently Viewed */}
+                {/* Recommended && Recently Viewed && Search Results */}
                 {(!contents || contents.length <= 0) ? 
                     (!contentCache || contentCache.length <= 0) || noResultsOrTrySearching(searchText, showNoResults, isSearching) ? (
                         (!popularContent?.search ? 
@@ -187,9 +187,9 @@ export default function SearchPage() {
                                                 <StarRating rating={content.rating}/>
                                             </View>
                                             <Heart 
-                                                isSelected={() => isItemInList(lists, FAVORITE_TAB, content.tmdbID)}
+                                                isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
                                                 size={30}
-                                                onPress={async () => await moveItemToList(content, FAVORITE_TAB, lists, setLists, setIsSearching, setMoveModalVisible)}
+                                                onPress={async () => await moveItemToList(content, FAVORITE_TAB, lists, setLists, setIsSearching, () => {}, () => {}, setAlertMessage, setAlertType)}
                                             />
                                         </View>
                                     </Pressable>
@@ -234,9 +234,9 @@ export default function SearchPage() {
                                             <StarRating rating={content.rating}/>
                                         </View>
                                         <Heart 
-                                            isSelected={() => isItemInList(lists, FAVORITE_TAB, content.tmdbID)}
+                                            isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
                                             size={30}
-                                            onPress={async () => await moveItemToList(content, FAVORITE_TAB, lists, setLists, setIsSearching, setMoveModalVisible)}
+                                            onPress={async () => await moveItemToList(content, FAVORITE_TAB, lists, setLists, setIsSearching, () => {}, () => {}, setAlertMessage, setAlertType)}
                                         />
                                     </View>
                                 </Pressable>
@@ -271,9 +271,9 @@ export default function SearchPage() {
                                 <StarRating rating={content.rating}/>
                             </View>
                             <Heart 
-                                isSelected={() => isItemInList(lists, FAVORITE_TAB, content.tmdbID)}
+                                isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
                                 size={35}
-                                onPress={async () => await moveItemToList(content, FAVORITE_TAB, lists, setLists, setIsSearching, setMoveModalVisible)}
+                                onPress={async () => await moveItemToList(content, FAVORITE_TAB, lists, setLists, setIsSearching, () => {}, () => {}, setAlertMessage, setAlertType)}
                             />
                         </View>
                     </Pressable>

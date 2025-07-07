@@ -21,6 +21,11 @@ import CreateNewListModal from './components/createNewListComponent';
 
 const screenWidth = Dimensions.get("window").width;
 
+enum TABS {
+    ABOUT = 'About',
+    RECOMMENDED = 'Recommended'
+}
+
 interface InfoPageParams {
     tmdbID?: string;
     verticalPoster?: string;
@@ -51,7 +56,7 @@ export default function InfoPage() {
     const [newListName, setNewListName] = useState<string>("");
     const [createListModalVisible, setCreateListModalVisible] = useState(false);
 
-    const [activeTab, setActiveTab] = useState<string>('About');
+    const [activeTab, setActiveTab] = useState<TABS>(TABS.ABOUT);
 
     const [refreshing, setRefreshing] = useState(false);
     const onRefresh = async () => {
@@ -73,7 +78,7 @@ export default function InfoPage() {
                     return;
                 }
                 setInfo(updatedInfo);
-                setActiveTab('About');
+                setActiveTab(TABS.ABOUT);
 
                 // Update User Data
                 if (userData?.contents.map(c => c.tmdbID).includes(updatedInfo.content.tmdbID)) {
@@ -158,7 +163,7 @@ export default function InfoPage() {
 
     const renderTabContent = () => {
         switch (activeTab) {
-        case 'About':
+        case TABS.ABOUT:
             return (
             <View style={styles.content}>
                 <Text style={styles.sectionTitle}>Overview</Text>
@@ -220,7 +225,7 @@ export default function InfoPage() {
                 </Text>
             </View>
             );
-        case 'Recommended':
+        case TABS.RECOMMENDED:
             return (
             <View style={styles.content}>
                 <Text style={[styles.sectionTitle, {paddingBottom: 10}]}>Explore similar content</Text>
@@ -230,22 +235,30 @@ export default function InfoPage() {
                     showsHorizontalScrollIndicator={false}
                     keyExtractor={item => item.tmdbID}
                     contentContainerStyle={styles.railListContent}
-                    renderItem={({ item }) => (
+                    renderItem={({ item: content }) => (
                         <Pressable
                             style={({ pressed }) => [
                                 styles.card,
                                 pressed && styles.cardPressed,
                             ]}
-                            onPress={() => handlePress(item)}
-                            onLongPress={() => handleLongPress(item)}
+                            onPress={() => handlePress(content)}
+                            onLongPress={() => handleLongPress(content)}
                             android_ripple={{ color: Colors.grayCell }}
                         >
                             <View style={[styles.imageWrapper]}>
                                 <Image
-                                    source={{ uri: item.verticalPoster || item.horizontalPoster }}
+                                    source={{ uri: content.verticalPoster || content.horizontalPoster }}
                                     style={styles.image}
                                     resizeMode="cover"
                                 />
+                                <View style={appStyles.heartIconWrapper}>
+                                    <Heart
+                                        isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
+                                        size={20}
+                                        background={true}
+                                        onPress={async () => await moveItemToList(content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)}
+                                    />
+                                </View>
                             </View>
                         </Pressable>
                     )}
@@ -309,7 +322,7 @@ export default function InfoPage() {
                             <Heart
                                 isSelected={() => isItemInList(lists, FAVORITE_TAB, tmdbID ? tmdbID : info ? info?.content?.tmdbID : "")}
                                 size={35}
-                                onPress={async () => await moveItemToList(info?.content, FAVORITE_TAB, lists, setLists, setIsLoading, setListModalVisible)}
+                                onPress={async () => await moveItemToList(info?.content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)}
                                 disabled={!info || !info.content}
                             />
                         </View>
@@ -317,7 +330,7 @@ export default function InfoPage() {
                 </View>
 
                 <View style={styles.tabContainer}>
-                    {['About', 'Recommended'].map((tab) => (
+                    {Object.values(TABS).map((tab) => (
                         <Pressable
                         key={tab}
                         style={[
