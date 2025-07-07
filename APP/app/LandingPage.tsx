@@ -198,19 +198,19 @@ export default function LandingPage () {
                                 showsHorizontalScrollIndicator={false}
                                 keyExtractor={item => item.tmdbID}
                                 contentContainerStyle={styles.railListContent}
-                                renderItem={({ item }) => (
+                                renderItem={({ item: content }) => (
                                     <Pressable
                                         style={({ pressed }) => [
-                                            styles.card,
+                                            styles.card, {backgroundColor: undefined},
                                             pressed && appStyles.pressed,
                                         ]}
-                                        onPress={() => handlePress(item)}
-                                        onLongPress={() => handleLongPress(item)}
+                                        onPress={() => handlePress(content)}
+                                        onLongPress={() => { handleLongPress(content); }}
                                         android_ripple={{ color: Colors.grayCell }}
                                     >
-                                        <View style={styles.imageWrapper}>
+                                        <View style={[styles.imageWrapper]}>
                                             <Image
-                                                source={{ uri: item.verticalPoster || item.horizontalPoster }}
+                                                source={{ uri: content.verticalPoster || content.horizontalPoster }}
                                                 style={styles.image}
                                                 resizeMode="cover"
                                             />
@@ -388,8 +388,8 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 1 },
     },
     imageWrapper: {
+        aspectRatio: 17/24,
         width: '100%',
-        aspectRatio: 11 / 16,
         borderRadius: 10,
         overflow: 'hidden',
         backgroundColor: Colors.grayCell,

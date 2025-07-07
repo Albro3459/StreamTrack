@@ -120,13 +120,6 @@ export default function InfoPage() {
         case 'About':
             return (
             <View style={styles.content}>
-                {/* {info?.content?.rating > 0 &&
-                    <View style={{flexDirection: "row", justifyContent: "flex-start", alignItems: "center"}}>
-                        <Text style={styles.sectionTitle}>Rating  </Text>
-                        {info && <StarRating rating={info?.content?.rating}/> }
-                    </View>
-                } */}
-
                 <Text style={styles.sectionTitle}>Overview</Text>
                 <Text style={styles.text}>{info && info?.content?.overview}</Text>
 
@@ -206,7 +199,7 @@ export default function InfoPage() {
                             onLongPress={() => handleLongPress(item)}
                             android_ripple={{ color: Colors.grayCell }}
                         >
-                            <View style={styles.imageWrapper}>
+                            <View style={[styles.imageWrapper]}>
                                 <Image
                                     source={{ uri: item.verticalPoster || item.horizontalPoster }}
                                     style={styles.image}
@@ -234,7 +227,10 @@ export default function InfoPage() {
             <ScrollView showsVerticalScrollIndicator={false}>
                 <View style={styles.movieContainer}>
                     {/* Movie Poster */}
-                    <Image source={{ uri: info && info?.content?.verticalPoster }} style={styles.posterImage} />
+                    <View style={styles.posterContainer}>
+                        <Image source={{ uri: info?.content?.verticalPoster }} style={[styles.posterImage]} />
+                    </View>
+                    
                     {/* Movie Info */}
                     <View style={styles.infoSection}>
                         <Text style={styles.title}>{info?.content?.title}</Text>
@@ -375,14 +371,25 @@ const styles = StyleSheet.create({
         columnGap: 15, 
         alignItems: "center",
     },
-    posterImage: {
-        aspectRatio: 11/16,
-        width: 200,
+
+    posterContainer: { 
+        aspectRatio: 17/24,
         height: 300,
         borderRadius: 15,
+        overflow: 'hidden',
+        borderWidth: 2,
+        borderColor: Colors.grayCell,
+        alignItems: 'center',
+        justifyContent: 'center',
         marginBottom: 16,
-        ...appStyles.shadow
+        ...appStyles.shadow,
     },
+    posterImage: {
+        width: '100%',
+        height: '100%',
+        resizeMode: 'cover',
+    },
+
     infoSection: {
       alignItems: "center", // Centers text under the poster
     },
@@ -475,7 +482,7 @@ const styles = StyleSheet.create({
     },
     imageWrapper: {
         width: '100%',
-        aspectRatio: 11 / 16,
+        aspectRatio: 17/24,
         borderRadius: 10,
         overflow: 'hidden',
         backgroundColor: Colors.grayCell,

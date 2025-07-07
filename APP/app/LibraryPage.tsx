@@ -59,7 +59,7 @@ export default function LibraryPage() {
         pagerViewRef.current?.setPage(index);
         flatListRef.current.scrollToIndex({ 
             index: index, animated: true, 
-            viewPosition: index <= 1 ? 0 : index === length - 1 ? 1 : 0.5
+            viewPosition: index <= 1 ? 0 : index === length - 1 ? 1 : 0.5 // 0: start, 0.5: center, 1: end
         });
     }    
 
@@ -101,10 +101,10 @@ export default function LibraryPage() {
             numColumns={3}
             keyExtractor={(content, index) => `${content.tmdbID}-${index}-${list}`}
             renderItem={({ item: content }) => (
-                // <View style={styles.movieCard} >
+                <View style={styles.movieCard} >
                     <Pressable
                         style={({ pressed }) => [
-                            styles.movieCard,
+                            // styles.movieCard,
                             pressed && appStyles.pressed,
                         ]}
                         onPress={() => {
@@ -120,14 +120,14 @@ export default function LibraryPage() {
                     >
                         <Image
                             source={{
-                                uri: content.verticalPoster || 
+                                uri: content.verticalPoster || content.horizontalPoster ||
                                     (console.log(`Library poster missing for: ${content.title} | poster: ${content.verticalPoster}`), "")
                                 }}
-                            style={styles.movieImage}
+                            style={[styles.movieImage]}
                         />
-                        <Text style={styles.movieTitle}>{content.title}</Text>
                     </Pressable>
-                // </View>
+                    <Text style={styles.movieTitle}>{content.title}</Text>
+                </View>
             )}
         />
         );
@@ -295,12 +295,12 @@ const styles = StyleSheet.create({
         flex: 1, 
         margin: 5, 
         alignItems: 'center', 
-        paddingBottom: 10
+        paddingBottom: 10,
     },
     movieImage: { 
-        aspectRatio: 11/16, 
+        aspectRatio: 17/24, 
         width: screenWidth * 0.22, 
-        height: screenWidth * 0.32, 
+        height: screenWidth * 0.33, 
         borderRadius: 10,
         ...appStyles.shadow,
     },
@@ -309,6 +309,7 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         fontSize: 14,
         marginTop: 5,
+        maxWidth: screenWidth * 0.33,
         ...appStyles.shadow,
     },
 });

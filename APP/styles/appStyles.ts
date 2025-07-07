@@ -31,22 +31,6 @@ export const appStyles = StyleSheet.create({
     shadow: {
         ...shadow
     },
-    movieCard: {
-        width: 11*7,
-        marginRight: 15,
-        overflow: "hidden"
-    },
-    movieImage: {
-        height: 16*7,
-        aspectRatio: 11 / 16,
-        borderRadius: 10,
-    },
-    movieTitle: {
-        color: Colors.selectedTextColor,
-        fontSize: 14,
-        marginTop: 5,
-        textAlign: "center",
-    },
 
     pressed: {
         transform: [{ scale: 0.97 }],
@@ -107,7 +91,7 @@ export const appStyles = StyleSheet.create({
         ...shadow
     },
     cardPoster: {
-        aspectRatio: 11/16,
+        aspectRatio: 17/24,
         borderRadius: 10,
         marginRight: 10,
          ...shadow

@@ -191,7 +191,7 @@ export default function SearchPage() {
                                 params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, horizontalPoster: content.horizontalPoster },
                             });
                         }}
-                        onLongPress={() => {setSelectedContent(content); setMoveModalVisible(true);}}
+                        onLongPress={() => { setSelectedContent(content); setMoveModalVisible(true); }}
                     >
                         <View style={[appStyles.cardContainer, {marginHorizontal: 16}]}>
                             <Image source={{ uri: content.verticalPoster }} style={[appStyles.cardPoster, {width: 60}]} />
