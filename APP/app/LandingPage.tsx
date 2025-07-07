@@ -3,7 +3,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import Carousel from "react-native-reanimated-carousel";
 import { Pressable, View, Image, StyleSheet, Text, ScrollView, ActivityIndicator, Dimensions, FlatList, RefreshControl } from "react-native";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { appStyles, RalewayFont } from "@/styles/appStyles";
 import { useUserDataStore } from "./stores/userDataStore";
@@ -23,8 +23,14 @@ const LIBRARY_OVERLAY_HEIGHT = screenHeight*.095;
 
 const CAROUSEL_AUTOPLAY_INTERVAL: number = 7500; // in milliseconds, so 1000 === 1 sec
 
+interface LandingPageParams {
+    justSignedUp?: number;
+}
+
 export default function LandingPage () {
     const router = useRouter();
+
+    const { justSignedUp } = useLocalSearchParams() as LandingPageParams;
     
     const { userData } = useUserDataStore();
     const { popularContent } = usePopularContentStore();
@@ -153,7 +159,7 @@ export default function LandingPage () {
                     />
                 }
             >
-                <Text style={styles.welcomeText}>WELCOME BACK{userData?.user?.firstName?.length > 0 && " "+userData.user.firstName.toUpperCase()}!</Text>
+                <Text style={styles.welcomeText}>WELCOME{Number(justSignedUp) === 1 ? "" : " BACK"}{userData?.user?.firstName?.length > 0 && " "+userData.user.firstName.toUpperCase()}!</Text>
                 <View style={{ marginBottom: 24, alignItems: "center" }}>
                     <Carousel<ContentSimpleData>
                         ref={carouselRef}

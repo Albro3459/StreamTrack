@@ -1,9 +1,13 @@
 "use client";
 
+import { Alert } from "@/app/components/alertMessageComponent";
 import { StreamingServiceData } from "@/app/types/dataTypes";
 import { DataAPIURL } from "@/secrets/DataAPIUrl";
 
-export const getStreamingServiceData = async (token: string): Promise<StreamingServiceData[] | null> => {
+export const getStreamingServiceData = async (token: string,
+                                                setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
+                                                setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+): Promise<StreamingServiceData[] | null> => {
     try {
         const url = DataAPIURL + "API/Streaming/GetMain";
 
@@ -21,6 +25,8 @@ export const getStreamingServiceData = async (token: string): Promise<StreamingS
         if (!result.ok) {
             const text = await result.text();
             console.warn(`Error getting streaming data ${result.status}: ${text}`);
+            if (setAlertMessageFunc) setAlertMessageFunc('Error getting streaming data'); 
+            if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
             return null;
         }
 
@@ -28,6 +34,8 @@ export const getStreamingServiceData = async (token: string): Promise<StreamingS
         return data;
     } catch (err) {
         console.warn('Fetch streaming data failed:', err);
+        if (setAlertMessageFunc) setAlertMessageFunc('Fetch streaming data failed'); 
+        if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
         return null;
     }
 };

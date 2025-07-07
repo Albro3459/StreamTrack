@@ -1,5 +1,6 @@
 "use client";
 
+import { Alert } from "@/app/components/alertMessageComponent";
 import { ContentInfoData, ContentPartialData, ContentRequestData, ContentSimpleData, PopularContentData } from "@/app/types/dataTypes";
 import { DataAPIURL } from "@/secrets/DataAPIUrl";
 
@@ -15,7 +16,10 @@ export const contentSimpleToPartial = (simple: ContentSimpleData): ContentPartia
     };
 };
 
-export const getContentInfo = async (token: string, content: ContentRequestData): Promise<ContentInfoData | null> => {
+export const getContentInfo = async (token: string, content: ContentRequestData,
+                                        setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
+                                        setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+): Promise<ContentInfoData | null> => {
     try {
         const url = DataAPIURL + "API/Content/Info";
 
@@ -34,6 +38,8 @@ export const getContentInfo = async (token: string, content: ContentRequestData)
         if (!result.ok) {
             const text = await result.text();
             console.warn(`Error getting content details ${result.status}: ${text}`);
+            if (setAlertMessageFunc) setAlertMessageFunc('Error getting content details'); 
+            if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
             return null;
         }
 
@@ -42,11 +48,16 @@ export const getContentInfo = async (token: string, content: ContentRequestData)
         return data;
     } catch (err) {
         console.warn('Get content details failed:', err);
+        if (setAlertMessageFunc) setAlertMessageFunc('Get content details failed'); 
+        if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
         return null;
     }
 };
 
-export const getPopularContent = async (token: string) : Promise<PopularContentData | null> => {
+export const getPopularContent = async (token: string,
+                                        setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
+                                        setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+) : Promise<PopularContentData | null> => {
     try {
         const url = DataAPIURL + "API/Content/Popular";
 
@@ -64,6 +75,8 @@ export const getPopularContent = async (token: string) : Promise<PopularContentD
         if (!result.ok) {
             const text = await result.text();
             console.warn(`Error getting popular content ${result.status}: ${text}`);
+            if (setAlertMessageFunc) setAlertMessageFunc('Error getting popular content'); 
+            if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
             return null;
         }
 
@@ -72,6 +85,8 @@ export const getPopularContent = async (token: string) : Promise<PopularContentD
         return data;
     } catch (err) {
         console.warn('Get popular content failed:', err);
+        if (setAlertMessageFunc) setAlertMessageFunc('Get popular content failed'); 
+        if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
         return null;
     }
 };

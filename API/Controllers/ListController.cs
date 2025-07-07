@@ -21,6 +21,7 @@ public class ListController : ControllerBase {
     private readonly BackgroundTaskQueue taskQueue;
     private readonly IServiceProvider serviceProvider;
     private readonly IMapper mapper;
+    private const int MAX_USER_LIST_COUNT = 10;
 
     public ListController(StreamTrackDbContext _context, Service _service, Services.APIService _rapidAPIService, BackgroundTaskQueue _taskQueue, IServiceProvider _serviceProvider, IMapper _mapper) {
         context = _context;
@@ -68,9 +69,14 @@ public class ListController : ControllerBase {
         if (string.IsNullOrEmpty(uid))
             return Unauthorized();
 
-        User? owner = await context.User.Where(u => u.UserID == uid).FirstOrDefaultAsync();
+        User? owner = await context.User
+                        .Include(u => u.ListsOwned)
+                        .Where(u => u.UserID == uid).FirstOrDefaultAsync();
         if (owner == null) {
             return Unauthorized();
+        }
+        if (owner.ListsOwned.Count >= MAX_USER_LIST_COUNT) {
+            return BadRequest();
         }
 
         listName = Uri.UnescapeDataString(listName);

@@ -3,17 +3,22 @@
 import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import { createUser } from "./StreamTrack/userHelper";
 import { CACHE, ClearCache, FetchCache } from "./cacheHelper";
+import { Alert } from "../components/alertMessageComponent";
 
-export const SignIn = async (auth: Auth, email: string, password: string) => {
+export const SignIn = async (auth: Auth, email: string, password: string,
+                                setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
+                                setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+) => {
     ClearCache(CACHE.USER);
     if (!auth) return;
+    email = email.trim();
     if (!email.includes('@') || !email.includes('.')) {
         return;
     }
     await signInWithEmailAndPassword(auth, email, password);
     const user = auth.currentUser;
     const token = await user?.getIdToken() ?? null;
-    token && FetchCache(token);
+    token && FetchCache(token, setAlertMessageFunc, setAlertTypeFunc);
 };
 
 export const LogOut = async (auth: Auth) => {
@@ -22,9 +27,13 @@ export const LogOut = async (auth: Auth) => {
     await signOut(auth);
 };
 
-export const SignUp = async (auth: Auth, email: string, password: string) => {
+export const SignUp = async (auth: Auth, email: string, password: string,
+                                setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
+                                setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+) => {
     ClearCache(CACHE.USER);
     if (!auth) return;
+    email = email.trim();
     if (!email.includes('@') || !email.includes('.')) {
         return;
     }
@@ -32,8 +41,8 @@ export const SignUp = async (auth: Auth, email: string, password: string) => {
 
     const user = auth.currentUser;
     const token = await user?.getIdToken() ?? null;
-    await createUser(token);
-    token && FetchCache(token);
+    await createUser(token, setAlertMessageFunc, setAlertTypeFunc);
+    token && FetchCache(token, setAlertMessageFunc, setAlertTypeFunc);
 };
 
 export default {};

@@ -52,6 +52,7 @@ export default function SearchPage() {
     };
 
     const search = async (searchText: string) => {
+        searchText = searchText.trim();
         setShowNoResults(true);
         if (searchText.length > 0) {
             try {

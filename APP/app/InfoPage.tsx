@@ -102,7 +102,7 @@ export default function InfoPage() {
 
             try {
                 if (!content) {
-                    content = await getContentInfo(token, {tmdbID:tmdbID, VerticalPoster:verticalPoster, HorizontalPoster:horizontalPoster} as ContentRequestData);
+                    content = await getContentInfo(token, {tmdbID:tmdbID, VerticalPoster:verticalPoster, HorizontalPoster:horizontalPoster} as ContentRequestData, setAlertMessage, setAlertType);
                 }
             } finally {
                 if (content) {
@@ -182,7 +182,7 @@ export default function InfoPage() {
         case 'Recommended':
             return (
             <View style={styles.content}>
-                <Text style={[styles.sectionTitle, {paddingBottom: 10}]}>Explore similar content!</Text>
+                <Text style={[styles.sectionTitle, {paddingBottom: 10}]}>Explore similar content</Text>
                 <FlatList<ContentPartialData>
                     data={info?.recommendations}
                     horizontal

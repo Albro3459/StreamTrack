@@ -13,6 +13,7 @@ import { UserData, UserMinimalData } from "./types/dataTypes";
 import { updateUserProfile } from "./helpers/StreamTrack/userHelper";
 import { useStreamingServiceDataStore } from "./stores/streamingServiceDataStore";
 import { useGenreDataStore } from "./stores/genreDataStore";
+import AlertMessage, { Alert } from "./components/alertMessageComponent";
 
 interface ProfilePageParams {
     isSigningUp?: number;
@@ -29,6 +30,9 @@ export default function ProfilePage() {
     const { streamingServiceData } = useStreamingServiceDataStore();
     const { genreData } = useGenreDataStore();
 
+    const [alertMessage, setAlertMessage] = useState<string>("");
+    const [alertType, setAlertType] = useState<Alert>(Alert.Error);
+
     // State for text inputs
     const [firstNameText, setFirstNameText] = useState<string | null>(userData?.user?.firstName ?? null);
     const [lastNameText, setLastNameText] = useState<string | null>(userData?.user?.lastName ?? null);
@@ -43,12 +47,16 @@ export default function ProfilePage() {
             : new Set()
     );
 
-    const saveProfile = async (firstName: string | null, lastName: string | null, genres: Set<string>, streamingServices: Set<string>) => {
+    const saveProfile = async (firstName: string | null, lastName: string | null, 
+                                genres: Set<string>, streamingServices: Set<string>,
+                                setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
+                                setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+    ) => {
         setSaving(true);
         const user = auth.currentUser;
         const token = await user?.getIdToken() ?? null;
 
-        const userMinimalData: UserMinimalData = await updateUserProfile(token, firstName, lastName, genres, streamingServices);
+        const userMinimalData: UserMinimalData = await updateUserProfile(token, firstName.trim(), lastName.trim(), genres, streamingServices, setAlertMessageFunc, setAlertTypeFunc);
         if (userMinimalData) {
             const newUserData: UserData = {
                 user: userMinimalData,
@@ -60,7 +68,10 @@ export default function ProfilePage() {
         setSaving(false);
 
         if (Number(isSigningUp) === 1) {
-            router.replace('/LandingPage');
+            router.replace({
+                pathname: '/LandingPage',
+                params: { justSignedUp: 1 }
+            });
         }
     };
 
@@ -68,19 +79,16 @@ export default function ProfilePage() {
         <>
             <Stack.Screen
                 options={{
-                    // headerRight: () => (
-                    //     <Pressable
-                    //         onPress={() => saveProfile(firstNameText, lastNameText, selectedGenres, selectedStreamingServices)}
-                    //         // style={{ marginRight: 16 }} // optional, for spacing
-                    //     >
-                    //         <Feather name="save" size={28} />
-                    //     </Pressable>
-                    // ),
                     headerLeft: Number(isSigningUp) === 1 ? () => null : undefined, // undefined means show the back button. I know its fucking stupid
                     headerBackVisible:  Number(isSigningUp) === 1 ? false : true,
                 }}
             />
             <View style={{ flex: 1 }}>
+                <AlertMessage
+                    type={alertType}
+                    message={alertMessage}
+                    setMessage={setAlertMessage}
+                />
                 <ScrollView style={styles.background}>
                     {/* First container */}
                     <View style={[styles.container]}>
@@ -136,7 +144,7 @@ export default function ProfilePage() {
                     <View style={styles.buttonContainer} >
                         {/* Button */}
                         { isEditing ? (
-                            <Pressable style={appStyles.button} onPress={async () => await saveProfile(firstNameText, lastNameText, selectedGenres, selectedStreamingServices)}>
+                            <Pressable style={appStyles.button} onPress={async () => await saveProfile(firstNameText, lastNameText, selectedGenres, selectedStreamingServices, setAlertMessage, setAlertType)}>
                                 <Text style={appStyles.buttonText}>Save</Text>
                             </Pressable>
                         ) : (

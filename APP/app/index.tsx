@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { View, Image, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 
@@ -9,17 +9,21 @@ import { onAuthStateChanged, User } from "firebase/auth";
 import { auth } from "@/firebaseConfig";
 import { checkIfUserExists } from "./helpers/StreamTrack/userHelper";
 import { CACHE, FetchCache } from "./helpers/cacheHelper";
+import AlertMessage, { Alert } from "./components/alertMessageComponent";
 
 export default function Index() {
     const router = useRouter();
+
+    const [alertMessage, setAlertMessage] = useState<string>("");
+    const [alertType, setAlertType] = useState<Alert>(Alert.Error);
 
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             const asyncCheck = async (user: User) => {
                 const token = await user.getIdToken();
-                const userExists: boolean = await checkIfUserExists(token);
+                const userExists: boolean = await checkIfUserExists(token, setAlertMessage, setAlertType);
                 if (userExists) {
-                    FetchCache(token);
+                    FetchCache(token, setAlertMessage, setAlertType);
                     router.replace("/LandingPage");
                 }
             }
@@ -31,6 +35,11 @@ export default function Index() {
     
     return (
         <View style={styles.container}>
+            <AlertMessage
+                type={alertType}
+                message={alertMessage}
+                setMessage={setAlertMessage}
+            />
             <Image
                 source={require("../assets/images/AppNameImage.png")}
                 style={styles.logo}

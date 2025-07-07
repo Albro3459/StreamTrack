@@ -9,12 +9,14 @@ import { Alert } from "@/app/components/alertMessageComponent";
 
 export const FAVORITE_TAB = "Favorites";
 
+export const MAX_USER_LIST_COUNT = 10;
+
 // Sorts the lists so the favorite tab is first and alphabetical order
 export const sortLists = <T extends { listName: string }>(lists: T[]): T[] => {
     return [...lists].sort((a, b) => {
-        if (a.listName === FAVORITE_TAB) return -1;
-        if (b.listName === FAVORITE_TAB) return 1;
-        return a.listName.localeCompare(b.listName);
+        if (a.listName.toLowerCase() === FAVORITE_TAB.toLowerCase()) return -1;
+        if (b.listName.toLowerCase() === FAVORITE_TAB.toLowerCase()) return 1;
+        return a.listName.toLowerCase().localeCompare(b.listName.toLowerCase());
     });
 };
 
@@ -58,45 +60,52 @@ export const handleCreateNewTab = async (
                 setRefsFunc?: (index: number, length: number) => void,
                 setActiveTabFunc?: React.Dispatch<React.SetStateAction<string>>,
 ) => {
-    let finalLists: ListMinimalData[] = [...lists];
-    listName = listName.trim();
-    if (listName) {
-        try {
-            if (!lists.map(l => l.listName.toLowerCase()).includes(listName.toLowerCase())) {
-                const user: User | null = auth.currentUser;
-                if (!user) {
-                    setAlertMessageFunc("User doesn't exist");
-                    setAlertTypeFunc(Alert.Error);
-                    return;
-                }
-                const token = await user.getIdToken();
-                const newList: ListMinimalData = await createNewUserList(token, listName);
-                setListNameFunc("");
-                finalLists = sortLists([...lists, newList]);
-                setListsFunc(finalLists);
-
-                const userData = useUserDataStore.getState().userData;
-                setUserData({
-                    ...userData,
-                    user: {
-                        ...userData.user,
-                        listsOwned: [...userData.user.listsOwned, newList],
+    if (lists.length >= MAX_USER_LIST_COUNT) {
+        console.warn(`User reached Max User List Count: ` + MAX_USER_LIST_COUNT);
+        setAlertMessageFunc(`You have reached the max amount of lists: ${MAX_USER_LIST_COUNT}`);
+        setAlertTypeFunc(Alert.Error);
+        return;
+    } else {
+        let finalLists: ListMinimalData[] = [...lists];
+        listName = listName.trim();
+        if (listName) {
+            try {
+                if (!lists.map(l => l.listName.toLowerCase()).includes(listName.toLowerCase())) {
+                    const user: User | null = auth.currentUser;
+                    if (!user) {
+                        setAlertMessageFunc("User doesn't exist");
+                        setAlertTypeFunc(Alert.Error);
+                        return;
                     }
-                });
-            
-                if (setActiveTabFunc) setActiveTabFunc(listName);
-                if (moveItemFunc) await moveItemFunc(selectedContent, listName, finalLists, setListsFunc, setIsLoadingFunc, setVisibilityFunc, setAutoPlayFunc);
-            } else {
-                console.warn(`List "${listName}" already exists`);
-                setAlertMessageFunc(`List "${listName}" already exists`);
-                setAlertTypeFunc(Alert.Error);
-            }
-        } finally {
-            setIsLoadingFunc(false);
-            setVisibilityFunc(false);
-            if (setRefsFunc) {
-                const index = finalLists.findIndex(l => l.listName.toLowerCase() === listName.toLowerCase());
-                setRefsFunc(index, finalLists.length);
+                    const token = await user.getIdToken();
+                    const newList: ListMinimalData = await createNewUserList(token, listName, setAlertMessageFunc, setAlertTypeFunc);
+                    setListNameFunc("");
+                    finalLists = sortLists([...lists, newList]);
+                    setListsFunc(finalLists);
+    
+                    const userData = useUserDataStore.getState().userData;
+                    setUserData({
+                        ...userData,
+                        user: {
+                            ...userData.user,
+                            listsOwned: [...userData.user.listsOwned, newList],
+                        }
+                    });
+                
+                    if (setActiveTabFunc) setActiveTabFunc(listName);
+                    if (moveItemFunc) await moveItemFunc(selectedContent, listName, finalLists, setListsFunc, setIsLoadingFunc, setVisibilityFunc, setAutoPlayFunc, );
+                } else {
+                    console.warn(`List "${listName}" already exists`);
+                    setAlertMessageFunc(`List "${listName}" already exists`);
+                    setAlertTypeFunc(Alert.Error);
+                }
+            } finally {
+                setIsLoadingFunc(false);
+                setVisibilityFunc(false);
+                if (setRefsFunc) {
+                    const index = finalLists.findIndex(l => l.listName.toLowerCase() === listName.toLowerCase());
+                    setRefsFunc(index, finalLists.length);
+                }
             }
         }
     }
@@ -106,11 +115,14 @@ export const moveItemToList = async (content: ContentPartialData, listName: stri
                                 setLists: React.Dispatch<React.SetStateAction<ListMinimalData[]>>,
                                 setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
                                 setMoveModalVisible?: React.Dispatch<React.SetStateAction<boolean>>,      
-                                setAutoPlay?: React.Dispatch<React.SetStateAction<boolean>>      
+                                setAutoPlay?: React.Dispatch<React.SetStateAction<boolean>>,
+                                setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
+                                setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>      
 ) => {
     // Only works for user owned lists for now
     try {
         setIsLoading(true);
+        listName = listName.trim();
         let list: ListMinimalData = lists.find(l => l.listName === listName);
         if (!list) {
             return;
@@ -123,8 +135,8 @@ export const moveItemToList = async (content: ContentPartialData, listName: stri
 
         const shouldRemove: boolean = list.tmdbIDs.includes(content.tmdbID);
         const updatedList: ListMinimalData = shouldRemove 
-                ? await removeContentFromUserList(token, list.listName, content.tmdbID)
-                : await addContentToUserList(token, list.listName, content);
+                ? await removeContentFromUserList(token, list.listName, content.tmdbID, setAlertMessageFunc, setAlertTypeFunc)
+                : await addContentToUserList(token, list.listName, content, setAlertMessageFunc, setAlertTypeFunc);
         if (updatedList) {
             const userData: UserData = { ...useUserDataStore.getState().userData };
             const newListsOwned: ListMinimalData[] = userData.user.listsOwned.map(l => l.listName === updatedList.listName ? updatedList : l);
@@ -145,9 +157,14 @@ export const moveItemToList = async (content: ContentPartialData, listName: stri
                 },
                 contents: newContents
             } as UserData, true);
+        } else {
+            if (setAlertMessageFunc) setAlertMessageFunc('Moving item to list failed'); 
+            if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
         }
     } catch (e: any) {
         console.warn("Error move item func: ", e);
+        if (setAlertMessageFunc) setAlertMessageFunc('Error moving item to list'); 
+        if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
     } finally {
         setIsLoading(false);
         if (setMoveModalVisible) setMoveModalVisible(false);
@@ -155,11 +172,14 @@ export const moveItemToList = async (content: ContentPartialData, listName: stri
     }
 };
 
-export const addContentToUserList = async (token: string | null, listName: string, content: ContentPartialData): Promise<ListMinimalData | null> => {
+export const addContentToUserList = async (token: string | null, listName: string, content: ContentPartialData,
+                                            setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
+                                            setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+): Promise<ListMinimalData | null> => {
     try {
         if (!token) return null;
 
-        const url = DataAPIURL + `API/List/${encodeURIComponent(listName)}/Add`;
+        const url = DataAPIURL + `API/List/${encodeURIComponent(listName.trim())}/Add`;
                 
         const options = {
             method: 'POST',
@@ -176,6 +196,8 @@ export const addContentToUserList = async (token: string | null, listName: strin
         if (!result.ok) {
             const text = await result.text();
             console.warn(`Error adding content to list ${result.status}: ${text}`);
+            if (setAlertMessageFunc) setAlertMessageFunc('Error adding content to list'); 
+            if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
             return null;
         }
 
@@ -185,15 +207,20 @@ export const addContentToUserList = async (token: string | null, listName: strin
 
     } catch (err) {
         console.warn('Adding content to list failed:', err);
+        if (setAlertMessageFunc) setAlertMessageFunc('Adding content to list failed'); 
+        if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
         return null;
     }
 };
 
-export const removeContentFromUserList = async (token: string | null, listName: string, tmdbID: string): Promise<ListMinimalData | null> => {
+export const removeContentFromUserList = async (token: string | null, listName: string, tmdbID: string,
+                                                setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
+                                                setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+): Promise<ListMinimalData | null> => {
     try {
         if (!token) return null;
 
-        const url = DataAPIURL + `API/List/${encodeURIComponent(listName)}/Remove/${encodeURIComponent(tmdbID)}`;
+        const url = DataAPIURL + `API/List/${encodeURIComponent(listName.trim())}/Remove/${encodeURIComponent(tmdbID.trim())}`;
 
         const options = {
             method: 'DELETE',
@@ -209,6 +236,8 @@ export const removeContentFromUserList = async (token: string | null, listName: 
         if (!result.ok) {
             const text = await result.text();
             console.warn(`Error removing content from list ${result.status}: ${text}`);
+            if (setAlertMessageFunc) setAlertMessageFunc('Error removing content from list'); 
+            if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
             return null;
         }
 
@@ -218,15 +247,20 @@ export const removeContentFromUserList = async (token: string | null, listName: 
 
     } catch (err) {
         console.warn('Removing content from list failed:', err);
+        if (setAlertMessageFunc) setAlertMessageFunc('Removing content from list failed'); 
+        if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
         return null;
     }
 };
 
-export const createNewUserList = async (token: string | null, listName: string): Promise<ListMinimalData | null> => {
+export const createNewUserList = async (token: string | null, listName: string, 
+                                        setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
+                                        setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+                                    ) : Promise<ListMinimalData | null> => {
     try {
         if (!token) return null;
 
-        const url = DataAPIURL + `API/List/${encodeURIComponent(listName)}/Create`;
+        const url = DataAPIURL + `API/List/${encodeURIComponent(listName.trim())}/Create`;
                 
         const options = {
             method: 'POST',
@@ -242,6 +276,8 @@ export const createNewUserList = async (token: string | null, listName: string):
         if (!result.ok) {
             const text = await result.text();
             console.warn(`Error creating new list ${result.status}: ${text}`);
+            if (setAlertMessageFunc) setAlertMessageFunc('Error creating new list'); 
+            if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
             return null;
         }
 
@@ -251,6 +287,8 @@ export const createNewUserList = async (token: string | null, listName: string):
 
     } catch (err) {
         console.warn('Creating new list failed:', err);
+        if (setAlertMessageFunc) setAlertMessageFunc('Creating new list failed'); 
+        if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
         return null;
     }
 };

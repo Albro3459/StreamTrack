@@ -1,5 +1,6 @@
 "use client";
 
+import { Alert } from "../components/alertMessageComponent";
 import { clearContentCache } from "../stores/contentDataStore";
 import { clearGenreData, fetchGenreData } from "../stores/genreDataStore";
 import { clearPopularContent, fetchPopularContent } from "../stores/popularContentStore";
@@ -14,28 +15,32 @@ export enum CACHE {
     STREAMING
 };
 
-export const FetchCache = (token: string, ...data: CACHE[]) => {
+export const FetchCache = (token: string,
+                            setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
+                            setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>,
+                            ...data: CACHE[]
+) => {
     if (!token) return;
 
     if (data.length === 0 || data.includes(CACHE.ALL)) {
-        fetchUserData(token);
-        fetchPopularContent(token);
-        fetchGenreData(token);
-        fetchStreamingServiceData(token);
+        fetchUserData(token, setAlertMessageFunc, setAlertTypeFunc);
+        fetchPopularContent(token, setAlertMessageFunc, setAlertTypeFunc);
+        fetchGenreData(token, setAlertMessageFunc, setAlertTypeFunc);
+        fetchStreamingServiceData(token, setAlertMessageFunc, setAlertTypeFunc);
         return;
     }
 
     if (data.includes(CACHE.USER)) {
-        fetchUserData(token);
+        fetchUserData(token, setAlertMessageFunc, setAlertTypeFunc);
     }
     if (data.includes(CACHE.POPULAR)) {
-        fetchPopularContent(token);
+        fetchPopularContent(token, setAlertMessageFunc, setAlertTypeFunc);
     }
     if (data.includes(CACHE.GENRE)) {
-        fetchGenreData(token);
+        fetchGenreData(token, setAlertMessageFunc, setAlertTypeFunc);
     }
     if (data.includes(CACHE.STREAMING)) {
-        fetchStreamingServiceData(token);
+        fetchStreamingServiceData(token, setAlertMessageFunc, setAlertTypeFunc);
     }
 };
 
