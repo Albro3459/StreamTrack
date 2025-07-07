@@ -158,7 +158,12 @@ export const moveItemToList = async (content: ContentPartialData, listName: stri
                 contents: newContents
             } as UserData, true);
         } else {
-            if (setAlertMessageFunc) setAlertMessageFunc('Moving item to list failed'); 
+            if (setAlertMessageFunc) setAlertMessageFunc(prev => {
+                if (prev.includes("limit")) {
+                    return prev;
+                }
+                else return 'Moving item to list failed';
+            }); 
             if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
         }
     } catch (e: any) {
@@ -194,9 +199,14 @@ export const addContentToUserList = async (token: string | null, listName: strin
         const result = await fetch(url, options);
 
         if (!result.ok) {
-            const text = await result.text();
+            let text = await result.text();
             console.warn(`Error adding content to list ${result.status}: ${text}`);
-            if (setAlertMessageFunc) setAlertMessageFunc('Error adding content to list'); 
+            if (setAlertMessageFunc) {
+                if (text.startsWith('"') && text.endsWith('"')) {
+                    text = text.slice(1, -1);
+                }
+                setAlertMessageFunc(text);
+            }
             if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
             return null;
         }

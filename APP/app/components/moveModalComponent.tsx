@@ -27,7 +27,9 @@ interface MoveModalProps {
                     setListsFunc:  React.Dispatch<React.SetStateAction<ListMinimalData[]>>,
                     setIsLoadingFunc: React.Dispatch<React.SetStateAction<boolean>>,
                     setVisibilityFunc: React.Dispatch<React.SetStateAction<boolean>>,
-                    setAutoPlayFunc?: React.Dispatch<React.SetStateAction<boolean>>
+                    setAutoPlayFunc?: React.Dispatch<React.SetStateAction<boolean>>,
+                    setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
+                    setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>   
     ) => Promise<void>;
     isItemInListFunc: (lists: ListMinimalData[], listName: string, tmdbID: string) => boolean;
 
@@ -102,7 +104,7 @@ export default function MoveModal({
                                         appStyles.modalButton,
                                         isSelected && appStyles.selectedModalButton,
                                     ]}
-                                    onPress={async () => await moveItemFunc(selectedContent, list.listName, lists, setListsFunc, setIsLoadingFunc, setVisibilityFunc, setAutoPlayFunc)}
+                                    onPress={async () => await moveItemFunc(selectedContent, list.listName, lists, setListsFunc, setIsLoadingFunc, setVisibilityFunc, setAutoPlayFunc, setAlertMessageFunc, setAlertTypeFunc)}
                                 >
                                     <Text style={[
                                         appStyles.modalButtonText,
