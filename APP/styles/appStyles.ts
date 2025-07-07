@@ -42,6 +42,13 @@ export const appStyles = StyleSheet.create({
         borderRadius: 10,
         ...shadow
     },
+    passwordContainter: { 
+        flexDirection: 'row', 
+        alignItems: 'center', 
+        backgroundColor: Colors.grayCell, 
+        borderRadius: 10, 
+        marginBottom: 15
+    },
     textInput: {
         height: 50,
         borderRadius: 10,

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, Alert, StyleSheet, ActivityIndicator, Pressable } from "react-native";
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { auth } from "@/firebaseConfig";
 import { useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
@@ -18,6 +19,9 @@ export default function LoginPage() {
     const [password, setPassword] = useState("");
     const [isSignUp, setIsSignUp] = useState(false);
     const [confirmPassword, setConfirmPassword] = useState("");
+
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     // Main submit handler
     const handleAuth = async () => {
@@ -72,25 +76,47 @@ export default function LoginPage() {
                     onChangeText={setEmail}
                     autoCapitalize="none"
                 />
-                <TextInput
-                    style={appStyles.textInput}
-                    placeholder="Password"
-                    placeholderTextColor={Colors.italicTextColor}
-                    value={password}
-                    onChangeText={setPassword}
-                    onSubmitEditing={() => {!isSignUp && handleAuth()}}
-                    secureTextEntry
-                />
-                {isSignUp ? (
+                <View style={appStyles.passwordContainter}>
                     <TextInput
-                        style={appStyles.textInput}
-                        placeholder="Confirm Password"
+                        style={[appStyles.textInput, { flex: 1, marginBottom: 0 }]}
+                        placeholder="Password"
                         placeholderTextColor={Colors.italicTextColor}
-                        value={confirmPassword}
-                        onChangeText={setConfirmPassword}
-                        onSubmitEditing={() => {isSignUp && handleAuth()}}
-                        secureTextEntry
+                        value={password}
+                        onChangeText={setPassword}
+                        onSubmitEditing={() => {!isSignUp && handleAuth()}}
+                        secureTextEntry={!showPassword}
                     />
+                    {password.length > 0 && (
+                        <Pressable onPress={() => setShowPassword(prev => !prev)} style={{paddingRight: 10}}>
+                            <Icon
+                                name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                                size={24}
+                                color={Colors.italicTextColor}
+                            />
+                        </Pressable>
+                    )}
+                </View>
+                {isSignUp ? (
+                    <View style={appStyles.passwordContainter}>
+                        <TextInput
+                            style={[appStyles.textInput, { flex: 1, marginBottom: 0 }]}
+                            placeholder="Confirm Password"
+                            placeholderTextColor={Colors.italicTextColor}
+                            value={confirmPassword}
+                            onChangeText={setConfirmPassword}
+                            onSubmitEditing={() => {isSignUp && handleAuth()}}
+                            secureTextEntry={!showConfirmPassword}
+                        />
+                        {confirmPassword.length > 0 && (
+                            <Pressable onPress={() => setShowConfirmPassword(prev => !prev)} style={{paddingRight: 10}}>
+                                <Icon
+                                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                                    size={24}
+                                    color={Colors.italicTextColor}
+                                />
+                            </Pressable>
+                        )}
+                    </View>
                 ) : (
                     <View style={styles.row}>
                         <Pressable onPress={() => Alert.alert("Forgot Email", "Feature coming soon")}>
