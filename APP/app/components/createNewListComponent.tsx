@@ -36,7 +36,7 @@ interface CreateNewListModalProps {
         selectedContent?: ContentPartialData,
         setAutoPlayFunc?: React.Dispatch<React.SetStateAction<boolean>>,
 
-        setRefsFunc?: (index: number) => void,
+        setRefsFunc?: (index: number, length: number) => void,
         setActiveTabFunc?: React.Dispatch<React.SetStateAction<string>>,
     ) => Promise<void>;
     moveItemFunc?: (
@@ -48,7 +48,7 @@ interface CreateNewListModalProps {
     ) => Promise<void>;
     selectedContent?: ContentPartialData;
     setAutoPlayFunc?: React.Dispatch<React.SetStateAction<boolean>>;
-    setRefsFunc?: (index: number) => void,
+    setRefsFunc?: (index: number, length: number) => void,
     setActiveTabFunc?: React.Dispatch<React.SetStateAction<string>>,
 
     onRequestCloseFunc: () => void;

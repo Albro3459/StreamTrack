@@ -24,7 +24,7 @@ export default function Index() {
                 }
             }
 
-            user ? asyncCheck(user) : router.replace("/LoginPage");   
+            user ? asyncCheck(user) : router.replace("/LoginPage");
         });
         return unsubscribe;
     }, []);

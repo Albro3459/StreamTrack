@@ -54,11 +54,13 @@ export default function LibraryPage() {
     const [selectedContent, setSelectedContent] = useState<ContentPartialData | null>(null);
     const [moveModalVisible, setMoveModalVisible] = useState(false);
 
-    const setRefs = (index: number) => {
+    const setRefs = (index: number, length: number) => {
         index = index >= 0 ? index : 0;
-        // console.log("set Refs: " + index);
         pagerViewRef.current?.setPage(index);
-        flatListRef.current.scrollToIndex({ index: index, animated: true });
+        flatListRef.current.scrollToIndex({ 
+            index: index, animated: true, 
+            viewPosition: index <= 1 ? 0 : index === length - 1 ? 1 : 0.5
+        });
     }    
 
     const handleTabPress = (listName: string) => {
@@ -99,31 +101,33 @@ export default function LibraryPage() {
             numColumns={3}
             keyExtractor={(content, index) => `${content.tmdbID}-${index}-${list}`}
             renderItem={({ item: content }) => (
-            <Pressable
-                style={({ pressed }) => [
-                    styles.movieCard,
-                    pressed && appStyles.pressed,
-                ]}
-                onPress={() => {
-                    router.push({
-                        pathname: '/InfoPage',
-                        params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, horizontalPoster: content.horizontalPoster },
-                    });
-                }}
-                onLongPress={() => {
-                    setSelectedContent(content);
-                    setMoveModalVisible(true);
-                }}
-            >
-                <Image
-                    source={{
-                        uri: content.verticalPoster || 
-                            (console.log(`Library poster missing for: ${content.title} | poster: ${content.verticalPoster}`), "")
+                // <View style={styles.movieCard} >
+                    <Pressable
+                        style={({ pressed }) => [
+                            styles.movieCard,
+                            pressed && appStyles.pressed,
+                        ]}
+                        onPress={() => {
+                            router.push({
+                                pathname: '/InfoPage',
+                                params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, horizontalPoster: content.horizontalPoster },
+                            });
                         }}
-                    style={styles.movieImage}
-                />
-                <Text style={styles.movieTitle}>{content.title}</Text>
-            </Pressable>
+                        onLongPress={() => {
+                            setSelectedContent(content);
+                            setMoveModalVisible(true);
+                        }}
+                    >
+                        <Image
+                            source={{
+                                uri: content.verticalPoster || 
+                                    (console.log(`Library poster missing for: ${content.title} | poster: ${content.verticalPoster}`), "")
+                                }}
+                            style={styles.movieImage}
+                        />
+                        <Text style={styles.movieTitle}>{content.title}</Text>
+                    </Pressable>
+                // </View>
             )}
         />
         );

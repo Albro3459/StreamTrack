@@ -55,7 +55,7 @@ export const handleCreateNewTab = async (
                 selectedContent?: ContentPartialData,
                 setAutoPlayFunc?: React.Dispatch<React.SetStateAction<boolean>>,
 
-                setRefsFunc?: (index: number) => void,
+                setRefsFunc?: (index: number, length: number) => void,
                 setActiveTabFunc?: React.Dispatch<React.SetStateAction<string>>,
 ) => {
     let finalLists: ListMinimalData[] = [...lists];
@@ -95,9 +95,8 @@ export const handleCreateNewTab = async (
             setIsLoadingFunc(false);
             setVisibilityFunc(false);
             if (setRefsFunc) {
-                const index = finalLists.findIndex(l => l.listName === listName);
-                // console.log("handle: " + index);
-                setRefsFunc(index);
+                const index = finalLists.findIndex(l => l.listName.toLowerCase() === listName.toLowerCase());
+                setRefsFunc(index, finalLists.length);
             }
         }
     }
@@ -148,7 +147,7 @@ export const moveItemToList = async (content: ContentPartialData, listName: stri
             } as UserData, true);
         }
     } catch (e: any) {
-        console.log("Error move item func: ", e);
+        console.warn("Error move item func: ", e);
     } finally {
         setIsLoading(false);
         if (setMoveModalVisible) setMoveModalVisible(false);
@@ -161,9 +160,7 @@ export const addContentToUserList = async (token: string | null, listName: strin
         if (!token) return null;
 
         const url = DataAPIURL + `API/List/${encodeURIComponent(listName)}/Add`;
-        
-        // console.log(JSON.stringify(body, null, 4));
-        
+                
         const options = {
             method: 'POST',
             headers: {

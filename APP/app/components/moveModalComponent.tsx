@@ -36,7 +36,7 @@ interface MoveModalProps {
     setAlertTypeFunc: React.Dispatch<React.SetStateAction<Alert>>;
 
     // Used fo create new list modal
-    setRefsFunc?: (index: number) => void,
+    setRefsFunc?: (index: number, length: number) => void,
     setActiveTabFunc?: React.Dispatch<React.SetStateAction<string>>,
 }
 
