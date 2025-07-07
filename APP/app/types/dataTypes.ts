@@ -64,6 +64,7 @@ export type ContentInfoData = {
 export type PopularContentData = {
     carousel: ContentSimpleData[];
     main: Record<string, ContentSimpleData[]>;
+    search: ContentSimpleData[];
 }
 
 // Landing Page

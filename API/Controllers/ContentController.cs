@@ -24,7 +24,7 @@ public class ContentController : ControllerBase {
 
     private const int maxContents = 10; // max amount of contents to take per each section or carousel
     private const int maxSections = 5; // max amount of sections to display
-    private const int maxRecommended = 5; // max amount of recommended contents to send
+    private const int maxRecommended = 5; // max amount of recommended contents to send (both Info Page and Search Page)
     private static readonly Random rng = new Random();
 
     // Split on the & for multiple keys
@@ -244,14 +244,20 @@ public class ContentController : ControllerBase {
                 pair => pair.Contents
             );
 
+        // Pick 5 random for search page
+        List<ContentSimpleDTO> search = contents.OrderBy(_ => rng.Next())
+                                                    .Take(maxRecommended)
+                                                    .Select(c => mapper.Map<ContentDetail, ContentSimpleDTO>(c))
+                                                    .ToList();
+
         PopularContentDTO popularContents = new PopularContentDTO {
             Carousel = carousel,
-            Main = mainContent
+            Main = mainContent,
+            Search = search
         };
 
         return popularContents;
     }
-
 
     // Maybe add timestamp in the future for recent content, but it doesn't matter right now
     // POST: API/Content/Popular/Update

@@ -10,14 +10,15 @@ import { Feather } from '@expo/vector-icons';
 import { TMDBSearch } from './helpers/contentAPIHelper';
 import { TMDB_Content, TMDB, TMDB_MEDIA_TYPE } from './types/tmdbType';
 import { useUserDataStore } from './stores/userDataStore';
-import { ContentData, ContentPartialData, ListData, ListMinimalData } from './types/dataTypes';
+import { ContentData, ContentPartialData, ContentSimpleData, ListData, ListMinimalData } from './types/dataTypes';
 import { FAVORITE_TAB, isItemInAnyList, isItemInList, moveItemToList, sortLists } from './helpers/StreamTrack/listHelper';
 import MoveModal from './components/moveModalComponent';
 import { StarRating } from './components/starRatingComponent';
 import AlertMessage, { Alert } from './components/alertMessageComponent';
-import { useContentDataStore } from './stores/contentDataStore';
+import { useContentCacheStore } from './stores/contentCacheStore';
 import { useFocusEffect } from '@react-navigation/native';
 import { getPoster } from './helpers/StreamTrack/contentHelper';
+import { usePopularContentStore } from './stores/popularContentStore';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -25,7 +26,8 @@ export default function SearchPage() {
     const router = useRouter();
     
     const { userData } = useUserDataStore();
-    const { contentCache } = useContentDataStore();
+    const { contentCache } = useContentCacheStore();
+    const { popularContent } = usePopularContentStore();
     
     const [alertMessage, setAlertMessage] = useState<string>("");
     const [alertType, setAlertType] = useState<Alert>(Alert.Error);
@@ -88,6 +90,16 @@ export default function SearchPage() {
         }, [userData])
     );
 
+    useEffect(() => {
+        const store = usePopularContentStore.getState(); 
+        if (popularContent && !isSearching) {
+            setIsSearching(false); // loading but whatever
+        }
+        else if (store.loading && !popularContent) {
+            setIsSearching(true);
+        }
+    }, [popularContent, isSearching]);
+
     return (
         <Pressable style={{height: screenHeight-70}} onPress={Keyboard.dismiss}>
             <View style={[styles.container]}>
@@ -124,11 +136,59 @@ export default function SearchPage() {
                 {/* Recently Viewed */}
                 {(!contents || contents.length <= 0) ? 
                     (!contentCache || contentCache.length <= 0) || noResultsOrTrySearching(searchText, showNoResults, isSearching) ? (
-                        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 16 }}>
-                            <Text style={{ fontSize: 16, color: 'gray', textAlign: 'center', marginTop: -80 }}>
-                            {noResultsOrTrySearching(searchText, showNoResults, isSearching) ? "No Results :(" : "Try Searching for a Show or Movie!"}
-                            </Text>
-                        </View>
+                        (!popularContent?.search ? 
+                            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 16 }}>
+                                <Text style={{ fontSize: 16, color: 'gray', textAlign: 'center', marginTop: -80 }}>
+                                {noResultsOrTrySearching(searchText, showNoResults, isSearching) ? "No Results :(" : "Try Searching for a Show or Movie!"}
+                                </Text>
+                            </View>
+                            :
+                            <View style={{paddingHorizontal: 55, height: screenHeight-230}}>
+                                <Text style={[styles.sectionTitle, {paddingBottom: 10}]}>Recommended</Text>
+                                <FlatList<ContentSimpleData>
+                                    ref={flatListRef}
+                                    data={popularContent?.search}
+                                    keyExtractor={(item) => item.tmdbID}
+                                    showsVerticalScrollIndicator={false}
+                                    renderItem={({ item: content }) => (
+                                    <Pressable
+                                        style={({ pressed }) => [
+                                            pressed && appStyles.pressed,
+                                        ]}
+                                        onPress={() => {
+                                            router.push({
+                                                pathname: '/InfoPage',
+                                                params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, horizontalPoster: content.horizontalPoster },
+                                            });
+                                        }}
+                                        onLongPress={() => {setSelectedContent(content); setMoveModalVisible(true);}}
+                                    >
+                                        <View style={[appStyles.cardContainer]}>
+                                            <Image source={getPoster(content)} style={[appStyles.cardPoster, {height: 70, borderRadius: 7}]} />
+                                            <View style={[
+                                                appStyles.cardContent,
+                                                {
+                                                    flexDirection: "column",
+                                                    minHeight: 70,
+                                                }
+                                                ]}>
+                                            <View style={{flex: 1, justifyContent: "center"}}>
+                                                    <Text style={[appStyles.cardTitle, {marginBottom: 0, marginTop: 10}]} numberOfLines={2}>{content.title}</Text>
+                                                </View>
+                                                <View style={{flex: 1}} />
+                                                <StarRating rating={content.rating}/>
+                                            </View>
+                                            <Heart 
+                                                isSelected={() => isItemInList(lists, FAVORITE_TAB, content.tmdbID)}
+                                                size={30}
+                                                onPress={async () => await moveItemToList(content, FAVORITE_TAB, lists, setLists, setIsSearching, setMoveModalVisible)}
+                                            />
+                                        </View>
+                                    </Pressable>
+                                    )}
+                                />
+                            </View>
+                        )
                     ) : (
                         <View style={{paddingHorizontal: 55, height: screenHeight-230}}>
                             <Text style={[styles.sectionTitle, {paddingBottom: 10}]}>Recently Viewed</Text>

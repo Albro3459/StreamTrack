@@ -4,23 +4,23 @@ import { create } from 'zustand';
 import { ContentInfoData } from '../types/dataTypes';
 
 export const getCachedContent = (tmdbID: string): ContentInfoData | null => {
-    const store = useContentDataStore.getState();
+    const store = useContentCacheStore.getState();
     const recent: ContentInfoData[] = store.contentCache;
     return recent.find(c => c.content.tmdbID === tmdbID);
 };
 
 export const clearContentCache = () : void => {
-    const store = useContentDataStore.getState();
+    const store = useContentCacheStore.getState();
     store.clearContentCache();
 };
 
-interface ContentDataStore {
+interface ContentCacheStore {
     contentCache: ContentInfoData[];
     cacheContent: (info: ContentInfoData) => void;
     clearContentCache: () => void;
 }
 
-export const useContentDataStore = create<ContentDataStore>((set, get) => ({
+export const useContentCacheStore = create<ContentCacheStore>((set, get) => ({
     contentCache: [],
 
     cacheContent: (info: ContentInfoData) => {

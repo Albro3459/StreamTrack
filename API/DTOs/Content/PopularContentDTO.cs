@@ -10,4 +10,7 @@ public class PopularContentDTO {
     // Section name to popular contents
     public Dictionary<string, List<ContentSimpleDTO>> Main { get; set; } = new();
 
+    // For search page
+    public List<ContentSimpleDTO> Search { get; set; } = new();
+
 }

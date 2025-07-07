@@ -1,7 +1,7 @@
 "use client";
 
 import { Alert } from "../components/alertMessageComponent";
-import { clearContentCache } from "../stores/contentDataStore";
+import { clearContentCache } from "../stores/contentCacheStore";
 import { clearGenreData, fetchGenreData } from "../stores/genreDataStore";
 import { clearPopularContent, fetchPopularContent } from "../stores/popularContentStore";
 import { clearStreamingServiceData, fetchStreamingServiceData } from "../stores/streamingServiceDataStore";
