@@ -22,6 +22,11 @@ public class ContentController : ControllerBase {
     private readonly Services.APIService rapidAPIService;
     private readonly IMapper mapper;
 
+    private const int maxContents = 10; // max amount of contents to take per each section or carousel
+    private const int maxSections = 5; // max amount of sections to display
+    private const int maxRecommended = 5; // max amount of recommended contents to send
+    private static readonly Random rng = new Random();
+
     // Split on the & for multiple keys
     private static readonly Dictionary<string, string> SECTION_TITLES = new Dictionary<string, string> {
         // Genres
@@ -175,7 +180,7 @@ public class ContentController : ControllerBase {
 
         ContentDTO detailDTO = mapper.Map<ContentDetail, ContentDTO>(detail);
 
-        List<ContentPartialDTO> recommendations = await service.GetRecommendations(detail);
+        List<ContentPartialDTO> recommendations = await service.GetRecommendations(detail, maxRecommended);
 
         return new ContentInfoDTO { Content = detailDTO, Recommendations = recommendations };
     }
@@ -219,11 +224,7 @@ public class ContentController : ControllerBase {
             return NotFound();
         }
 
-        const int maxContents = 10; // max amount of contents to take per each section or carousel
-        const int maxSections = 5; // max amount of sections to display
-
         // Pick 10 random contents for the carousel
-        var rng = new Random();
         List<ContentSimpleDTO> carousel = contents.OrderBy(_ => rng.Next())
                                                     .Take(maxContents)
                                                     .Select(c => mapper.Map<ContentDetail, ContentSimpleDTO>(c))

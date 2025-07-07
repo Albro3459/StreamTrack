@@ -73,6 +73,7 @@ export default function InfoPage() {
                     return;
                 }
                 setInfo(updatedInfo);
+                setActiveTab('About');
 
                 // Update User Data
                 if (userData?.contents.map(c => c.tmdbID).includes(updatedInfo.content.tmdbID)) {

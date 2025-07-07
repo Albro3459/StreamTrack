@@ -13,16 +13,18 @@ public class Service {
     private readonly StreamTrackDbContext context;
     private readonly IMapper mapper;
 
+    private static readonly Random rng = new Random();
+
     public Service(StreamTrackDbContext _context, IMapper _mapper) {
         context = _context;
         mapper = _mapper;
     }
 
-    public async Task<List<ContentPartialDTO>> GetRecommendations(ContentDetail detail) {
+    public async Task<List<ContentPartialDTO>> GetRecommendations(ContentDetail detail, int maxRecommended) {
         var genreNames = detail.Genres.Select(g => g.Name.ToLower()).ToList();
         var streamingServiceNames = detail.StreamingOptions.Select(s => s.StreamingService.Name.ToLower()).ToList();
 
-        return await context.ContentDetail
+        List<ContentDetail> matches = await context.ContentDetail
             .Include(c => c.Genres)
             .Include(c => c.StreamingOptions)
                 .ThenInclude(s => s.StreamingService)
@@ -35,10 +37,14 @@ public class Service {
                 c.Genres.Count(g => genreNames.Contains(g.Name.ToLower())) +
                 c.StreamingOptions.Count(s => streamingServiceNames.Contains(s.StreamingService.Name.ToLower()))
             )
-            .Take(5)
-            .Select(c => mapper.Map<ContentDetail, ContentPartialDTO>(c))
+            .Take(maxRecommended * 2)
             .ToListAsync();
 
+        return matches
+            .OrderBy(_ => rng.Next())
+            .Take(maxRecommended)
+            .Select(c => mapper.Map<ContentDetail, ContentPartialDTO>(c))
+            .ToList();
     }
 
     public async Task<User?> GetFullUserByID(string userID) {
