@@ -15,7 +15,7 @@ import { FAVORITE_TAB, isItemInAnyList, isItemInList, moveItemToList, sortLists 
 import MoveModal from './components/moveModalComponent';
 import { StarRating } from './components/starRatingComponent';
 import AlertMessage, { Alert } from './components/alertMessageComponent';
-import { useContentCacheStore } from './stores/contentCacheStore';
+import { clearContentCache, useContentCacheStore } from './stores/contentCacheStore';
 import { useFocusEffect } from '@react-navigation/native';
 import { getPoster } from './helpers/StreamTrack/contentHelper';
 import { usePopularContentStore } from './stores/popularContentStore';
@@ -129,7 +129,7 @@ export default function SearchPage() {
                         onSubmitEditing={async () => await search(searchText) /* Search on enter key press */ }
                         returnKeyType="search" // makes the return key say search
                         clearButtonMode='while-editing'
-                        autoFocus
+                        autoFocus={(!contentCache || contentCache.length <= 0) && (!popularContent?.search || popularContent?.search.length <= 0)}
                     />
                 </View>
 
