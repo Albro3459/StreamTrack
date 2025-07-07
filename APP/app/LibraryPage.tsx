@@ -20,11 +20,9 @@ import Heart from './components/heartComponent';
 import { appStyles } from '@/styles/appStyles';
 import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
-import { setUserData, useUserDataStore } from './stores/userDataStore';
+import { useUserDataStore } from './stores/userDataStore';
 import { ContentPartialData, ListMinimalData } from './types/dataTypes';
-import { createNewUserList, FAVORITE_TAB, getContentsInList, isItemInList, moveItemToList, sortLists } from './helpers/StreamTrack/listHelper';
-import { User } from 'firebase/auth';
-import { auth } from '@/firebaseConfig';
+import { FAVORITE_TAB, getContentsInList, handleCreateNewTab, isItemInList, moveItemToList, sortLists } from './helpers/StreamTrack/listHelper';
 import MoveModal from './components/moveModalComponent';
 import CreateNewListModal from './components/createNewListComponent';
 import AlertMessage, { Alert } from './components/alertMessageComponent';
@@ -53,52 +51,15 @@ export default function LibraryPage() {
     const [createListModalVisible, setCreateListModalVisible] = useState(false);
 
     const [isLoading, setIsLoading] = useState(true);
-    const [selectedContentData, setSelectedContentData] = useState<ContentPartialData | null>(null);
+    const [selectedContent, setSelectedContent] = useState<ContentPartialData | null>(null);
     const [moveModalVisible, setMoveModalVisible] = useState(false);
 
-    const handelCreateNewTab = async (listName: string, lists: ListMinimalData[], 
-                    setAlertMessageFunc: React.Dispatch<React.SetStateAction<string>>,
-                    setAlertTypeFunc: React.Dispatch<React.SetStateAction<Alert>>
-    ) => {
-        try {
-            listName = listName.trim();
-            if (listName && !lists.map(l => l.listName.toLowerCase()).includes(listName.toLowerCase())) {
-                const user: User | null = auth.currentUser;
-                if (!user) {
-                    setAlertMessageFunc("User doesn't exist");
-                    setAlertTypeFunc(Alert.Error);
-                    return;
-                }
-                const token = await user.getIdToken();
-                const newList: ListMinimalData = await createNewUserList(token, listName);
-                setNewListName("");
-                const newLists: ListMinimalData[] = sortLists([...lists, newList]);
-                setLists(newLists);
-                setUserData({
-                    ...userData,
-                    user: {
-                        ...userData.user,
-                        listsOwned: [...userData.user.listsOwned, newList],
-                    }
-                });
-
-                setActiveTab(listName);
-                const index = newLists.findIndex(l => l.listName === listName);
-                pagerViewRef.current?.setPage(index);
-                flatListRef.current.scrollToIndex({ index: index, animated: true });
-            } else {
-                console.warn(`List "${listName}" already exists`);
-                setAlertMessageFunc(`List "${listName}" already exists`);
-                setAlertTypeFunc(Alert.Error);
-                const index = lists.findIndex(l => l.listName === listName);
-                pagerViewRef.current?.setPage(index);
-                flatListRef.current.scrollToIndex({ index: index, animated: true });
-            }
-        } finally {
-            setIsLoading(false);
-            setCreateListModalVisible(false);
-        }
-    };
+    const setRefs = (index: number) => {
+        index = index >= 0 ? index : 0;
+        // console.log("set Refs: " + index);
+        pagerViewRef.current?.setPage(index);
+        flatListRef.current.scrollToIndex({ index: index, animated: true });
+    }    
 
     const handleTabPress = (listName: string) => {
         setActiveTab(listName);
@@ -150,7 +111,7 @@ export default function LibraryPage() {
                     });
                 }}
                 onLongPress={() => {
-                    setSelectedContentData(content);
+                    setSelectedContent(content);
                     setMoveModalVisible(true);
                 }}
             >
@@ -236,27 +197,44 @@ export default function LibraryPage() {
             </PagerView>
 
             <MoveModal
-                selectedContent={selectedContentData}
+                selectedContent={selectedContent}
                 lists={lists}
+
                 showLabel={false}
                 visibility={moveModalVisible}
+
                 setVisibilityFunc={setMoveModalVisible}
                 setIsLoadingFunc={setIsLoading}
+
                 moveItemFunc={moveItemToList}
                 isItemInListFunc={isItemInList}
+
                 setListsFunc={setLists}
+
                 setAlertMessageFunc={setAlertMessage}
                 setAlertTypeFunc={setAlertType}
+
+                setRefsFunc={setRefs}
+                setActiveTabFunc={setActiveTab}
             />
 
             {/* Create List Modal */}
             <CreateNewListModal
                 visible={createListModalVisible}
+                setVisibilityFunc={setCreateListModalVisible}
+                setIsLoadingFunc={setIsLoading}
+
                 listName={newListName}
-                lists={lists}
                 setListNameFunc={setNewListName}
-                onCreateFunc={handelCreateNewTab}
+                lists={lists}
+                setListsFunc={setLists}
+
+                onCreateNewTabFunc={handleCreateNewTab}
+                setRefsFunc={setRefs}
+                setActiveTabFunc={setActiveTab}
+
                 onRequestCloseFunc={() => setCreateListModalVisible(false)}
+
                 setAlertMessageFunc={setAlertMessage}
                 setAlertTypeFunc={setAlertType}
             />

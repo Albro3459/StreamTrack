@@ -5,13 +5,12 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, Image, StyleSheet, ScrollView, Pressable, Dimensions, Linking, ActivityIndicator, FlatList } from 'react-native';
 import Heart from './components/heartComponent';
 import { useLocalSearchParams, useRouter } from 'expo-router/build/hooks';
-import { MaterialIcons } from '@expo/vector-icons';
 import { appStyles, RalewayFont } from '@/styles/appStyles';
 import { SvgUri } from 'react-native-svg';
 import { TMDB_MEDIA_TYPE } from './types/tmdbType';
 import { ContentData, ContentInfoData, ContentPartialData, ContentRequestData, ListMinimalData, StreamingOptionData } from './types/dataTypes';
-import { setUserData, useUserDataStore } from './stores/userDataStore';
-import { createNewUserList, FAVORITE_TAB, isItemInList, moveItemToList, sortLists } from './helpers/StreamTrack/listHelper';
+import { useUserDataStore } from './stores/userDataStore';
+import { FAVORITE_TAB, handleCreateNewTab, isItemInList, moveItemToList } from './helpers/StreamTrack/listHelper';
 import MoveModal from './components/moveModalComponent';
 import { StarRating } from './components/starRatingComponent';
 import { getContentInfo } from './helpers/StreamTrack/contentHelper';
@@ -19,7 +18,6 @@ import { auth } from '@/firebaseConfig';
 import { getCachedContent, useContentDataStore } from './stores/contentDataStore';
 import AlertMessage, { Alert } from './components/alertMessageComponent';
 import CreateNewListModal from './components/createNewListComponent';
-import { User } from 'firebase/auth';
 
 const screenWidth = Dimensions.get("window").width;
 
@@ -82,46 +80,6 @@ export default function InfoPage() {
                         content.seasonCount && content.episodeCount ? `Seasons: ${content.seasonCount}  |  Episodes: ${content.episodeCount}` : ""
                 )));
     };
-
-    const handelCreateNewTab = async (listName: string, lists: ListMinimalData[], 
-                            setAlertMessageFunc: React.Dispatch<React.SetStateAction<string>>,
-                            setAlertTypeFunc: React.Dispatch<React.SetStateAction<Alert>>
-        ) => {
-            try {
-                listName = listName.trim();
-                if (listName && !lists.map(l => l.listName.toLowerCase()).includes(listName.toLowerCase())) {
-                    setIsLoading(true);
-                    const user: User | null = auth.currentUser;
-                    if (!user) {
-                        setAlertMessageFunc("User doesn't exist");
-                        setAlertTypeFunc(Alert.Error);
-                        return;
-                    }
-                    const token = await user.getIdToken();
-                    const newList: ListMinimalData = await createNewUserList(token, listName);
-                    const newLists: ListMinimalData[] = sortLists([...lists, newList]);
-                    setLists(newLists);
-                    setUserData({
-                        ...userData,
-                        user: {
-                            ...userData.user,
-                            listsOwned: [...userData.user.listsOwned, newList],
-                        }
-                    });
-        
-                    await moveItemToList(info.content, listName, newLists, setLists, setIsLoading); // Fire and Forget
-                    setNewListName("");
-                }
-                else {
-                    console.warn(`List "${listName}" already exists`);
-                    setAlertMessageFunc(`List "${listName}" already exists`);
-                    setAlertTypeFunc(Alert.Error);
-                }
-            } finally {
-                setIsLoading(false);
-                setCreateListModalVisible(false);
-            }
-        };
 
     const handlePress = (content: ContentPartialData) => {
         router.push({
@@ -333,28 +291,38 @@ export default function InfoPage() {
             <MoveModal
                 selectedContent={info?.content}
                 lists={lists}
+
                 showLabel={false}
                 showHeart={false}
                 visibility={listModalVisible}
+                
                 setVisibilityFunc={setListModalVisible}
                 setIsLoadingFunc={setIsLoading}
+
                 moveItemFunc={moveItemToList}
                 isItemInListFunc={isItemInList}
+
                 setListsFunc={setLists}
+
                 setAlertMessageFunc={setAlertMessage}
                 setAlertTypeFunc={setAlertType}
             />
             <MoveModal
                 selectedContent={selectedRecommendation}
                 lists={lists}
+
                 showLabel={false}
                 showHeart={false}
                 visibility={recommendedListModalVisible}
+
                 setVisibilityFunc={setRecommendedListModalVisible}
                 setIsLoadingFunc={setIsLoading}
+
                 moveItemFunc={moveItemToList}
                 isItemInListFunc={isItemInList}
+
                 setListsFunc={setLists}
+
                 setAlertMessageFunc={setAlertMessage}
                 setAlertTypeFunc={setAlertType}
             />
@@ -362,11 +330,20 @@ export default function InfoPage() {
             {/* Create List Modal */}
             <CreateNewListModal
                 visible={createListModalVisible}
+                setVisibilityFunc={setCreateListModalVisible}
+                setIsLoadingFunc={setIsLoading}
+
                 listName={newListName}
-                lists={lists}
                 setListNameFunc={setNewListName}
-                onCreateFunc={handelCreateNewTab}
+                lists={lists}
+                setListsFunc={setLists}
+
+                onCreateNewTabFunc={handleCreateNewTab}
+                moveItemFunc={moveItemToList}
+                selectedContent={info?.content}
+
                 onRequestCloseFunc={() => setCreateListModalVisible(false)}
+                
                 setAlertMessageFunc={setAlertMessage}
                 setAlertTypeFunc={setAlertType}
             />

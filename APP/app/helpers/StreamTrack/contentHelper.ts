@@ -33,7 +33,7 @@ export const getContentInfo = async (token: string, content: ContentRequestData)
 
         if (!result.ok) {
             const text = await result.text();
-            console.error(`Error getting content details ${result.status}: ${text}`);
+            console.warn(`Error getting content details ${result.status}: ${text}`);
             return null;
         }
 
@@ -41,7 +41,7 @@ export const getContentInfo = async (token: string, content: ContentRequestData)
         
         return data;
     } catch (err) {
-        console.error('Get content details failed:', err);
+        console.warn('Get content details failed:', err);
         return null;
     }
 };
@@ -63,7 +63,7 @@ export const getPopularContent = async (token: string) : Promise<PopularContentD
 
         if (!result.ok) {
             const text = await result.text();
-            console.error(`Error getting popular content ${result.status}: ${text}`);
+            console.warn(`Error getting popular content ${result.status}: ${text}`);
             return null;
         }
 
@@ -71,7 +71,7 @@ export const getPopularContent = async (token: string) : Promise<PopularContentD
         
         return data;
     } catch (err) {
-        console.error('Get popular content failed:', err);
+        console.warn('Get popular content failed:', err);
         return null;
     }
 };

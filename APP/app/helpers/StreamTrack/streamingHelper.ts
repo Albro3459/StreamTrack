@@ -20,14 +20,14 @@ export const getStreamingServiceData = async (token: string): Promise<StreamingS
 
         if (!result.ok) {
             const text = await result.text();
-            console.error(`Error getting streaming data ${result.status}: ${text}`);
+            console.warn(`Error getting streaming data ${result.status}: ${text}`);
             return null;
         }
 
         const data: StreamingServiceData[] = await result.json();
         return data;
     } catch (err) {
-        console.error('Fetch streaming data failed:', err);
+        console.warn('Fetch streaming data failed:', err);
         return null;
     }
 };

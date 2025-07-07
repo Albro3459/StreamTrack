@@ -28,7 +28,7 @@ export const checkIfUserExists = async (token: string): Promise<boolean> => {
         }
 
     } catch (err) {
-        console.error('Fetch user data failed:', err);
+        console.warn('Fetch user data failed:', err);
         return false;
     }
 };
@@ -50,7 +50,7 @@ export const getUserMinimalData = async (token: string): Promise<UserMinimalData
 
         if (!result.ok) {
             const text = await result.text();
-            console.error(`Error getting user minimal data ${result.status}: ${text}`);
+            console.warn(`Error getting user minimal data ${result.status}: ${text}`);
             return null;
         }
 
@@ -58,7 +58,7 @@ export const getUserMinimalData = async (token: string): Promise<UserMinimalData
         
         return data;
     } catch (err) {
-        console.error('Fetch user minimal data failed:', err);
+        console.warn('Fetch user minimal data failed:', err);
         return null;
     }
 };
@@ -80,7 +80,7 @@ export const getUserContents = async (token: string): Promise<ContentPartialData
 
         if (!result.ok) {
             const text = await result.text();
-            console.error(`Error getting user contents ${result.status}: ${text}`);
+            console.warn(`Error getting user contents ${result.status}: ${text}`);
             return null;
         }
 
@@ -88,7 +88,7 @@ export const getUserContents = async (token: string): Promise<ContentPartialData
         
         return data;
     } catch (err) {
-        console.error('Fetch user contents failed:', err);
+        console.warn('Fetch user contents failed:', err);
         return null;
     }
 };
@@ -112,12 +112,12 @@ export const createUser = async (token: string | null) => {
 
         if (!result.ok) {
             const text = await result.text();
-            console.error(`Error creating user ${result.status}: ${text}`);
+            console.warn(`Error creating user ${result.status}: ${text}`);
             return null;
         }
 
     } catch (err) {
-        console.error('Create user failed:', err);
+        console.warn('Create user failed:', err);
     }
 };
 
@@ -148,7 +148,7 @@ export const updateUserProfile = async (token: string | null, firstName: string 
 
         if (!result.ok) {
             const text = await result.text();
-            console.error(`Error updating user ${result.status}: ${text}`);
+            console.warn(`Error updating user ${result.status}: ${text}`);
             return null;
         }
 
@@ -157,7 +157,7 @@ export const updateUserProfile = async (token: string | null, firstName: string 
         return data;
 
     } catch (err) {
-        console.error('Updating user failed:', err);
+        console.warn('Updating user failed:', err);
     }
 };
 

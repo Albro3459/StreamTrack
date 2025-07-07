@@ -4,18 +4,53 @@ import { Colors } from "@/constants/Colors";
 import { appStyles } from "@/styles/appStyles";
 import React, { useEffect } from "react";
 import { Modal, View, Text, TextInput, Pressable, StyleSheet } from "react-native";
-import { ListMinimalData } from "../types/dataTypes";
+import { ContentPartialData, ListMinimalData } from "../types/dataTypes";
 import { Alert } from "./alertMessageComponent";
 
 interface CreateNewListModalProps {
     visible: boolean;
+    setVisibilityFunc: React.Dispatch<React.SetStateAction<boolean>>,
+    setIsLoadingFunc: React.Dispatch<React.SetStateAction<boolean>>,
+
     listName: string;
+    setListNameFunc: (listName: string) => void;
     lists: ListMinimalData[];
-    setListNameFunc: (name: string) => void;
-    onCreateFunc: (name: string, lists: ListMinimalData[], 
-                    setAlertMessageFunc: React.Dispatch<React.SetStateAction<string>>,
-                    setAlertTypeFunc: React.Dispatch<React.SetStateAction<Alert>>
+    setListsFunc: React.Dispatch<React.SetStateAction<ListMinimalData[]>>;
+
+    onCreateNewTabFunc: (
+        listName: string, 
+        lists: ListMinimalData[],
+        setListsFunc: React.Dispatch<React.SetStateAction<ListMinimalData[]>>,
+        setListNameFunc: React.Dispatch<React.SetStateAction<string>>,
+        setAlertMessageFunc: React.Dispatch<React.SetStateAction<string>>,
+        setAlertTypeFunc: React.Dispatch<React.SetStateAction<Alert>>,
+        setIsLoadingFunc: React.Dispatch<React.SetStateAction<boolean>>,
+        setVisibilityFunc: React.Dispatch<React.SetStateAction<boolean>>,
+
+        moveItemFunc?: (selectedContent: ContentPartialData, listName: string, lists: ListMinimalData[], 
+            setListsFunc:  React.Dispatch<React.SetStateAction<ListMinimalData[]>>,
+            setIsLoadingFunc: React.Dispatch<React.SetStateAction<boolean>>,
+            setVisibilityFunc: React.Dispatch<React.SetStateAction<boolean>>,
+            setAutoPlayFunc?: React.Dispatch<React.SetStateAction<boolean>>
+        ) => Promise<void>,
+        selectedContent?: ContentPartialData,
+        setAutoPlayFunc?: React.Dispatch<React.SetStateAction<boolean>>,
+
+        setRefsFunc?: (index: number) => void,
+        setActiveTabFunc?: React.Dispatch<React.SetStateAction<string>>,
     ) => Promise<void>;
+    moveItemFunc?: (
+        selectedContent: ContentPartialData, listName: string, lists: ListMinimalData[], 
+        setListsFunc:  React.Dispatch<React.SetStateAction<ListMinimalData[]>>,
+        setIsLoadingFunc: React.Dispatch<React.SetStateAction<boolean>>,
+        setVisibilityFunc: React.Dispatch<React.SetStateAction<boolean>>,
+        setAutoPlayFunc?: React.Dispatch<React.SetStateAction<boolean>>
+    ) => Promise<void>;
+    selectedContent?: ContentPartialData;
+    setAutoPlayFunc?: React.Dispatch<React.SetStateAction<boolean>>;
+    setRefsFunc?: (index: number) => void,
+    setActiveTabFunc?: React.Dispatch<React.SetStateAction<string>>,
+
     onRequestCloseFunc: () => void;
 
     setAlertMessageFunc: React.Dispatch<React.SetStateAction<string>>;
@@ -24,10 +59,21 @@ interface CreateNewListModalProps {
 
 export default function CreateNewListModal({
     visible,
+    setVisibilityFunc,
+    setIsLoadingFunc,
+
     listName,
-    lists,
     setListNameFunc,
-    onCreateFunc,
+    lists,
+    setListsFunc,
+
+    onCreateNewTabFunc,
+    selectedContent,
+    setAutoPlayFunc,
+    moveItemFunc,
+    setRefsFunc,
+    setActiveTabFunc,
+
     onRequestCloseFunc,
     setAlertMessageFunc,
     setAlertTypeFunc
@@ -54,14 +100,14 @@ export default function CreateNewListModal({
                         placeholderTextColor="darkgrey"
                         value={listName}
                         onChangeText={setListNameFunc}
-                        onSubmitEditing={async () => await onCreateFunc(listName, lists, setAlertMessageFunc, setAlertTypeFunc)}
+                        onSubmitEditing={async () => await onCreateNewTabFunc(listName, lists, setListsFunc, setListNameFunc, setAlertMessageFunc, setAlertTypeFunc, setIsLoadingFunc, setVisibilityFunc, moveItemFunc, selectedContent, setAutoPlayFunc, setRefsFunc, setActiveTabFunc)}
                         autoFocus
                     />
                     <View style={styles.buttonRow}>
                         <Pressable style={styles.cancelButton} onPress={onRequestCloseFunc}>
                             <Text style={styles.cancelButtonText}>Cancel</Text>
                         </Pressable>
-                        <Pressable style={styles.button} onPress={async () => await onCreateFunc(listName, lists, setAlertMessageFunc, setAlertTypeFunc)}>
+                        <Pressable style={styles.button} onPress={async () => await onCreateNewTabFunc(listName, lists, setListsFunc, setListNameFunc, setAlertMessageFunc, setAlertTypeFunc, setIsLoadingFunc, setVisibilityFunc, moveItemFunc, selectedContent, setAutoPlayFunc, setRefsFunc, setActiveTabFunc)}>
                             <Text style={styles.buttonText}>Add</Text>
                         </Pressable>
                     </View>

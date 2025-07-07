@@ -148,7 +148,7 @@ export default function SearchPage() {
                                     }}
                                     onLongPress={() => {setSelectedContent(content); setMoveModalVisible(true);}}
                                 >
-                                    <View style={[appStyles.cardContainer, {paddingRight: 15}]}>
+                                    <View style={[appStyles.cardContainer]}>
                                         <Image source={{ uri: content.verticalPoster }} style={[appStyles.cardPoster, {height: 70, borderRadius: 7}]} />
                                         <View style={[
                                             appStyles.cardContent,
@@ -214,13 +214,18 @@ export default function SearchPage() {
                 <MoveModal
                     selectedContent={selectedContent}
                     lists={lists}
+
                     showHeart={false}
                     visibility={moveModalVisible}
+
                     setVisibilityFunc={setMoveModalVisible}
                     setIsLoadingFunc={setIsSearching}
+
                     moveItemFunc={moveItemToList}
                     isItemInListFunc={isItemInList}
+
                     setListsFunc={setLists}
+                    
                     setAlertMessageFunc={setAlertMessage}
                     setAlertTypeFunc={setAlertType}
                 />

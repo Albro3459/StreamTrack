@@ -20,14 +20,14 @@ export const getGenreData = async (token: string): Promise<GenreData[] | null> =
 
         if (!result.ok) {
             const text = await result.text();
-            console.error(`Error getting genre data ${result.status}: ${text}`);
+            console.warn(`Error getting genre data ${result.status}: ${text}`);
             return null;
         }
 
         const data: GenreData[] = await result.json();
         return data;
     } catch (err) {
-        console.error('Fetch genre data failed:', err);
+        console.warn('Fetch genre data failed:', err);
         return null;
     }
 };
