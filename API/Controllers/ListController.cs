@@ -202,13 +202,16 @@ public class ListController : ControllerBase {
             return BadRequest();
         }
 
-        // If the detail exists and NOT popular and is NOT in any other lists, then remove from the DB.
-        if (partial.Detail is ContentDetail detail && !await context.List.AnyAsync(l => l.ContentPartials.Any(p => p.Detail != null &&
-                                                                                                                    !p.Detail.IsPopular &&
-                                                                                                                     p.Detail.TMDB_ID == detail.TMDB_ID))) {
-            context.ContentDetail.Remove(detail);
-        }
+        // Delete the partial
         list.ContentPartials.Remove(partial); // Will NOT error
+
+        // If the detail exists and NOT popular and is NOT in any other lists, then remove from the DB.
+        if (partial.Detail is ContentDetail detail && !detail.IsPopular && !await context.List
+                                                                            .Where(l => l.ListID != list.ListID)
+                                                                            .AnyAsync(l => l.ContentPartials.Any(p => p.Detail != null && p.Detail.TMDB_ID == detail.TMDB_ID))
+        ) {
+            context.ContentPartial.Remove(partial); // Deletes the detail too due to cascade delete
+        }
 
         await context.SaveChangesAsync();
 

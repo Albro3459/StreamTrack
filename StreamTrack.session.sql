@@ -7,10 +7,7 @@ select * from ListContent;
 select * from ContentPartial ORDER BY Title;
 
 select * from ContentDetail;
-select * from ContentDetail where TMDB_ID = 'tv/60573';
-UPDATE ContentDetail
-SET Overview = 'Lebron James'
-WHERE TMDB_ID = 'tv/60573';
+select * from ContentDetail where TMDB_ID = 'movie/39939';
 
 select * from ContentDetail where VerticalPoster LIKE 'https://www%' OR HorizontalPoster LIKE 'https://www%';
 select * from ContentDetail where VerticalPoster LIKE '%svg%' OR HorizontalPoster LIKE '%svg%';
