@@ -177,9 +177,15 @@ export default function InfoPage() {
                             style={styles.streamingLogo}
                             onPress={() => {
                                 if (streamingOption.deepLink) {
-                                    Linking.openURL(streamingOption.deepLink).catch(err => console.warn("Failed to open URL:", err));
+                                    Linking.openURL(streamingOption.deepLink).catch(err => {
+                                        console.warn("Failed to open URL:", err); 
+                                        setAlertMessage("Failed to open URL");
+                                        setAlertType(Alert.Error);
+                                    });
                                 } else {
-                                    console.log("No link available");
+                                    console.warn("No link available");
+                                    setAlertMessage("No link available");
+                                    setAlertType(Alert.Error);
                                 }
                             }}
                         >
@@ -196,9 +202,15 @@ export default function InfoPage() {
                             style={styles.streamingLogo}
                             onPress={() => {
                                 if (streamingOption.deepLink) {
-                                    Linking.openURL(streamingOption.deepLink).catch(err => console.warn("Failed to open URL:", err));
+                                    Linking.openURL(streamingOption.deepLink).catch(err => {
+                                        console.warn("Failed to open URL:", err); 
+                                        setAlertMessage("Failed to open URL");
+                                        setAlertType(Alert.Error);
+                                    });
                                 } else {
                                     console.log("No link available");
+                                    setAlertMessage("No link available");
+                                    setAlertType(Alert.Error);
                                 }
                             }}
                         >
