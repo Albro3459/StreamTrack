@@ -50,6 +50,8 @@ export default function ProfilePage() {
     const [refreshing, setRefreshing] = useState(false);
     const onRefresh = async () => {
         setRefreshing(true);
+        setAlertMessage("");
+        setAlertType(Alert.Error);
         try {
             await fetchUserData(await auth.currentUser.getIdToken(), setAlertMessage, setAlertType);
         } finally {

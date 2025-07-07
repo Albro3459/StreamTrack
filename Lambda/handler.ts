@@ -18,8 +18,8 @@ import { GENRE, ORDER_BY, ORDER_DIRECTION, SERVICE, SHOW_TYPE } from "./types/co
 // }
 
 const RATING_CUTOFF: number = 70;
-const genres: GENRE[] = [GENRE.ACTION, GENRE.COMEDY, GENRE.DRAMA, GENRE.THRILLER, GENRE.SCIFI, GENRE.ROMANCE, GENRE.HORROR, GENRE.WESTERN];
-const services: SERVICE[] = [SERVICE.NETFLIX, SERVICE.HULU, SERVICE.HBO, SERVICE.PRIME, SERVICE.DISNEY, SERVICE.APPLE, SERVICE.PARAMOUNT, SERVICE.PEACOCK];
+const genres: GENRE[] = [GENRE.ROMANCE];
+const services: SERVICE[] = [SERVICE.HULU];
 
 const order_by: ORDER_BY = ORDER_BY.POPULARITY_1WEEK;
 const order_direction: ORDER_DIRECTION = ORDER_DIRECTION.ASC;
@@ -32,7 +32,7 @@ export const handler = async () => {
 
     const token: string | null = await getFirebaseToken();
 
-    let requestCount = 0, itemCount = 0;
+    let requestCount = 0, itemCount = 0, totalRequests = genres.length * services.length * Object.values(SHOW_TYPE).length;
 
     const uniqueContentMap = new Map<string, ContentData>();
 
@@ -47,7 +47,7 @@ export const handler = async () => {
                     }
                     requestCount++;
                     itemCount += results.length;
-                    console.log("Current API Request Count: " + requestCount + " / 128");
+                    console.log("Current API Request Count: " + requestCount + " / " + totalRequests);
                     console.log("Content count in this request that passed the rating cutoff: " + results.length);
                     console.log("Content IDs just added: " + JSON.stringify(results.map(c => c.tmdbID)) + "\n");
                     console.log(`Request Details: {Service: ${service} | Genre: ${genre} | Type: ${show_type}}`);

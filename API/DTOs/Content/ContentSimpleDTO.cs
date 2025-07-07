@@ -25,6 +25,8 @@ public class ContentSimpleDTO {
 
     public string VerticalPoster { get; set; } = string.Empty;
 
+    public string LargeVerticalPoster { get; set; } = string.Empty;
+
     public string HorizontalPoster { get; set; } = string.Empty;
 
 }

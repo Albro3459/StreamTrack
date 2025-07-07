@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace StreamTrack.Migrations
 {
     [DbContext(typeof(StreamTrackDbContext))]
-    [Migration("20250707062719_Initial")]
+    [Migration("20250707220321_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -49,6 +49,10 @@ namespace StreamTrack.Migrations
 
                     b.Property<bool>("IsPopular")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("LargeVerticalPoster")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Overview")
                         .IsRequired()
@@ -101,6 +105,10 @@ namespace StreamTrack.Migrations
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("LargeVerticalPoster")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Overview")
                         .IsRequired()

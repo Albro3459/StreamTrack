@@ -3,11 +3,13 @@
 import { Alert } from "@/app/components/alertMessageComponent";
 import { ContentData, ContentInfoData, ContentPartialData, ContentRequestData, ContentSimpleData, PopularContentData } from "@/app/types/dataTypes";
 import { DataAPIURL } from "@/secrets/DataAPIUrl";
+import { auth, signOut } from "@/firebaseConfig";
 
 const missingPoster: number = require('@/assets/images/MissingPoster.png') || "";
 
 export enum POSTER {
     VERTICAL = "vertical",
+    LARGE_VERTICAL = "large_vertical",
     HORIZONTAL = "horizontal"
 };
 
@@ -15,17 +17,25 @@ export type PosterURI = {
     uri: string;
 };
 
+// Returns regular vertical poster first unless a certain poster is specified
 export const getPoster = (content: ContentPartialData | ContentSimpleData | ContentData, poster?: POSTER) : PosterURI | number => {
     if (poster === POSTER.VERTICAL) {
-        return content?.verticalPoster ? { uri: content.verticalPoster } : missingPoster;
+        return content?.verticalPoster ? { uri: content?.verticalPoster } : missingPoster;
+    }
+    if (poster === POSTER.LARGE_VERTICAL) {
+        return content?.largeVerticalPoster ? { uri: content?.largeVerticalPoster } : missingPoster;
     }
     if (poster === POSTER.HORIZONTAL) {
-        return content?.horizontalPoster ? { uri: content.horizontalPoster } : missingPoster;
+        return content?.horizontalPoster ? { uri: content?.horizontalPoster } : missingPoster;
     }
     
     if (content?.verticalPoster) {
         return { uri: content?.verticalPoster };
-    } else if (content?.horizontalPoster) {
+    }
+    else if (content?.largeVerticalPoster) {
+        return { uri: content?.largeVerticalPoster };
+    }
+    else if (content?.horizontalPoster) {
         return { uri: content?.horizontalPoster };
     } else {
         return missingPoster;
@@ -40,6 +50,7 @@ export const contentSimpleToPartial = (simple: ContentSimpleData): ContentPartia
         rating: simple.rating,
         releaseYear: simple.releaseYear,
         verticalPoster: simple.verticalPoster,
+        largeVerticalPoster: simple.largeVerticalPoster,
         horizontalPoster: simple.horizontalPoster
     };
 };
@@ -65,6 +76,11 @@ export const getContentInfo = async (token: string, content: ContentRequestData,
         const result = await fetch(url, options);
 
         if (!result.ok) {
+            if (result.status === 401) {
+                console.warn("Unauthorized");
+                await signOut(auth);
+                return null;
+            }
             const text = await result.text();
             console.warn(`Error getting content details ${result.status}: ${text}`);
             if (setAlertMessageFunc) setAlertMessageFunc('Unfortunately, streaming information is currently unavailable for this movie/show'); 
@@ -102,6 +118,11 @@ export const getPopularContent = async (token: string,
         const result = await fetch(url, options);
 
         if (!result.ok) {
+            if (result.status === 401) {
+                console.warn("Unauthorized");
+                await signOut(auth);
+                return null;
+            }
             const text = await result.text();
             console.warn(`Error getting popular content ${result.status}: ${text}`);
             if (setAlertMessageFunc) setAlertMessageFunc('Error getting popular content'); 

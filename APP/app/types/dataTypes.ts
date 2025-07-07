@@ -22,6 +22,7 @@ export type UpdateUserProfileData = {
 export type ContentRequestData = {
     tmdbID: string;
     VerticalPoster: string | null;
+    LargeVerticalPoster: string | null;
     HorizontalPoster: string | null;
 };
 
@@ -78,6 +79,7 @@ export type ContentSimpleData = {
     genreNames: string[];
     streamingServiceNames: string[];
     verticalPoster: string;
+    largeVerticalPoster: string | null;
     horizontalPoster: string;
 };
 
@@ -89,6 +91,7 @@ export type ContentPartialData = {
     rating: number;
     releaseYear: number;
     verticalPoster: string | null;
+    largeVerticalPoster: string | null;
     horizontalPoster: string | null;
 };
 
@@ -109,6 +112,7 @@ export type ContentData = {
     episodeCount?: number | null;
     streamingOptions: StreamingOptionData[];
     verticalPoster: string;
+    largeVerticalPoster: string | null;
     horizontalPoster: string;
 };
 

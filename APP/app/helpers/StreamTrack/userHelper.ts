@@ -3,6 +3,7 @@
 import { DataAPIURL } from "@/secrets/DataAPIUrl";
 import { ContentPartialData, UpdateUserProfileData, UserMinimalData } from "../../types/dataTypes";
 import { Alert } from "@/app/components/alertMessageComponent";
+import { auth, signOut } from "@/firebaseConfig";
 
 export const checkIfUserExists = async (token: string,
                                         setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
@@ -23,9 +24,10 @@ export const checkIfUserExists = async (token: string,
         const result = await fetch(url, options);
 
         if (!result.ok) {
+            // Don't need to check unauthorized here because caller will handle it
             const text = await result.text();
             console.warn(`Error getting user data ${result.status}: ${text}`);
-            if (setAlertMessageFunc) setAlertMessageFunc('Error getting user data'); 
+            if (setAlertMessageFunc) setAlertMessageFunc('User does not exist'); 
             if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
             return false;
         }
@@ -60,6 +62,11 @@ export const getUserMinimalData = async (token: string,
         const result = await fetch(url, options);
 
         if (!result.ok) {
+            if (result.status === 401) {
+                console.warn("Unauthorized");
+                await signOut(auth);
+                return null;
+            }
             const text = await result.text();
             console.warn(`Error getting user minimal data ${result.status}: ${text}`);
             if (setAlertMessageFunc) setAlertMessageFunc('Error getting user minimal data'); 
@@ -97,6 +104,11 @@ export const getUserContents = async (token: string,
         const result = await fetch(url, options);
 
         if (!result.ok) {
+            if (result.status === 401) {
+                console.warn("Unauthorized");
+                await signOut(auth);
+                return null;
+            }
             const text = await result.text();
             console.warn(`Error getting user contents ${result.status}: ${text}`);
             if (setAlertMessageFunc) setAlertMessageFunc('Error getting user contents'); 
@@ -136,17 +148,23 @@ export const createUser = async (token: string | null,
         const result = await fetch(url, options);
 
         if (!result.ok) {
+            if (result.status === 401) {
+                console.warn("Unauthorized");
+                await signOut(auth);
+                return null;
+            }
             const text = await result.text();
             console.warn(`Error creating user ${result.status}: ${text}`);
             if (setAlertMessageFunc) setAlertMessageFunc('Error creating user'); 
             if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
-            return null;
+            return false;
         }
-
+        return true;
     } catch (err) {
         console.warn('Create user failed:', err);
         if (setAlertMessageFunc) setAlertMessageFunc('Create user failed'); 
         if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
+        return false;
     }
 };
 
@@ -180,6 +198,11 @@ export const updateUserProfile = async (token: string | null, firstName: string 
         const result = await fetch(url, options);
 
         if (!result.ok) {
+            if (result.status === 401) {
+                console.warn("Unauthorized");
+                await signOut(auth);
+                return null;
+            }
             const text = await result.text();
             console.warn(`Error updating user ${result.status}: ${text}`);
             if (setAlertMessageFunc) setAlertMessageFunc('Error updating user'); 

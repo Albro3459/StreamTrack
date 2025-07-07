@@ -3,6 +3,7 @@
 import { DataAPIURL } from "@/secrets/DataAPIUrl";
 import { GenreData } from "../../types/dataTypes";
 import { Alert } from "@/app/components/alertMessageComponent";
+import { auth, signOut } from "@/firebaseConfig";
 
 export const getGenreData = async (token: string,
                                     setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
@@ -23,6 +24,11 @@ export const getGenreData = async (token: string,
         const result = await fetch(url, options);
 
         if (!result.ok) {
+            if (result.status === 401) {
+                console.warn("Unauthorized");
+                await signOut(auth);
+                return null;
+            }
             const text = await result.text();
             console.warn(`Error getting genre data ${result.status}: ${text}`);
             if (setAlertMessageFunc) setAlertMessageFunc('Error getting genre data'); 

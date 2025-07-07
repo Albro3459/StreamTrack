@@ -54,6 +54,9 @@ public class ContentDetail : SoftDeletableEntity {
     public string VerticalPoster { get; set; } = string.Empty;
 
     [Required]
+    public string LargeVerticalPoster { get; set; } = string.Empty;
+
+    [Required]
     public string HorizontalPoster { get; set; } = string.Empty;
 
     [Required]

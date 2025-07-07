@@ -47,6 +47,10 @@ namespace StreamTrack.Migrations
                     b.Property<bool>("IsPopular")
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("LargeVerticalPoster")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("Overview")
                         .IsRequired()
                         .HasColumnType("TEXT");
@@ -98,6 +102,10 @@ namespace StreamTrack.Migrations
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("INTEGER");
+
+                    b.Property<string>("LargeVerticalPoster")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Overview")
                         .IsRequired()

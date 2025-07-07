@@ -199,6 +199,7 @@ public class Service {
             SeasonCount = dto.SeasonCount,
             EpisodeCount = dto.EpisodeCount,
             VerticalPoster = dto.VerticalPoster,
+            LargeVerticalPoster = dto.LargeVerticalPoster,
             HorizontalPoster = dto.HorizontalPoster
         };
 

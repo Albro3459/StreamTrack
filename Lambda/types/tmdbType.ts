@@ -5,7 +5,6 @@ export enum TMDB_MEDIA_TYPE {
 }
 
 export type TMDB_Content = {
-    backdrop_path: string | null;
     id: number;
 
     // Movie:
@@ -19,6 +18,7 @@ export type TMDB_Content = {
     // Both
     overview: string;
     poster_path: string | null;
+    backdrop_path: string | null;
     media_type: TMDB_MEDIA_TYPE;
     adult: boolean;
     original_language: string;
@@ -28,6 +28,9 @@ export type TMDB_Content = {
     video: boolean;
     vote_average: number;
     vote_count: number;
+
+    // CUSTOM
+    large_poster_path?: string | null;
 }
 
 export type TMDB = {

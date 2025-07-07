@@ -13,7 +13,7 @@ import { setUserData, useUserDataStore } from './stores/userDataStore';
 import { FAVORITE_TAB, handleCreateNewTab, isItemInList, moveItemToList } from './helpers/StreamTrack/listHelper';
 import MoveModal from './components/moveModalComponent';
 import { StarRating } from './components/starRatingComponent';
-import { getContentInfo, getPoster } from './helpers/StreamTrack/contentHelper';
+import { getContentInfo, getPoster, POSTER } from './helpers/StreamTrack/contentHelper';
 import { auth } from '@/firebaseConfig';
 import { getCachedContent, useContentCacheStore } from './stores/contentCacheStore';
 import AlertMessage, { Alert } from './components/alertMessageComponent';
@@ -29,13 +29,14 @@ enum TABS {
 interface InfoPageParams {
     tmdbID?: string;
     verticalPoster?: string;
+    largeVerticalPoster?: string;
     horizontalPoster?: string;
 }
 
 export default function InfoPage() {
     const router = useRouter();
 
-    const { tmdbID, verticalPoster, horizontalPoster } = useLocalSearchParams() as InfoPageParams;
+    const { tmdbID, verticalPoster, largeVerticalPoster, horizontalPoster } = useLocalSearchParams() as InfoPageParams;
 
     const { userData } = useUserDataStore();
     const { cacheContent } = useContentCacheStore();
@@ -61,10 +62,13 @@ export default function InfoPage() {
     const [refreshing, setRefreshing] = useState(false);
     const onRefresh = async () => {
         setRefreshing(true);
+        setAlertMessage("");
+        setAlertType(Alert.Error);
         try {
             const updatedInfo: ContentInfoData = await getContentInfo(await auth.currentUser.getIdToken(), 
                                                                         { tmdbID: info?.content?.tmdbID, 
                                                                             VerticalPoster: info?.content?.verticalPoster, 
+                                                                            LargeVerticalPoster: info?.content.largeVerticalPoster,
                                                                             HorizontalPoster: info?.content?.horizontalPoster
                                                                         } as ContentRequestData, 
                                                                         setAlertMessage, setAlertType,
@@ -130,7 +134,7 @@ export default function InfoPage() {
     const handlePress = (content: ContentPartialData) => {
         router.push({
             pathname: '/InfoPage',
-            params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, horizontalPoster: content.horizontalPoster },
+            params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, largeVerticalPoster: content.largeVerticalPoster, horizontalPoster: content.horizontalPoster },
         });
     }
     
@@ -148,7 +152,7 @@ export default function InfoPage() {
 
             try {
                 if (!content) {
-                    content = await getContentInfo(token, {tmdbID:tmdbID, VerticalPoster:verticalPoster, HorizontalPoster:horizontalPoster} as ContentRequestData, setAlertMessage, setAlertType);
+                    content = await getContentInfo(token, {tmdbID:tmdbID, VerticalPoster:verticalPoster, LargeVerticalPoster: largeVerticalPoster, HorizontalPoster:horizontalPoster} as ContentRequestData, setAlertMessage, setAlertType);
                 }
             } finally {
                 if (content) {
@@ -159,7 +163,7 @@ export default function InfoPage() {
             }
         }
         fetchContent();
-    }, [tmdbID, verticalPoster, horizontalPoster]);
+    }, [tmdbID, verticalPoster, largeVerticalPoster, horizontalPoster]);
 
     const renderTabContent = () => {
         switch (activeTab) {
@@ -208,7 +212,7 @@ export default function InfoPage() {
                                         setAlertType(Alert.Error);
                                     });
                                 } else {
-                                    console.log("No link available");
+                                    console.warn("No link available");
                                     setAlertMessage("No link available");
                                     setAlertType(Alert.Error);
                                 }
@@ -304,7 +308,7 @@ export default function InfoPage() {
                 <View style={styles.movieContainer}>
                     {/* Movie Poster */}
                     <View style={styles.posterContainer}>
-                        <Image source={getPoster(info?.content)} style={[styles.posterImage]} />
+                        <Image source={getPoster(info?.content, POSTER.LARGE_VERTICAL)} style={[styles.posterImage]} />
                     </View>
                     
                     {/* Movie Info */}

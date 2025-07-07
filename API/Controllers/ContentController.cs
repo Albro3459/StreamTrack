@@ -116,6 +116,9 @@ public class ContentController : ControllerBase {
         if (string.IsNullOrEmpty(uid))
             return Unauthorized();
 
+        var user = await context.User.FirstOrDefaultAsync(u => u.UserID == uid);
+        if (user == null) return Unauthorized();
+
         ContentDetail? detail = await context.ContentDetail
                                                 .Include(c => c.Genres)
                                                 .Include(c => c.StreamingOptions)
@@ -194,6 +197,9 @@ public class ContentController : ControllerBase {
         if (string.IsNullOrEmpty(uid))
             return Unauthorized();
 
+        var user = await context.User.FirstOrDefaultAsync(u => u.UserID == uid);
+        if (user == null) return Unauthorized();
+
         List<ContentPartial> contents = await context.ContentPartial
                                     .ToListAsync();
 
@@ -212,6 +218,9 @@ public class ContentController : ControllerBase {
 
         if (string.IsNullOrEmpty(uid))
             return Unauthorized();
+
+        var user = await context.User.FirstOrDefaultAsync(u => u.UserID == uid);
+        if (user == null) return Unauthorized();
 
         List<ContentDetail> contents = await context.ContentDetail
                 .Include(c => c.Genres)

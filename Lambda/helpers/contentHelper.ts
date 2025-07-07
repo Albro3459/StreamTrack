@@ -28,7 +28,8 @@ export const convertContentToContentData = (content: Content): ContentData => {
             price: option.price?.amount ?? null,
             deepLink: option.link,
         })),
-        verticalPoster: content.imageSet.verticalPoster.w480 ?? "",
+        verticalPoster: content.imageSet.verticalPoster.w240 ?? "",
+        largeVerticalPoster: content.imageSet.verticalPoster.w480 ?? "",
         horizontalPoster: content.imageSet.horizontalPoster.w1080 ?? "",
     };
 };

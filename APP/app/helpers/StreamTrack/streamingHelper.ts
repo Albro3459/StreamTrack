@@ -3,6 +3,7 @@
 import { Alert } from "@/app/components/alertMessageComponent";
 import { StreamingServiceData } from "@/app/types/dataTypes";
 import { DataAPIURL } from "@/secrets/DataAPIUrl";
+import { auth, signOut } from "@/firebaseConfig";
 
 export const getStreamingServiceData = async (token: string,
                                                 setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
@@ -23,6 +24,11 @@ export const getStreamingServiceData = async (token: string,
         const result = await fetch(url, options);
 
         if (!result.ok) {
+            if (result.status === 401) {
+                console.warn("Unauthorized");
+                await signOut(auth);
+                return null;
+            }
             const text = await result.text();
             console.warn(`Error getting streaming data ${result.status}: ${text}`);
             if (setAlertMessageFunc) setAlertMessageFunc('Error getting streaming data'); 

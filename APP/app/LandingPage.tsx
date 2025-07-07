@@ -56,6 +56,8 @@ export default function LandingPage () {
 
     const onRefresh = async () => {
         setRefreshing(true);
+        setAlertMessage("");
+        setAlertType(Alert.Error);
         try {
             await fetchPopularContent(await auth.currentUser.getIdToken(), setAlertMessage, setAlertType);
         } finally {
@@ -84,7 +86,7 @@ export default function LandingPage () {
     const handlePress = (content: ContentSimpleData) => {
         router.push({
             pathname: '/InfoPage',
-            params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, horizontalPoster: content.horizontalPoster },
+            params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, largeVerticalPoster: content.largeVerticalPoster, horizontalPoster: content.horizontalPoster },
         });
     }
 

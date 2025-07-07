@@ -29,7 +29,8 @@ export const TMDBSearch = async (keyword: string): Promise<TMDB> => {
     data.results = data.results.map(x => ({
         ...x,
         backdrop_path: x.backdrop_path ? "https://image.tmdb.org/t/p/w1280" + x.backdrop_path : null,
-        poster_path: x.poster_path ? "https://image.tmdb.org/t/p/w500" + x.poster_path : null,
+        poster_path: x.poster_path ? "https://image.tmdb.org/t/p/w185" + x.poster_path : null,
+        large_poster_path: x.large_poster_path ? "https://image.tmdb.org/t/p/w500" + x.poster_path : null,
     }));
 
     return data;

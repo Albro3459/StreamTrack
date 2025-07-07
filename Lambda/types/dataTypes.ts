@@ -81,6 +81,9 @@ export type ContentData = {
     streamingOptions: StreamingOptionData[];
     verticalPoster: string;
     horizontalPoster: string;
+
+    // CUSTOM
+    largeVerticalPoster?: string | null;
 };
 
 

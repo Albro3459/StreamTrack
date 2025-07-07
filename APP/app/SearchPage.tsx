@@ -8,7 +8,7 @@ import { useRouter } from 'expo-router';
 import debounce from 'lodash.debounce';
 import { appStyles } from '@/styles/appStyles';
 import { Feather } from '@expo/vector-icons';
-import { TMDBSearch } from './helpers/contentAPIHelper';
+import { TMDBSearch } from './helpers/tmdbAPIHelper';
 import { TMDB } from './types/tmdbType';
 import { useUserDataStore } from './stores/userDataStore';
 import { ContentData, ContentPartialData, ContentSimpleData, ListMinimalData } from './types/dataTypes';
@@ -76,6 +76,7 @@ export default function SearchPage() {
                         rating:  parseFloat((tmdbContent.vote_average/2).toFixed(2)) ?? 0, // rating is on 10 pt scale so this converts to 5 star scale
                         releaseYear: tmdbContent.release_date ? parseInt(tmdbContent.release_date.split("-")[0]) : 0,
                         verticalPoster: tmdbContent.poster_path, 
+                        largeVerticalPoster: tmdbContent.large_poster_path ?? "",
                         horizontalPoster: tmdbContent.backdrop_path,
                     }
                 });
@@ -166,7 +167,7 @@ export default function SearchPage() {
                                         onPress={() => {
                                             router.push({
                                                 pathname: '/InfoPage',
-                                                params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, horizontalPoster: content.horizontalPoster },
+                                                params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, largeVerticalPoster: content.largeVerticalPoster, horizontalPoster: content.horizontalPoster },
                                             });
                                         }}
                                         onLongPress={() => {setSelectedContent(content); setMoveModalVisible(true);}}
@@ -213,7 +214,7 @@ export default function SearchPage() {
                                     onPress={() => {
                                         router.push({
                                             pathname: '/InfoPage',
-                                            params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, horizontalPoster: content.horizontalPoster },
+                                            params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, largeVerticalPoster: content.largeVerticalPoster, horizontalPoster: content.horizontalPoster },
                                         });
                                     }}
                                     onLongPress={() => {setSelectedContent(content); setMoveModalVisible(true);}}
@@ -258,10 +259,10 @@ export default function SearchPage() {
                         onPress={() => {
                             router.push({
                                 pathname: '/InfoPage',
-                                params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, horizontalPoster: content.horizontalPoster },
+                                params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, largeVerticalPoster: content.largeVerticalPoster, horizontalPoster: content.horizontalPoster },
                             });
                         }}
-                        onLongPress={() => { setSelectedContent(content); setMoveModalVisible(true); }}
+                        onLongPress={() => { setSelectedContent(content); setMoveModalVisible(true);}}
                     >
                         <View style={[appStyles.cardContainer, {marginHorizontal: 16}]}>
                             <Image source={getPoster(content)} style={[appStyles.cardPoster, {width: 60}]} />

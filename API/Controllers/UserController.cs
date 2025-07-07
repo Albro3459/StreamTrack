@@ -18,6 +18,7 @@ public class UserController : ControllerBase {
     private readonly StreamTrackDbContext context;
     private readonly Service service;
     private readonly IMapper mapper;
+    private const string USER_DEFAULT_LIST = "Favorites";
 
     public UserController(StreamTrackDbContext _context, Service _service, IMapper _mapper) {
         context = _context;
@@ -36,7 +37,7 @@ public class UserController : ControllerBase {
 
         User? user = await context.User.FirstOrDefaultAsync(u => u.UserID == uid);
 
-        return user != null ? Ok() : NotFound();
+        return user != null ? Ok() : Unauthorized();
     }
 
     // GET: API/User/Get
@@ -61,7 +62,17 @@ public class UserController : ControllerBase {
                 .FirstOrDefaultAsync(u => u.UserID.Equals(uid));
 
         if (user == null) {
-            return NotFound();
+            return Unauthorized();
+        }
+        if (user.ListsOwned.Where(l => l.ListName == USER_DEFAULT_LIST).ToList().Count > 1) {
+            var defaultLists = user.ListsOwned.Where(l => l.ListName == USER_DEFAULT_LIST).ToList();
+            if (defaultLists.Count > 1) {
+                // Keep only the first, remove others
+                foreach (var list in defaultLists.Skip(1)) {
+                    user.ListsOwned.Remove(list);
+                }
+                await context.SaveChangesAsync();
+            }
         }
 
         return await service.MapUserToMinimalDTO(user);
@@ -88,7 +99,17 @@ public class UserController : ControllerBase {
                 .FirstOrDefaultAsync(u => u.UserID.Equals(uid));
 
         if (user == null) {
-            return NotFound();
+            return Unauthorized();
+        }
+        if (user.ListsOwned.Where(l => l.ListName == USER_DEFAULT_LIST).ToList().Count > 1) {
+            var defaultLists = user.ListsOwned.Where(l => l.ListName == USER_DEFAULT_LIST).ToList();
+            if (defaultLists.Count > 1) {
+                // Keep only the first, remove others
+                foreach (var list in defaultLists.Skip(1)) {
+                    user.ListsOwned.Remove(list);
+                }
+                await context.SaveChangesAsync();
+            }
         }
 
         List<ContentPartialDTO> contents = service.GetUsersContentMinimalDTOs(user);
@@ -127,7 +148,22 @@ public class UserController : ControllerBase {
         if (user == null) {
             user = new User(uid, email);
             context.User.Add(user);
-            user.ListsOwned.Add(new List(user, "Favorites")); // Add default list
+            user.ListsOwned.Clear();
+            user.ListsOwned.Add(new List(user, USER_DEFAULT_LIST)); // Add default list
+        }
+        else if (user.ListsOwned.Where(l => l.ListName == USER_DEFAULT_LIST).ToList().Count > 1) {
+            var defaultLists = user.ListsOwned.Where(l => l.ListName == USER_DEFAULT_LIST).ToList();
+            if (defaultLists.Count > 1) {
+                // Keep only the first, remove others
+                foreach (var list in defaultLists.Skip(1)) {
+                    user.ListsOwned.Remove(list);
+                }
+                await context.SaveChangesAsync();
+            }
+        }
+
+        if (!user.ListsOwned.Any(l => l.ListName == USER_DEFAULT_LIST)) {
+            user.ListsOwned.Add(new List(user, USER_DEFAULT_LIST));
         }
 
         await context.SaveChangesAsync();
@@ -147,7 +183,7 @@ public class UserController : ControllerBase {
 
         User? user = await service.GetFullUserByID(uid);
         if (user == null) {
-            return NotFound();
+            return Unauthorized();
         }
 
         if (data.FirstName != null) user.FirstName = data.FirstName;

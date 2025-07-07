@@ -23,6 +23,7 @@ public class ListController : ControllerBase {
     private readonly IMapper mapper;
     private const int MAX_USER_LIST_COUNT = 10;
     private const int MAX_USER_LIST_ITEM_COUNT = 1000;
+    private const string USER_DEFAULT_LIST = "Favorites";
 
     public ListController(StreamTrackDbContext _context, Service _service, Services.APIService _rapidAPIService, BackgroundTaskQueue _taskQueue, IServiceProvider _serviceProvider, IMapper _mapper) {
         context = _context;
@@ -47,7 +48,7 @@ public class ListController : ControllerBase {
 
         User? user = await service.GetFullUserByID(uid);
         if (user == null) {
-            return NotFound();
+            return Unauthorized();
         }
 
         UserDataDTO userDTO = await service.MapUserToFullUserDTO(user);
@@ -106,13 +107,11 @@ public class ListController : ControllerBase {
         if (string.IsNullOrEmpty(uid))
             return Unauthorized();
 
-        listName = Uri.UnescapeDataString(listName).ToLower();
-
         var user = await context.User
                             .Include(u => u.ListsOwned)
                             .FirstOrDefaultAsync(u => u.UserID == uid);
         if (user == null)
-            return NotFound();
+            return Unauthorized();
 
         var list = user.ListsOwned.FirstOrDefault(l => l.ListName.ToLower() == listName);
         if (list == null)
@@ -134,12 +133,23 @@ public class ListController : ControllerBase {
         if (string.IsNullOrEmpty(uid))
             return Unauthorized();
 
+        var user = await context.User.FirstOrDefaultAsync(u => u.UserID == uid);
+        if (user == null) return Unauthorized();
+
         listName = Uri.UnescapeDataString(listName);
 
         List<List> lists = await service.GetFullListsOwnedByUserID(uid);
 
         List? list = lists.Where(l => l.ListName.ToLower().Trim().Equals(listName.ToLower().Trim())).FirstOrDefault();
-        if (list == null) return NotFound();
+        if (list == null) {
+            if (listName.ToLower() == USER_DEFAULT_LIST.ToLower()) {
+                list = new List(user, USER_DEFAULT_LIST);
+                user.ListsOwned.Add(list);
+            }
+            else {
+                return NotFound();
+            }
+        }
         if (list.ContentPartials.Count >= MAX_USER_LIST_ITEM_COUNT) {
             return BadRequest("User's max item in list limit reached");
         }
@@ -156,6 +166,7 @@ public class ListController : ControllerBase {
                 Rating = contentDTO.Rating,
                 ReleaseYear = contentDTO.ReleaseYear,
                 VerticalPoster = contentDTO.VerticalPoster ?? "",
+                LargeVerticalPoster = contentDTO.LargeVerticalPoster ?? "",
                 HorizontalPoster = contentDTO.HorizontalPoster ?? ""
             };
             context.ContentPartial.Add(partial);
@@ -190,6 +201,9 @@ public class ListController : ControllerBase {
 
         if (string.IsNullOrEmpty(uid))
             return Unauthorized();
+
+        var user = await context.User.FirstOrDefaultAsync(u => u.UserID == uid);
+        if (user == null) return Unauthorized();
 
         listName = Uri.UnescapeDataString(listName);
         tmdbID = Uri.UnescapeDataString(tmdbID);

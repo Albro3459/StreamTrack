@@ -23,6 +23,7 @@ namespace StreamTrack.Migrations
                     Rating = table.Column<double>(type: "REAL", nullable: false),
                     ReleaseYear = table.Column<int>(type: "INTEGER", nullable: false),
                     VerticalPoster = table.Column<string>(type: "TEXT", nullable: false),
+                    LargeVerticalPoster = table.Column<string>(type: "TEXT", nullable: false),
                     HorizontalPoster = table.Column<string>(type: "TEXT", nullable: false),
                     IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false)
                 },
@@ -93,6 +94,7 @@ namespace StreamTrack.Migrations
                     SeasonCount = table.Column<int>(type: "INTEGER", nullable: true),
                     EpisodeCount = table.Column<int>(type: "INTEGER", nullable: true),
                     VerticalPoster = table.Column<string>(type: "TEXT", nullable: false),
+                    LargeVerticalPoster = table.Column<string>(type: "TEXT", nullable: false),
                     HorizontalPoster = table.Column<string>(type: "TEXT", nullable: false),
                     TTL_UTC = table.Column<DateTime>(type: "TEXT", nullable: false),
                     IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false)

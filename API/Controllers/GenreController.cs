@@ -29,6 +29,9 @@ public class GenreController : ControllerBase {
         if (string.IsNullOrEmpty(uid))
             return Unauthorized();
 
+        var user = await context.User.FirstOrDefaultAsync(u => u.UserID == uid);
+        if (user == null) return Unauthorized();
+
         List<GenreDTO> genres = await context.Genre.Select(g => mapper.Map<Genre, GenreDTO>(g)).OrderBy(g => g.Name).ToListAsync();
 
         return genres != null ? genres : NoContent();
@@ -41,6 +44,9 @@ public class GenreController : ControllerBase {
 
         if (string.IsNullOrEmpty(uid))
             return Unauthorized();
+
+        var user = await context.User.FirstOrDefaultAsync(u => u.UserID == uid);
+        if (user == null) return Unauthorized();
 
         // See db context for the main ones
         List<string> mainIDs = new List<string> { "1", "2", "3", "4", "5", "6", "7", "8", "9" };

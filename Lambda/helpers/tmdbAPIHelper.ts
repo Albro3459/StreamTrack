@@ -7,8 +7,34 @@ const TMDB_Ending = "?language=en-US";
 
 export type Posters = {
     verticalPoster: string;
+    largeVerticalPoster: string;
     horizontalPoster: string;
 }
+
+// "poster_sizes": [
+//   "w92",
+//   "w154",
+//   "w185",
+//   "w342",
+//   "w500",
+//   "w780",
+//   "original"
+// ],
+// "backdrop_sizes": [
+//   "w300",
+//   "w780",
+//   "w1280",
+//   "original"
+// ],
+// "logo_sizes": [
+//   "w45",
+//   "w92",
+//   "w154",
+//   "w185",
+//   "w300",
+//   "w500",
+//   "original"
+// ],
 
 export const getPosters = async (tmdbID: string): Promise<Posters> => {
 
@@ -27,7 +53,8 @@ export const getPosters = async (tmdbID: string): Promise<Posters> => {
     const result = await fetch(url, options);
     const data: TMDB_Content = await result.json();
 
-    return { verticalPoster: data.poster_path ? "https://image.tmdb.org/t/p/w500" + data.poster_path : null,
+    return { verticalPoster: data.poster_path ? "https://image.tmdb.org/t/p/w185" + data.poster_path : null,
+             largeVerticalPoster: data.poster_path ? "https://image.tmdb.org/t/p/w500" + data.poster_path : null,
              horizontalPoster: data.backdrop_path ? "https://image.tmdb.org/t/p/w1280" + data.backdrop_path : null
     } as Posters;
 

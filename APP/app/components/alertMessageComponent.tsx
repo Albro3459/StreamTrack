@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, Pressable, StatusBar} from "react-native";
 
 export enum Alert {
     Error = "error",
+    Info = "info",
     Successs = "success"
 }
 
@@ -52,6 +53,9 @@ const styles = StyleSheet.create({
     error: {
         backgroundColor: "#f72925",
     },
+    info: {
+        backgroundColor: Colors.goldColor,
+    },
     success: {
         backgroundColor: "green",
     },
@@ -61,6 +65,9 @@ const styles = StyleSheet.create({
     },
     errorText: {
         color: "white",
+    },
+    infoText: {
+        color: "black",
     },
     successText: {
         color: "black",

@@ -18,6 +18,8 @@ public class ContentPartialDTO {
 
     public string? VerticalPoster { get; set; }
 
+    public string? LargeVerticalPoster { get; set; }
+
     public string? HorizontalPoster { get; set; }
 
     public override bool Equals(object? obj) =>

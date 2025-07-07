@@ -28,6 +28,8 @@ public class StreamingController : ControllerBase {
 
         if (string.IsNullOrEmpty(uid))
             return Unauthorized();
+        var user = await context.User.FirstOrDefaultAsync(u => u.UserID == uid);
+        if (user == null) return Unauthorized();
 
         List<StreamingServiceDTO> services = await context.StreamingService.Select(s => mapper.Map<StreamingService, StreamingServiceDTO>(s)).OrderBy(s => s.Name).ToListAsync();
 
@@ -41,6 +43,8 @@ public class StreamingController : ControllerBase {
 
         if (string.IsNullOrEmpty(uid))
             return Unauthorized();
+        var user = await context.User.FirstOrDefaultAsync(u => u.UserID == uid);
+        if (user == null) return Unauthorized();
 
         // See db context for the main ones
         List<string> mainIDs = new List<string> { "1", "2", "3", "4", "5", "6", "7", "8" };

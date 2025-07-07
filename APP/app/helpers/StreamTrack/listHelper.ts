@@ -2,7 +2,7 @@
 
 import { ContentPartialData, ListMinimalData, UserData } from "@/app/types/dataTypes";
 import { DataAPIURL } from "@/secrets/DataAPIUrl";
-import { User } from "firebase/auth";
+import { signOut, User } from "firebase/auth";
 import { auth } from "@/firebaseConfig";
 import { setUserData, useUserDataStore } from "@/app/stores/userDataStore";
 import { Alert } from "@/app/components/alertMessageComponent";
@@ -64,6 +64,8 @@ export const handleCreateNewTab = async (
         console.warn(`User reached Max User List Count: ` + MAX_USER_LIST_COUNT);
         setAlertMessageFunc(`You have reached the max amount of lists: ${MAX_USER_LIST_COUNT}`);
         setAlertTypeFunc(Alert.Error);
+        setIsLoadingFunc(false);
+        setVisibilityFunc(false);
         return;
     } else {
         let finalLists: ListMinimalData[] = [...lists];
@@ -147,7 +149,7 @@ export const moveItemToList = async (content: ContentPartialData, listName: stri
             if (shouldRemove && !isInOtherList) {
                 newContents = newContents.filter(c => c.tmdbID !== content.tmdbID);
             } else if (!newContents.some(c => c.tmdbID === content.tmdbID)) {
-                newContents.push({ tmdbID: content.tmdbID, title: content.title, releaseYear: content.releaseYear, verticalPoster: content.verticalPoster, horizontalPoster: content.horizontalPoster } as ContentPartialData);
+                newContents.push({ tmdbID: content.tmdbID, title: content.title, releaseYear: content.releaseYear, verticalPoster: content.verticalPoster, largeVerticalPoster: content.largeVerticalPoster, horizontalPoster: content.horizontalPoster } as ContentPartialData);
             }
             setUserData({
                 ...userData,
@@ -199,6 +201,11 @@ export const addContentToUserList = async (token: string | null, listName: strin
         const result = await fetch(url, options);
 
         if (!result.ok) {
+            if (result.status === 401) {
+                console.warn("Unauthorized");
+                await signOut(auth);
+                return null;
+            }
             let text = await result.text();
             console.warn(`Error adding content to list ${result.status}: ${text}`);
             if (setAlertMessageFunc) {
@@ -244,6 +251,11 @@ export const removeContentFromUserList = async (token: string | null, listName: 
         const result = await fetch(url, options);
 
         if (!result.ok) {
+            if (result.status === 401) {
+                console.warn("Unauthorized");
+                await signOut(auth);
+                return null;
+            }
             const text = await result.text();
             console.warn(`Error removing content from list ${result.status}: ${text}`);
             if (setAlertMessageFunc) setAlertMessageFunc('Error removing content from list'); 
@@ -284,6 +296,11 @@ export const createNewUserList = async (token: string | null, listName: string,
         const result = await fetch(url, options);
 
         if (!result.ok) {
+            if (result.status === 401) {
+                console.warn("Unauthorized");
+                await signOut(auth);
+                return null;
+            }
             const text = await result.text();
             console.warn(`Error creating new list ${result.status}: ${text}`);
             if (setAlertMessageFunc) setAlertMessageFunc('Error creating new list'); 

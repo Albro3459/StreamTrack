@@ -11,6 +11,7 @@ namespace API.Services;
 
 class Posters {
     public string VerticalPoster { get; set; } = string.Empty;
+    public string LargeVerticalPoster { get; set; } = string.Empty;
     public string HorizontalPoster { get; set; } = string.Empty;
 }
 
@@ -76,16 +77,18 @@ public class APIService {
         apiContent.rating = Math.Round(apiContent.rating / 20.0, 2);
 
         // Update any missing posters
-        Posters posters = new Posters { VerticalPoster = contentDTO.VerticalPoster ?? "", HorizontalPoster = contentDTO.HorizontalPoster ?? "" };
+        Posters posters = new Posters { VerticalPoster = contentDTO.VerticalPoster ?? "", LargeVerticalPoster = contentDTO.LargeVerticalPoster ?? "", HorizontalPoster = contentDTO.HorizontalPoster ?? "" };
         bool badVerticalPoster = IsBadPoster(posters.VerticalPoster);
+        bool badLargeVerticalPoster = IsBadPoster(posters.LargeVerticalPoster);
         bool badHorizontalPoster = IsBadPoster(posters.HorizontalPoster);
-        if (badVerticalPoster || badHorizontalPoster) {
+        if (badVerticalPoster || badLargeVerticalPoster || badHorizontalPoster) {
             posters = await GetPosters(contentDTO.TMDB_ID);
             posters.VerticalPoster = badVerticalPoster ? posters.VerticalPoster : contentDTO.VerticalPoster ?? "";
+            posters.LargeVerticalPoster = badLargeVerticalPoster ? posters.LargeVerticalPoster : contentDTO.LargeVerticalPoster ?? "";
             posters.HorizontalPoster = badHorizontalPoster ? posters.HorizontalPoster : contentDTO.HorizontalPoster ?? "";
         }
 
-        return await MapToContentDetail(apiContent, posters.VerticalPoster, posters.HorizontalPoster);
+        return await MapToContentDetail(apiContent, posters.VerticalPoster, posters.LargeVerticalPoster, posters.HorizontalPoster);
     }
 
     private async Task<Posters> GetPosters(string tmdbID) {
@@ -99,15 +102,18 @@ public class APIService {
         string? json = await response.Content.ReadAsStringAsync();
 
         using var doc = JsonDocument.Parse(json);
-        string verticalPoster = "", horizontalPoster = "";
+        string verticalPoster = "", largeVerticalPoster = "", horizontalPoster = "";
         verticalPoster = doc.RootElement.TryGetProperty("poster_path", out var posterPathElem) && posterPathElem.GetString() is string p && !string.IsNullOrEmpty(p)
-                            ? "https://image.tmdb.org/t/p/w500" + p
+                            ? "https://image.tmdb.org/t/p/w185" + p
+                            : "";
+        largeVerticalPoster = doc.RootElement.TryGetProperty("poster_path", out var largePosterPathElem) && largePosterPathElem.GetString() is string l && !string.IsNullOrEmpty(l)
+                            ? "https://image.tmdb.org/t/p/w500" + l
                             : "";
         horizontalPoster = doc.RootElement.TryGetProperty("backdrop_path", out var backPathElem) && backPathElem.GetString() is string b && !string.IsNullOrEmpty(b)
                             ? "https://image.tmdb.org/t/p/w1280" + b
                             : "";
 
-        return new Posters { VerticalPoster = verticalPoster, HorizontalPoster = horizontalPoster };
+        return new Posters { VerticalPoster = verticalPoster, LargeVerticalPoster = largeVerticalPoster, HorizontalPoster = horizontalPoster };
     }
 
     private bool IsBadPoster(string url) {
@@ -117,7 +123,7 @@ public class APIService {
         return false;
     }
 
-    private async Task<ContentDetail> MapToContentDetail(APIContent content, string verticalPoster, string horizontalPoster) {
+    private async Task<ContentDetail> MapToContentDetail(APIContent content, string verticalPoster, string largeVerticalPoster, string horizontalPoster) {
         var details = new ContentDetail {
             TMDB_ID = content.tmdbId,
             Title = content.title,
@@ -132,7 +138,8 @@ public class APIService {
             Runtime = content.runtime,
             SeasonCount = content.seasonCount,
             EpisodeCount = content.episodeCount,
-            VerticalPoster = !string.IsNullOrWhiteSpace(verticalPoster) ? verticalPoster : content.imageSet.verticalPoster.w480 ?? "",
+            VerticalPoster = !string.IsNullOrWhiteSpace(verticalPoster) ? verticalPoster : content.imageSet.verticalPoster.w240 ?? "",
+            LargeVerticalPoster = !string.IsNullOrWhiteSpace(largeVerticalPoster) ? largeVerticalPoster : content.imageSet.verticalPoster.w480 ?? "",
             HorizontalPoster = !string.IsNullOrWhiteSpace(horizontalPoster) ? horizontalPoster : content.imageSet.horizontalPoster.w1080 ?? "",
         };
 

@@ -46,11 +46,13 @@ export const fetchByServiceAndGenre = async (RATING_CUTOFF: number, service: SER
 
     await Promise.all(contentData.map(async c => {
         const badVerticalPoster: boolean = isBadPoster(c.verticalPoster);
+        const badLargeVerticalPoster: boolean = isBadPoster(c.largeVerticalPoster);
         const badHorizontalPoster: boolean = isBadPoster(c.horizontalPoster);
-        if (badVerticalPoster || badHorizontalPoster) {
+        if (badVerticalPoster || badLargeVerticalPoster || badHorizontalPoster) {
             try {
                 const posters: Posters = await getPosters(c.tmdbID);
                 c.verticalPoster = badVerticalPoster ? posters.verticalPoster : c.verticalPoster;
+                c.largeVerticalPoster = badLargeVerticalPoster ? posters.largeVerticalPoster : c.largeVerticalPoster;
                 c.horizontalPoster = badHorizontalPoster ? posters.horizontalPoster : c.horizontalPoster;
             } catch (e: any) {
                 console.error("Failed to fetch posters for TMDB ID: " + c.tmdbID);

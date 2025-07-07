@@ -59,8 +59,14 @@ export default function LibraryPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
+    const getRandomNumber = (min: number = 0, max: number = 1000): number => {
+        return Math.floor(Math.random() * (max - min + 1)) + min;
+    };
+
     const onRefresh = async () => {
         setRefreshing(true);
+        setAlertMessage("");
+        setAlertType(Alert.Error);
         try {
             await fetchUserData(await auth.currentUser.getIdToken());
         } finally {
@@ -79,7 +85,7 @@ export default function LibraryPage() {
 
     const handleTabPress = (listName: string) => {
         setActiveTab(listName);
-        pagerViewRef.current?.setPage(lists.map(l => l.listName).indexOf(listName));
+        pagerViewRef.current?.setPage(lists.map(l => l?.listName).indexOf(listName));
 
         setLists(sortLists(lists));
     };
@@ -132,7 +138,7 @@ export default function LibraryPage() {
                         onPress={() => {
                             router.push({
                                 pathname: '/InfoPage',
-                                params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, horizontalPoster: content.horizontalPoster },
+                                params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, largeVerticalPoster: content.largeVerticalPoster, horizontalPoster: content.horizontalPoster },
                             });
                         }}
                         onLongPress={() => {
@@ -172,12 +178,12 @@ export default function LibraryPage() {
             {/* Tab Bar */}
             <View style={[styles.tabBar, (lists && lists.length <= 4) && {paddingLeft: 24}]}>
                 <FlatList<string>
-                    data={lists.map(l => l.listName)}
+                    data={lists.map(l => l?.listName)}
                     ref={flatListRef}
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     nestedScrollEnabled
-                    keyExtractor={(listName, index) => listName}
+                    keyExtractor={(listName, index) => listName+"-"+index+"-"+getRandomNumber()}
                     renderItem={({ item: listName }) => (
                         <Pressable
                             style={[styles.tabItem, activeTab === listName && styles.activeTabItem, {paddingHorizontal:8}, (lists && lists.length <= 4) && {paddingHorizontal: 12}]}
@@ -206,24 +212,26 @@ export default function LibraryPage() {
             {/* Pager View */}
             <PagerView
                 style={{ flex: 1, marginTop: 20, marginBottom: 50 }}
-                initialPage={lists.map(l => l.listName).indexOf(activeTab) ?? 0}
-                key={lists.map(l => l.listName).join('-')}
+                initialPage={lists.map(l => l?.listName).indexOf(activeTab) ?? 0}
+                key={lists.map(l => l?.listName).join('-')}
                 ref={pagerViewRef}
-                onPageSelected={(e) => setActiveTab(lists[e.nativeEvent.position].listName)}
+                onPageSelected={(e) => setActiveTab(lists[e.nativeEvent.position]?.listName)}
             >
                 {/* Renders all lists :(
-                 {lists.map(l => ({listName: l.listName, contents: userData?.contents && getContentsInList(userData.contents, lists, l.listName)})).map((list) => (
-                    <View style={{paddingHorizontal: 5}} key={list.listName}>{renderTabContent(list.contents, list.listName)}</View>
+                 {lists.map(l => ({listName: l?.listName, contents: userData?.contents && getContentsInList(userData.contents, lists, l?.listName)})).map((list) => (
+                    <View style={{paddingHorizontal: 5}} key={list?.listName}>{renderTabContent(list.contents, list?.listName)}</View>
                 ))} */}
 
                 {lists.map((list, index) => {
-                    const isActive = (i: number) => (i >= 0 && i === lists.findIndex(item => item.listName === activeTab));
+                    const isActive = (i: number) => (i >= 0 && i === lists.findIndex(item => item?.listName === activeTab));
                     // Only rendering neighboring tabs
                     if ((isActive(index) || isActive(index - 1) || isActive(index + 1)) && userData?.contents) {
-                        const contents = getContentsInList(userData.contents, lists, list.listName);
-                        return <View style={{paddingHorizontal: 5}} key={list.listName}>{renderTabContent(contents, list.listName)}</View>;
+                        const contents = getContentsInList(userData.contents, lists, list?.listName);
+                        return <View style={{paddingHorizontal: 5}} key={list?.listName+"-"+(lists.map(l => l?.listName).indexOf(activeTab) ?? 0)+"-"+getRandomNumber()}>
+                                {renderTabContent(contents, list?.listName)}
+                            </View>;
                     } else {
-                        return <View style={{paddingHorizontal: 5}} key={list.listName} />;
+                        return <View style={{paddingHorizontal: 5}} key={list?.listName+"-"+(lists.map(l => l?.listName).indexOf(activeTab) ?? 0)+"-"+getRandomNumber()} />;
                     }
                 })}
             </PagerView>

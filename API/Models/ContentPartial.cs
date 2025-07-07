@@ -28,6 +28,9 @@ public class ContentPartial : SoftDeletableEntity {
     public string VerticalPoster { get; set; } = string.Empty;
 
     [Required]
+    public string LargeVerticalPoster { get; set; } = string.Empty;
+
+    [Required]
     public string HorizontalPoster { get; set; } = string.Empty;
 
     public ICollection<List> Lists { get; set; } = new List<List>();

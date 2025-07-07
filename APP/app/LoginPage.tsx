@@ -1,14 +1,15 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, Alert, StyleSheet, ActivityIndicator, Pressable } from "react-native";
+import { View, Text, TextInput, StyleSheet, ActivityIndicator, Pressable } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { auth } from "@/firebaseConfig";
 import { useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { createUser } from "./helpers/StreamTrack/userHelper";
-import { SignIn, SignUp } from "./helpers/authHelper";
+import { LogOut, SignIn, SignUp } from "./helpers/authHelper";
 import { appStyles } from "@/styles/appStyles";
+import AlertMessage, { Alert } from "./components/alertMessageComponent";
 
 export default function LoginPage() {
     const router = useRouter();
@@ -23,29 +24,38 @@ export default function LoginPage() {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
+    const [alertMessage, setAlertMessage] = useState<string>("");
+    const [alertType, setAlertType] = useState<Alert>(Alert.Error);
+
     // Main submit handler
     const handleAuth = async () => {
+        setAlertMessage("");
+        setAlertType(Alert.Error);
         try {
             if (!email.includes("@") || !email.includes(".")) {
-                Alert.alert("Invalid email", "Enter a valid email address.");
+                setAlertMessage("Invalid email\nEnter a valid email address.");
+                setAlertType(Alert.Error);
                 return;
             }
             if (!password) {
-                Alert.alert("Missing password", "Enter a password.");
+                setAlertMessage("Missing password\nEnter a password.");
+                setAlertType(Alert.Error);
                 return;
             }
             if (isSignUp) {
                 if (password !== confirmPassword) {
-                    Alert.alert("Error", "Passwords do not match.");
+                    setAlertMessage("Error: Passwords do not match.");
+                    setAlertType(Alert.Error);
                     return;
                 }
                 if (password.length < 6) {
-                    Alert.alert("Error", "Password must be at least 6 characters.");
+                    setAlertMessage("Error: Password must be at least 6 characters.");
+                    setAlertType(Alert.Error);
                     return;
                 }
                 
                 setSigning(true);
-                await SignUp(auth, email?.trim(), password);
+                await SignUp(auth, email?.trim(), password, setAlertMessage, setAlertType);
                 router.replace({
                     pathname: '/ProfilePage',
                     params: { isSigningUp: 1 }, // Have to pass as number or string
@@ -53,11 +63,16 @@ export default function LoginPage() {
                 
             } else {
                 setSigning(true);
-                await SignIn(auth, email?.trim(), password);
-                router.replace("/LandingPage");
+                const success: boolean = await SignIn(auth, email?.trim(), password, setAlertMessage, setAlertType);
+                // if (success) {
+                //     router.replace("/LandingPage");
+                // } else {
+                //     await LogOut(auth);
+                // }
             }
         } catch (e: any) {
-            Alert.alert(`Sign ${isSignUp ? "Up" : "In"} Failed`, e.message);
+            setAlertMessage(`Sign ${isSignUp ? "Up" : "In"} Failed\n${e.message}`);
+            setAlertType(Alert.Error);
         } finally {
             setSigning(false);
         }
@@ -65,6 +80,12 @@ export default function LoginPage() {
 
     return (
         <View style={styles.container}>
+            <AlertMessage
+                type={alertType}
+                message={alertMessage}
+                setMessage={setAlertMessage}
+                onIndex={true}
+            />
             <Text style={styles.title}>Stream Track</Text>
             
             <View style={[styles.inputContainer, { paddingBottom: isSignUp ? 4 : 10 } ]}>
@@ -111,7 +132,7 @@ export default function LoginPage() {
                         {confirmPassword.length > 0 && (
                             <Pressable onPress={() => setShowConfirmPassword(prev => !prev)} style={{paddingRight: 10}}>
                                 <Icon
-                                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                                    name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
                                     size={24}
                                     color={Colors.italicTextColor}
                                 />
@@ -120,10 +141,10 @@ export default function LoginPage() {
                     </View>
                 ) : (
                     <View style={styles.row}>
-                        <Pressable onPress={() => Alert.alert("Forgot Email", "Feature coming soon")}>
+                        <Pressable onPress={() => {setAlertMessage("Forgot Email Feature coming soon"); setAlertType(Alert.Info);}}>
                             <Text style={styles.linkText}>Forgot Email?</Text>
                         </Pressable>
-                        <Pressable onPress={() => Alert.alert("Forgot Password", "Feature coming soon")}>
+                        <Pressable onPress={() => {setAlertMessage("Forgot Password Feature coming soon"); setAlertType(Alert.Info);}}>
                             <Text style={styles.linkText}>Forgot Password?</Text>
                         </Pressable>
                     </View>

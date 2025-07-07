@@ -1,4 +1,6 @@
 select * from User;
+select * from User where UserID = 'XsFRRMcsDgTHbtpJBaylSZcqNWg1';
+-- delete from User where UserID = 'XsFRRMcsDgTHbtpJBaylSZcqNWg1';
 
 select * from List;
 
