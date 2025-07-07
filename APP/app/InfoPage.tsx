@@ -2,7 +2,7 @@
 
 import { Colors } from '@/constants/Colors';
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet, ScrollView, Pressable, Dimensions, Linking, ActivityIndicator, FlatList } from 'react-native';
+import { View, Text, Image, StyleSheet, ScrollView, Pressable, Dimensions, Linking, ActivityIndicator, FlatList, RefreshControl } from 'react-native';
 import Heart from './components/heartComponent';
 import { useLocalSearchParams, useRouter } from 'expo-router/build/hooks';
 import { appStyles, RalewayFont } from '@/styles/appStyles';
@@ -52,6 +52,24 @@ export default function InfoPage() {
     const [createListModalVisible, setCreateListModalVisible] = useState(false);
 
     const [activeTab, setActiveTab] = useState<string>('About');
+
+    const [refreshing, setRefreshing] = useState(false);
+    const onRefresh = async () => {
+        setRefreshing(true);
+        try {
+            const updatedInfo: ContentInfoData = await getContentInfo(await auth.currentUser.getIdToken(), 
+                                                                    { tmdbID: info?.content?.tmdbID, 
+                                                                        VerticalPoster: info?.content?.verticalPoster, 
+                                                                        HorizontalPoster: info?.content?.horizontalPoster
+                                                                    } as ContentRequestData, setAlertMessage, setAlertType
+                                                                );
+            if (updatedInfo) {
+                setInfo(updatedInfo);
+            }
+        } finally {
+            setRefreshing(false);
+        }
+    };
 
     const getServicePrice = (option: StreamingOptionData) : string => {
         if (option && option.streamingService && option.price) {
@@ -224,7 +242,17 @@ export default function InfoPage() {
                 setMessage={setAlertMessage}
             />
 
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView 
+                showsVerticalScrollIndicator={false}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        tintColor={Colors.selectedTextColor} // iOS spinner color
+                        colors={[Colors.selectedTextColor]} // Android spinner color
+                    />
+                }
+            >
                 <View style={styles.movieContainer}>
                     {/* Movie Poster */}
                     <View style={styles.posterContainer}>

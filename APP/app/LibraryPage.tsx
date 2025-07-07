@@ -12,6 +12,7 @@ import {
   Dimensions,
   TextInput,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import * as SplashScreen from "expo-splash-screen";
@@ -20,7 +21,7 @@ import Heart from './components/heartComponent';
 import { appStyles } from '@/styles/appStyles';
 import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
-import { useUserDataStore } from './stores/userDataStore';
+import { fetchUserData, useUserDataStore } from './stores/userDataStore';
 import { ContentPartialData, ListMinimalData } from './types/dataTypes';
 import { FAVORITE_TAB, getContentsInList, handleCreateNewTab, isItemInList, moveItemToList, sortLists } from './helpers/StreamTrack/listHelper';
 import MoveModal from './components/moveModalComponent';
@@ -28,6 +29,8 @@ import CreateNewListModal from './components/createNewListComponent';
 import AlertMessage, { Alert } from './components/alertMessageComponent';
 import { useFocusEffect } from '@react-navigation/native';
 import { getPoster } from './helpers/StreamTrack/contentHelper';
+import { fetchPopularContent } from './stores/popularContentStore';
+import { auth } from '@/firebaseConfig';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -51,9 +54,20 @@ export default function LibraryPage() {
     const [newListName, setNewListName] = useState<string>("");
     const [createListModalVisible, setCreateListModalVisible] = useState(false);
 
-    const [isLoading, setIsLoading] = useState(true);
     const [selectedContent, setSelectedContent] = useState<ContentPartialData | null>(null);
     const [moveModalVisible, setMoveModalVisible] = useState(false);
+
+    const [isLoading, setIsLoading] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        try {
+            await fetchUserData(await auth.currentUser.getIdToken());
+        } finally {
+            setRefreshing(false);
+        }
+    };
 
     const setRefs = (index: number, length: number) => {
         index = index >= 0 ? index : 0;
@@ -101,6 +115,14 @@ export default function LibraryPage() {
             data={userData?.contents && getContentsInList(userData.contents, lists, activeTab)}
             numColumns={3}
             keyExtractor={(content, index) => `${content.tmdbID}-${index}-${list}`}
+            refreshControl={
+                <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={onRefresh}
+                    tintColor={Colors.selectedTextColor} // iOS spinner color
+                    colors={[Colors.selectedTextColor]} // Android spinner color
+                />
+            }
             renderItem={({ item: content }) => (
                 <View style={styles.movieCard} >
                     <Pressable
@@ -131,6 +153,7 @@ export default function LibraryPage() {
         );
     };
 
+    {/* Main Content */}
     return (
         <View style={styles.container}>
             <AlertMessage

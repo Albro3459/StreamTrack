@@ -1,14 +1,14 @@
 "use client";
 
-import { Text, TextInput, View, StyleSheet, ScrollView, Pressable, ActivityIndicator, Dimensions } from "react-native";
-import React, { useState } from 'react';
+import { Text, TextInput, View, StyleSheet, ScrollView, Pressable, ActivityIndicator, Dimensions, RefreshControl } from "react-native";
+import React, { useEffect, useState } from 'react';
 import { PressableBubblesGroup,} from './components/formComponents';
 import { Stack, useLocalSearchParams, useRouter } from "expo-router"
 import { Colors } from "@/constants/Colors";
 import { LogOut } from "./helpers/authHelper";
 import { auth } from "@/firebaseConfig";
 import { appStyles } from "@/styles/appStyles";
-import { setUserData, useUserDataStore } from "./stores/userDataStore";
+import { fetchUserData, setUserData, useUserDataStore } from "./stores/userDataStore";
 import { UserData, UserMinimalData } from "./types/dataTypes";
 import { updateUserProfile } from "./helpers/StreamTrack/userHelper";
 import { useStreamingServiceDataStore } from "./stores/streamingServiceDataStore";
@@ -47,6 +47,16 @@ export default function ProfilePage() {
             : new Set()
     );
 
+    const [refreshing, setRefreshing] = useState(false);
+    const onRefresh = async () => {
+        setRefreshing(true);
+        try {
+            await fetchUserData(await auth.currentUser.getIdToken(), setAlertMessage, setAlertType);
+        } finally {
+            setRefreshing(false);
+        }
+    };
+
     const saveProfile = async (firstName: string | null, lastName: string | null, 
                                 genres: Set<string>, streamingServices: Set<string>,
                                 setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
@@ -75,6 +85,22 @@ export default function ProfilePage() {
         }
     };
 
+    useEffect(() => {
+        if (userData) {
+            setFirstNameText(userData.user?.firstName ?? null);
+            setLastNameText(userData?.user?.lastName ?? null);
+            setSelectedGenres(
+                userData?.user?.genreNames ? new Set(userData.user.genreNames)
+                    : new Set()
+            );
+            setSelectedStreamingServices(
+                userData?.user?.streamingServices ? new Set(userData.user.streamingServices.map(s => s.name))
+                    : new Set()
+            );
+            setIsEditing(false);
+        }
+    }, [userData]);
+
     return (
         <>
             <Stack.Screen
@@ -89,7 +115,17 @@ export default function ProfilePage() {
                     message={alertMessage}
                     setMessage={setAlertMessage}
                 />
-                <ScrollView style={styles.background}>
+                <ScrollView 
+                    style={styles.background}
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={onRefresh}
+                            tintColor={Colors.selectedTextColor} // iOS spinner color
+                            colors={[Colors.selectedTextColor]} // Android spinner color
+                        />
+                    }
+                >
                     {/* First container */}
                     <View style={[styles.container]}>
                         <View style={[styles.labelContainer, {paddingTop: 10}]}>

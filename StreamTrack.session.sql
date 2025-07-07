@@ -6,7 +6,7 @@ select * from ListContent;
 
 select * from ContentPartial ORDER BY Title;
 
-select * from ContentDetail ORDER BY Title;
+select * from ContentDetail where TMDB_ID = 'tv/1100';
 select * from ContentDetail where VerticalPoster LIKE 'https://www%' OR HorizontalPoster LIKE 'https://www%';
 select * from ContentDetail where VerticalPoster LIKE '%svg%' OR HorizontalPoster LIKE '%svg%';
 

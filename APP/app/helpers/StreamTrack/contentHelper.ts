@@ -6,11 +6,23 @@ import { DataAPIURL } from "@/secrets/DataAPIUrl";
 
 const missingPoster: number = require('@/assets/images/MissingPoster.png') || "";
 
+export enum POSTER {
+    VERTICAL = "vertical",
+    HORIZONTAL = "horizontal"
+};
+
 export type PosterURI = {
     uri: string;
-}
+};
 
-export const getPoster = (content: ContentPartialData | ContentSimpleData | ContentData) : PosterURI | number => {
+export const getPoster = (content: ContentPartialData | ContentSimpleData | ContentData, poster?: POSTER) : PosterURI | number => {
+    if (poster === POSTER.VERTICAL) {
+        return content?.verticalPoster ? { uri: content.verticalPoster } : missingPoster;
+    }
+    if (poster === POSTER.HORIZONTAL) {
+        return content?.horizontalPoster ? { uri: content.horizontalPoster } : missingPoster;
+    }
+    
     if (content?.verticalPoster) {
         return { uri: content?.verticalPoster };
     } else if (content?.horizontalPoster) {

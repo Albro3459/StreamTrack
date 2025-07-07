@@ -16,7 +16,7 @@ import { runOnJS } from 'react-native-reanimated';
 import { auth } from "@/firebaseConfig";
 import AlertMessage, { Alert } from "./components/alertMessageComponent";
 import { useFocusEffect } from "@react-navigation/native";
-import { getPoster } from "./helpers/StreamTrack/contentHelper";
+import { getPoster, POSTER } from "./helpers/StreamTrack/contentHelper";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -56,7 +56,7 @@ export default function LandingPage () {
     const onRefresh = async () => {
         setRefreshing(true);
         try {
-            await fetchPopularContent(await auth.currentUser.getIdToken());
+            await fetchPopularContent(await auth.currentUser.getIdToken(), setAlertMessage, setAlertType);
         } finally {
             setRefreshing(false);
         }
@@ -109,7 +109,7 @@ export default function LandingPage () {
         <GestureDetector gesture={combinedGesture}>
             <View style={styles.slide}>
                 <Image
-                    source={getPoster(content)}
+                    source={getPoster(content, POSTER.HORIZONTAL)}
                     style={styles.carouselImage}
                     resizeMode="cover"
                 />
