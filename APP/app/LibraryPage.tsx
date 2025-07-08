@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import * as SplashScreen from "expo-splash-screen";
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import Heart from './components/heartComponent';
 import { appStyles } from '@/styles/appStyles';
 import { Colors } from '@/constants/Colors';
@@ -86,6 +86,7 @@ export default function LibraryPage() {
     };
 
     const doneDeleting = () => {
+        console.log("DONE");
         setDeleting(false); setDeleteTab(null);
     };
 
@@ -195,166 +196,191 @@ export default function LibraryPage() {
 
     {/* Main Content */}
     return (
-        <View style={styles.container}>
-            <AlertMessage
-                type={alertType}
-                message={alertMessage}
-                setMessage={setAlertMessage}
-            />
-
-            {/* Tab Bar */}
-            <View style={[styles.tabBar, (lists && lists.length <= 4) && {paddingLeft: 24}]}>
-                <FlatList<string>
-                    data={lists.map(l => l?.listName)}
-                    ref={flatListRef}
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    nestedScrollEnabled
-                    keyExtractor={(listName, index) => listName+"-"+index+"-"+getRandomNumber()}
-                    renderItem={({ item: listName }) => (
-                        <Pressable
-                            style={[styles.tabItem, activeTab === listName && styles.activeTabItem, {paddingHorizontal:8}, (lists && lists.length <= 4) && {paddingHorizontal: 12}]}
-                            onPress={async () => !deleting && handleTabPress(listName) /* do nothing if deleting */}
-                            onLongPress={() => setDeleting(true)}
-                        >
-                            { listName === FAVORITE_TAB ? (
-                                <Heart 
-                                    size={25}
-                                    onPress={async () => handleTabPress(listName)}
-                                />
-                            ) : (
-                                <Text
-                                    style={[styles.tabText, activeTab === listName && styles.activeTabText]}
-                                >
-                                    {listName}
-                                </Text>
-                            )}
-                            
-                            {deleting && listName !== FAVORITE_TAB && (
-                                <Pressable
-                                    onPress={() => setDeleteTab(listName)}
-                                    style={{position: "absolute", top: 0, right: -3}}
-                                >
-                                    <Ionicons name="close-circle" size={18} color="red" />
-                                </Pressable>
-                            )}
+        <>
+            <Stack.Screen
+                options={{
+                    headerLeft: deleting ? () => (
+                        <Pressable onPress={doneDeleting} style={{ marginRight: 16 }}>
+                            <Text style={{ color: Colors.selectedTextColor, fontWeight: "bold" }}>Done</Text>
                         </Pressable>
-
-                    )}
+                    ) : undefined, // undefined means show the back button. I know its fucking stupid
+                    headerBackVisible: deleting ? false : true,
+                }}
+            />
+            <View style={[styles.container]}>
+                <AlertMessage
+                    type={alertType}
+                    message={alertMessage}
+                    setMessage={setAlertMessage}
                 />
-                <Pressable onPress={() => setCreateListModalVisible(true)} >
-                        <Ionicons name="add" size={28} color="white" />
-                </Pressable>
-            </View>
 
-            {/* Pager View */}
-            <PagerView
-                style={{ flex: 1, marginTop: 20, marginBottom: 50 }}
-                initialPage={lists.map(l => l?.listName).indexOf(activeTab) ?? 0}
-                key={lists.map(l => l?.listName+"-"+getRandomNumber()).join('-')}
-                ref={pagerViewRef}
-                onPageSelected={(e) => setActiveTab(lists[e.nativeEvent.position]?.listName)}
-            >
-                {/* Renders all lists :(
-                 {lists.map(l => ({listName: l?.listName, contents: userData?.contents && getContentsInList(userData.contents, lists, l?.listName)})).map((list) => (
-                    <View style={{paddingHorizontal: 5}} key={list?.listName}>{renderTabContent(list.contents, list?.listName)}</View>
-                ))} */}
+                {/* Tab Bar */}
+                <View style={[styles.tabBar, (lists && lists.length <= 4) && {paddingLeft: 24}]}>
+                    <FlatList<string>
+                        data={lists.map(l => l?.listName)}
+                        ref={flatListRef}
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        nestedScrollEnabled
+                        keyExtractor={(listName, index) => listName+"-"+index+"-"+getRandomNumber()}
+                        renderItem={({ item: listName }) => (
+                            <Pressable
+                                style={[styles.tabItem, activeTab === listName && styles.activeTabItem, {paddingHorizontal:8}, (lists && lists.length <= 4) && {paddingHorizontal: 12}]}
+                                onPress={async () => !deleting && handleTabPress(listName) /* do nothing if deleting */}
+                                onLongPress={() => setDeleting(true)}
+                            >
+                                { listName === FAVORITE_TAB ? (
+                                    <Heart 
+                                        size={25}
+                                        onPress={async () => handleTabPress(listName)}
+                                    />
+                                ) : (
+                                    <Text
+                                        style={[styles.tabText, activeTab === listName && styles.activeTabText]}
+                                    >
+                                        {listName}
+                                    </Text>
+                                )}
+                                
+                                {deleting && listName !== FAVORITE_TAB && (
+                                    <Pressable
+                                        onPress={() => setDeleteTab(listName)}
+                                        style={{position: "absolute", top: 0, right: -3, zIndex: 30}}
+                                    >
+                                        <Ionicons name="close-circle" size={18} color="red" />
+                                    </Pressable>
+                                )}
+                            </Pressable>
 
-                {lists.map((list, index) => {
-                    const isActive = (i: number) => (i >= 0 && i === lists.findIndex(item => item?.listName === activeTab));
-                    // Only rendering neighboring tabs
-                    if ((isActive(index) || isActive(index - 1) || isActive(index + 1)) && userData?.contents) {
-                        const contents = getContentsInList(userData.contents, lists, list?.listName);
-                        return <View style={{paddingHorizontal: 5}} key={list?.listName+"-"+(lists.map(l => l?.listName).indexOf(activeTab) ?? 0)+"-"+getRandomNumber()}>
-                                {renderTabContent(contents, list?.listName)}
-                            </View>;
-                    } else {
-                        return <View style={{paddingHorizontal: 5}} key={list?.listName+"-"+(lists.map(l => l?.listName).indexOf(activeTab) ?? 0)+"-"+getRandomNumber()} />;
-                    }
-                })}
-            </PagerView>
-
-            <MoveModal
-                router={router}
-                selectedContent={selectedContent}
-                lists={lists}
-
-                // showLabel={false}
-                visibility={moveModalVisible}
-
-                setVisibilityFunc={setMoveModalVisible}
-                setIsLoadingFunc={setIsLoading}
-
-                moveItemFunc={moveItemToList}
-                isItemInListFunc={isItemInList}
-
-                setListsFunc={setLists}
-
-                setAlertMessageFunc={setAlertMessage}
-                setAlertTypeFunc={setAlertType}
-
-                setRefsFunc={setRefs}
-                setActiveTabFunc={setActiveTab}
-            />
-
-            {/* Create List Modal */}
-            <CreateNewListModal
-                router={router}
-                visible={createListModalVisible}
-                setVisibilityFunc={setCreateListModalVisible}
-                setIsLoadingFunc={setIsLoading}
-
-                listName={newListName}
-                setListNameFunc={setNewListName}
-                lists={lists}
-                setListsFunc={setLists}
-
-                onCreateNewTabFunc={handleCreateNewTab}
-                setRefsFunc={setRefs}
-                setActiveTabFunc={setActiveTab}
-
-                onRequestCloseFunc={() => setCreateListModalVisible(false)}
-
-                setAlertMessageFunc={setAlertMessage}
-                setAlertTypeFunc={setAlertType}
-            />
-
-            {deleteTab && (
-                <Modal
-                    transparent
-                    visible={!!deleteTab}
-                    animationType="none"
-                    onRequestClose={doneDeleting}
-                >
-                    <Pressable style={styles.modalOverlay} onPress={doneDeleting}>
-                        <View style={styles.modalContent}>
-                            <Text style={styles.modalTitle}>Delete List?</Text>
-                            <Text style={[appStyles.optionText, {marginTop: 10, marginBottom: 15, textAlign: "center", fontSize: 14}]}>
-                                Are you sure you want to delete
-                                {deleteTab ? ` "${deleteTab}"` : ""}?
-                                This cannot be undone.
-                            </Text>
-                            <View style={styles.buttonRow}>
-                                <Pressable style={styles.cancelButton} onPress={doneDeleting}>
-                                    <Text style={styles.cancelButtonText}>Cancel</Text>
-                                </Pressable>
-                                <Pressable style={styles.button} onPress={async () => await handleTabDelete(deleteTab)}>
-                                    <Text style={styles.buttonText}>Delete</Text>
-                                </Pressable>
-                            </View>
-                        </View>
+                        )}
+                    />
+                    <Pressable onPress={() => setCreateListModalVisible(true)} >
+                            <Ionicons name="add" size={28} color="white" />
                     </Pressable>
-                </Modal>
-
-            )}
-
-            {/* Overlay */}
-            {isLoading && (
-                <View style={appStyles.overlay}>
-                    <ActivityIndicator size="large" color="#fff" />
                 </View>
-            )}
-        </View>
+
+                <View style={{flex: 1}}>
+                    {/* Pager View */}
+                    <PagerView
+                        style={{ flex: 1, marginTop: 20, marginBottom: 50 }}
+                        initialPage={lists.map(l => l?.listName).indexOf(activeTab) ?? 0}
+                        key={lists.map(l => l?.listName+"-"+getRandomNumber()).join('-')}
+                        ref={pagerViewRef}
+                        onPageSelected={(e) => setActiveTab(lists[e.nativeEvent.position]?.listName)}
+                    >
+                        {/* Renders all lists :(
+                        {lists.map(l => ({listName: l?.listName, contents: userData?.contents && getContentsInList(userData.contents, lists, l?.listName)})).map((list) => (
+                            <View style={{paddingHorizontal: 5}} key={list?.listName}>{renderTabContent(list.contents, list?.listName)}</View>
+                        ))} */}
+
+                        {lists.map((list, index) => {
+                            const isActive = (i: number) => (i >= 0 && i === lists.findIndex(item => item?.listName === activeTab));
+                            // Only rendering neighboring tabs
+                            if ((isActive(index) || isActive(index - 1) || isActive(index + 1)) && userData?.contents) {
+                                const contents = getContentsInList(userData.contents, lists, list?.listName);
+                                return <View style={{paddingHorizontal: 5}} key={list?.listName+"-"+(lists.map(l => l?.listName).indexOf(activeTab) ?? 0)+"-"+getRandomNumber()}>
+                                        {renderTabContent(contents, list?.listName)}
+                                    </View>;
+                            } else {
+                                return <View style={{paddingHorizontal: 5}} key={list?.listName+"-"+(lists.map(l => l?.listName).indexOf(activeTab) ?? 0)+"-"+getRandomNumber()} />;
+                            }
+                        })}
+                    </PagerView>
+
+                    <MoveModal
+                        router={router}
+                        selectedContent={selectedContent}
+                        lists={lists}
+
+                        // showLabel={false}
+                        visibility={moveModalVisible}
+
+                        setVisibilityFunc={setMoveModalVisible}
+                        setIsLoadingFunc={setIsLoading}
+
+                        moveItemFunc={moveItemToList}
+                        isItemInListFunc={isItemInList}
+
+                        setListsFunc={setLists}
+
+                        setAlertMessageFunc={setAlertMessage}
+                        setAlertTypeFunc={setAlertType}
+
+                        setRefsFunc={setRefs}
+                        setActiveTabFunc={setActiveTab}
+                    />
+
+                    {/* Create List Modal */}
+                    <CreateNewListModal
+                        router={router}
+                        visible={createListModalVisible}
+                        setVisibilityFunc={setCreateListModalVisible}
+                        setIsLoadingFunc={setIsLoading}
+
+                        listName={newListName}
+                        setListNameFunc={setNewListName}
+                        lists={lists}
+                        setListsFunc={setLists}
+
+                        onCreateNewTabFunc={handleCreateNewTab}
+                        setRefsFunc={setRefs}
+                        setActiveTabFunc={setActiveTab}
+
+                        onRequestCloseFunc={() => setCreateListModalVisible(false)}
+
+                        setAlertMessageFunc={setAlertMessage}
+                        setAlertTypeFunc={setAlertType}
+                    />
+
+                    {deleteTab && (
+                        <Modal
+                            transparent
+                            visible={!!deleteTab}
+                            animationType="none"
+                            onRequestClose={doneDeleting}
+                        >
+                            <Pressable style={styles.modalOverlay} onPress={doneDeleting}>
+                                <View style={styles.modalContent}>
+                                    <Text style={styles.modalTitle}>Delete List?</Text>
+                                    <Text style={[appStyles.optionText, {marginTop: 10, marginBottom: 15, textAlign: "center", fontSize: 14}]}>
+                                        Are you sure you want to delete
+                                        {deleteTab ? ` "${deleteTab}"` : ""}?
+                                        This cannot be undone.
+                                    </Text>
+                                    <View style={styles.buttonRow}>
+                                        <Pressable style={styles.cancelButton} onPress={doneDeleting}>
+                                            <Text style={styles.cancelButtonText}>Cancel</Text>
+                                        </Pressable>
+                                        <Pressable style={styles.button} onPress={async () => await handleTabDelete(deleteTab)}>
+                                            <Text style={styles.buttonText}>Delete</Text>
+                                        </Pressable>
+                                    </View>
+                                </View>
+                            </Pressable>
+                        </Modal>
+                    )}
+
+                    {deleting && (
+                        <Pressable
+                            style={{
+                                position: "absolute",
+                                top: 0, left: 0, right: 0, bottom: 0,
+                                zIndex: 10,
+                            }}
+                            onPress={doneDeleting}
+                        />
+                    )}
+                </View>
+
+
+                {/* Overlay */}
+                {isLoading && (
+                    <View style={appStyles.overlay}>
+                        <ActivityIndicator size="large" color="#fff" />
+                    </View>
+                )}
+            </View>
+        </>
     );
 };
 
