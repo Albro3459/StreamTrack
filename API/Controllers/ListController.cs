@@ -81,9 +81,9 @@ public class ListController : ControllerBase {
             return BadRequest();
         }
 
-        listName = Uri.UnescapeDataString(listName);
+        listName = Uri.UnescapeDataString(listName).Trim();
 
-        List? list = await context.List.Where(l => l.OwnerUserID == uid && l.ListName.ToLower().Trim().Equals(listName.ToLower().Trim())).FirstOrDefaultAsync();
+        List? list = await context.List.Where(l => l.OwnerUserID == uid && l.ListName.ToLower().Trim().Equals(listName.ToLower())).FirstOrDefaultAsync();
         if (list != null) return Conflict();
 
         list = new List(owner, listName);
@@ -100,7 +100,7 @@ public class ListController : ControllerBase {
 
     // DELETE: API/List/{listName}/Remove
     [HttpDelete("{listName}/Remove/")]
-    public async Task<ActionResult<ListMinimalDTO>> RemoveUserList(string listName) {
+    public async Task<ActionResult> RemoveUserList(string listName) {
         // Right now only works for user owned lists
         string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
@@ -112,6 +112,8 @@ public class ListController : ControllerBase {
                             .FirstOrDefaultAsync(u => u.UserID == uid);
         if (user == null)
             return Unauthorized();
+
+        listName = Uri.UnescapeDataString(listName).ToLower().Trim();
 
         var list = user.ListsOwned.FirstOrDefault(l => l.ListName.ToLower() == listName);
         if (list == null)

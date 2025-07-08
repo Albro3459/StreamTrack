@@ -21,9 +21,9 @@ import Heart from './components/heartComponent';
 import { appStyles } from '@/styles/appStyles';
 import { Colors } from '@/constants/Colors';
 import { Ionicons } from '@expo/vector-icons';
-import { fetchUserData, useUserDataStore } from './stores/userDataStore';
+import { fetchUserData, setUserData, useUserDataStore } from './stores/userDataStore';
 import { ContentPartialData, ListMinimalData } from './types/dataTypes';
-import { FAVORITE_TAB, getContentsInList, handleCreateNewTab, isItemInList, moveItemToList, sortLists } from './helpers/StreamTrack/listHelper';
+import { deleteUserList, FAVORITE_TAB, getContentsInList, handleCreateNewTab, isItemInList, moveItemToList, sortLists } from './helpers/StreamTrack/listHelper';
 import MoveModal from './components/moveModalComponent';
 import CreateNewListModal from './components/createNewListComponent';
 import AlertMessage, { Alert } from './components/alertMessageComponent';
@@ -49,6 +49,8 @@ export default function LibraryPage() {
     const [lists, setLists] = useState<ListMinimalData[] | null>(sortLists([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]));
 
     const [activeTab, setActiveTab] = useState<string | null>(FAVORITE_TAB);
+    const [deleteTab, setDeleteTab] = useState<string | null>(null);
+    const [deleting, setDeleting] = useState<boolean>(false);
 
     const [newListName, setNewListName] = useState<string>("");
     const [createListModalVisible, setCreateListModalVisible] = useState(false);
@@ -81,7 +83,32 @@ export default function LibraryPage() {
             index: index, animated: true, 
             viewPosition: index <= 1 ? 0 : index === length - 1 ? 1 : 0.5 // 0: start, 0.5: center, 1: end
         });
-    }    
+    };
+
+    const doneDeleting = () => {
+        setDeleting(false); setDeleteTab(null);
+    };
+
+    const handleTabDelete = async (listName: string) => {
+        listName = listName.toLowerCase().trim();
+        const success = await deleteUserList(router, await auth?.currentUser?.getIdToken(), listName, setAlertMessage, setAlertType);
+        if (success) {
+            const newListsOwned: ListMinimalData[] = [...userData?.user?.listsOwned.filter(l => l.listName.toLowerCase().trim() !== listName) || []];
+            const newListsSharedWithMe: ListMinimalData[] = [...userData?.user?.listsSharedWithMe.filter(l => l.listName.toLowerCase().trim() !== listName) || []];
+
+            setUserData({
+                ...userData,
+                user: {
+                    ...userData?.user,
+                    listsOwned: newListsOwned,
+                    listsSharedWithMe: newListsSharedWithMe
+                }
+            });
+
+            setLists(sortLists([...newListsOwned, ...newListsSharedWithMe]));
+        }
+        doneDeleting();
+    };
 
     const handleTabPress = (listName: string) => {
         setActiveTab(listName);
@@ -187,21 +214,32 @@ export default function LibraryPage() {
                     renderItem={({ item: listName }) => (
                         <Pressable
                             style={[styles.tabItem, activeTab === listName && styles.activeTabItem, {paddingHorizontal:8}, (lists && lists.length <= 4) && {paddingHorizontal: 12}]}
-                            onPress={async () => handleTabPress(listName)}
+                            onPress={async () => !deleting && handleTabPress(listName) /* do nothing if deleting */}
+                            onLongPress={() => setDeleting(true)}
                         >
-                        { listName === FAVORITE_TAB ? (
-                            <Heart 
-                                size={25}
-                                onPress={async () => handleTabPress(listName)}
-                            />
-                        ) : (
-                            <Text
-                            style={[styles.tabText, activeTab === listName && styles.activeTabText]}
-                            >
-                            {listName}
-                            </Text>
-                        )}
+                            { listName === FAVORITE_TAB ? (
+                                <Heart 
+                                    size={25}
+                                    onPress={async () => handleTabPress(listName)}
+                                />
+                            ) : (
+                                <Text
+                                    style={[styles.tabText, activeTab === listName && styles.activeTabText]}
+                                >
+                                    {listName}
+                                </Text>
+                            )}
+                            
+                            {deleting && listName !== FAVORITE_TAB && (
+                                <Pressable
+                                    onPress={() => setDeleteTab(listName)}
+                                    style={{position: "absolute", top: 0, right: -3}}
+                                >
+                                    <Ionicons name="close-circle" size={18} color="red" />
+                                </Pressable>
+                            )}
                         </Pressable>
+
                     )}
                 />
                 <Pressable onPress={() => setCreateListModalVisible(true)} >
@@ -281,6 +319,35 @@ export default function LibraryPage() {
                 setAlertTypeFunc={setAlertType}
             />
 
+            {deleteTab && (
+                <Modal
+                    transparent
+                    visible={!!deleteTab}
+                    animationType="none"
+                    onRequestClose={doneDeleting}
+                >
+                    <Pressable style={styles.modalOverlay} onPress={doneDeleting}>
+                        <View style={styles.modalContent}>
+                            <Text style={styles.modalTitle}>Delete List?</Text>
+                            <Text style={[appStyles.optionText, {marginTop: 10, marginBottom: 15, textAlign: "center", fontSize: 14}]}>
+                                Are you sure you want to delete
+                                {deleteTab ? ` "${deleteTab}"` : ""}?
+                                This cannot be undone.
+                            </Text>
+                            <View style={styles.buttonRow}>
+                                <Pressable style={styles.cancelButton} onPress={doneDeleting}>
+                                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                                </Pressable>
+                                <Pressable style={styles.button} onPress={async () => await handleTabDelete(deleteTab)}>
+                                    <Text style={styles.buttonText}>Delete</Text>
+                                </Pressable>
+                            </View>
+                        </View>
+                    </Pressable>
+                </Modal>
+
+            )}
+
             {/* Overlay */}
             {isLoading && (
                 <View style={appStyles.overlay}>
@@ -349,5 +416,59 @@ const styles = StyleSheet.create({
         marginTop: 5,
         maxWidth: screenWidth * 0.33,
         ...appStyles.shadow,
+    },
+
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContent: {
+        backgroundColor: Colors.altBackgroundColor,
+        borderRadius: 10,
+        padding: 20,
+        width: '67%',
+        alignItems: 'center',
+        ...appStyles.shadow
+    },
+    modalTitle: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    textInput: {
+        width: '100%',
+        borderWidth: 1,
+        backgroundColor: Colors.grayCell,
+        borderColor: Colors.backgroundColor,
+        borderRadius: 8,
+        padding: 10,
+        marginBottom: 20,
+        color: Colors.backgroundColor,
+    },
+    buttonRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+        columnGap: 10
+    },
+    cancelButton: {
+        ...appStyles.button,
+        ...appStyles.secondaryButton,
+        width: undefined,
+        flex: 1
+    },
+    cancelButtonText: {
+        ...appStyles.buttonText,
+        ...appStyles.secondaryButtonText,
+    },
+    button: {
+        ...appStyles.button,
+        width: undefined,
+        flex: 1
+    },
+    buttonText: {
+        ...appStyles.buttonText,
     },
 });

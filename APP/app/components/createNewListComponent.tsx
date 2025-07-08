@@ -181,6 +181,6 @@ const styles = StyleSheet.create({
         flex: 1
     },
     buttonText: {
-    ...appStyles.buttonText,
+        ...appStyles.buttonText,
     },
 });

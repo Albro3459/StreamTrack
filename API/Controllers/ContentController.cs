@@ -95,6 +95,7 @@ public class ContentController : ControllerBase {
         }
 
         try {
+            keyword = Uri.UnescapeDataString(keyword).Trim();
             var contents = await APIService.TMDBSearch(keyword);
             return contents;
         }

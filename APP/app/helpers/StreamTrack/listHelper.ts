@@ -333,4 +333,51 @@ export const createNewUserList = async (router: Router, token: string | null, li
     }
 };
 
+export const deleteUserList = async (router: Router, token: string | null, listName: string, 
+                                        setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
+                                        setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+                                    ) : Promise<boolean> => {
+    try {
+        if (!token) return null;
+
+        const url = DataAPIURL + `API/List/${encodeURIComponent(listName.trim())}/Remove`;
+                
+        const options = {
+            method: 'DELETE',
+            headers: {
+                accept: 'application/json',
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+            },
+        };
+
+        const result = await fetch(url, options);
+
+        if (!result.ok) {
+            if (result.status === 401) {
+                console.warn("Unauthorized");
+                await signOut(auth);
+                router.replace({
+                    pathname: '/LoginPage',
+                    params: { unauthorized: 1 },
+                });
+                return false;
+            }
+            const text = await result.text();
+            console.warn(`Error deleting list ${result.status}: ${text}`);
+            if (setAlertMessageFunc) setAlertMessageFunc('Error deleting list'); 
+            if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
+            return false;
+        }
+
+        return true;
+
+    } catch (err) {
+        console.warn('Deleting list failed:', err);
+        if (setAlertMessageFunc) setAlertMessageFunc('Deleting list failed'); 
+        if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
+        return false;
+    }
+};
+
 export default {};
