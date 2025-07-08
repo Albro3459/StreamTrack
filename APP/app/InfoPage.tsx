@@ -14,7 +14,7 @@ import MoveModal from './components/moveModalComponent';
 import { StarRating } from './components/starRatingComponent';
 import { getContentInfo, getPoster, POSTER } from './helpers/StreamTrack/contentHelper';
 import { auth } from '@/firebaseConfig';
-import { getCachedContent, useContentCacheStore } from './stores/contentCacheStore';
+import { getCachedContent, useCacheStore } from './stores/contentCacheStore';
 import AlertMessage, { Alert } from './components/alertMessageComponent';
 import CreateNewListModal from './components/createNewListComponent';
 
@@ -38,7 +38,7 @@ export default function InfoPage() {
     const { tmdbID, verticalPoster, largeVerticalPoster, horizontalPoster } = useLocalSearchParams() as InfoPageParams;
 
     const { userData } = useUserDataStore();
-    const { cacheContent } = useContentCacheStore();
+    const { cacheContent } = useCacheStore();
 
     const [alertMessage, setAlertMessage] = useState<string>("");
     const [alertType, setAlertType] = useState<Alert>(Alert.Error);

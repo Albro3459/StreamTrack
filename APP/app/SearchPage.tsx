@@ -14,7 +14,7 @@ import { FAVORITE_TAB, isItemInList, moveItemToList, sortLists } from './helpers
 import MoveModal from './components/moveModalComponent';
 import { StarRating } from './components/starRatingComponent';
 import AlertMessage, { Alert } from './components/alertMessageComponent';
-import { useContentCacheStore } from './stores/contentCacheStore';
+import { getCachedSearch, useCacheStore } from './stores/contentCacheStore';
 import { useFocusEffect } from '@react-navigation/native';
 import { getPoster } from './helpers/StreamTrack/contentHelper';
 import { usePopularContentStore } from './stores/popularContentStore';
@@ -27,7 +27,7 @@ export default function SearchPage() {
     const router = useRouter();
     
     const { userData } = useUserDataStore();
-    const { contentCache } = useContentCacheStore();
+    const { contentCache, cacheSearch } = useCacheStore();
     const { popularContent } = usePopularContentStore();
     
     const [alertMessage, setAlertMessage] = useState<string>("");
@@ -65,11 +65,17 @@ export default function SearchPage() {
         searchText = searchText?.trim();
         setShowNoResults(true);
         if (searchText.length > 0) {
+            let contents: ContentPartialData[] = [];
             try {
                 setIsSearching(true);
 
-                const contents: ContentPartialData[] = await searchTMDB(router, await auth?.currentUser?.getIdToken(), searchText, setAlertMessage, setAlertType);
-                setContents(contents ?? []);
+                contents = getCachedSearch(searchText) ?? [];
+                if (contents?.length === 0) {
+                    contents = await searchTMDB(router, await auth?.currentUser?.getIdToken(), searchText, setAlertMessage, setAlertType) ?? [];
+                    cacheSearch(searchText, contents);
+                }
+                setContents(contents);
+
             } finally { // Scroll back up to top
                 if (flatListRef.current && contents && contents.length > 0) {
                     flatListRef.current.scrollToOffset({ animated: true, offset: 0});

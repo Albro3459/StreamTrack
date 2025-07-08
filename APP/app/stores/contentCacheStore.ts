@@ -1,26 +1,37 @@
 "use client";
 
 import { create } from 'zustand';
-import { ContentInfoData } from '../types/dataTypes';
+import { ContentInfoData, ContentPartialData } from '../types/dataTypes';
 
 export const getCachedContent = (tmdbID: string): ContentInfoData | null => {
-    const store = useContentCacheStore.getState();
+    const store = useCacheStore.getState();
     const recent: ContentInfoData[] = store.contentCache;
     return recent.find(c => c.content.tmdbID === tmdbID);
 };
 
-export const clearContentCache = () : void => {
-    const store = useContentCacheStore.getState();
-    store.clearContentCache();
+export const getCachedSearch = (keyword: string): ContentPartialData[] | null => {
+    const store = useCacheStore.getState();
+    const recent: Record<string, ContentPartialData[]> = store.searchCache;
+    const found: [string, ContentPartialData[]] = Object.entries(recent).find(([key]) => key === keyword);
+    return found ? found[1] : null;
 };
 
-interface ContentCacheStore {
+export const clearCache = () : void => {
+    const store = useCacheStore.getState();
+    store.clearCache();
+};
+
+interface CacheStore {
     contentCache: ContentInfoData[];
     cacheContent: (info: ContentInfoData) => void;
-    clearContentCache: () => void;
+
+    searchCache: Record<string, ContentPartialData[]>;
+    cacheSearch: (keyword: string, contents: ContentPartialData[]) => void;
+
+    clearCache: () => void;
 }
 
-export const useContentCacheStore = create<ContentCacheStore>((set, get) => ({
+export const useCacheStore = create<CacheStore>((set, get) => ({
     contentCache: [],
 
     cacheContent: (info: ContentInfoData) => {
@@ -33,8 +44,24 @@ export const useContentCacheStore = create<ContentCacheStore>((set, get) => ({
         set({contentCache: updated});
     },
 
-    clearContentCache: () => {
-        set({contentCache: []});
+    searchCache: {},
+
+    cacheSearch: (keyword: string, contents: ContentPartialData[]) => {
+        const recent: Record<string, ContentPartialData[]> = get().searchCache;
+
+        // Remove old matching search if it exists
+        const filtered = Object.entries(recent).filter(([k]) => k !== keyword);
+
+        // Add to the front
+        const updated = [[keyword, contents], ...filtered].slice(0, 25); // Limit to 25
+
+        const updatedCache = Object.fromEntries(updated);
+
+        set({ searchCache: updatedCache });
+    },
+
+    clearCache: () => {
+        set({contentCache: [], searchCache: {}});
     }
 }));
 

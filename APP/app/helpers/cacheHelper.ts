@@ -2,7 +2,7 @@
 
 import { Router } from "expo-router";
 import { Alert } from "../components/alertMessageComponent";
-import { clearContentCache } from "../stores/contentCacheStore";
+import { clearCache } from "../stores/contentCacheStore";
 import { clearGenreData, fetchGenreData } from "../stores/genreDataStore";
 import { clearPopularContent, fetchPopularContent } from "../stores/popularContentStore";
 import { clearStreamingServiceData, fetchStreamingServiceData } from "../stores/streamingServiceDataStore";
@@ -49,7 +49,7 @@ export const FetchCache = (router: Router, token: string,
 export const ClearCache = (...data: CACHE[]) => {
 
     if (data.length === 0 || data.includes(CACHE.ALL)) {
-        clearUserData(); clearContentCache(); // These are both for the user
+        clearUserData(); clearCache(); // These are both for the user
         clearPopularContent();
         clearGenreData();
         clearStreamingServiceData();
@@ -58,7 +58,7 @@ export const ClearCache = (...data: CACHE[]) => {
 
     if (data.includes(CACHE.USER)) {
         clearUserData();
-        clearContentCache();
+        clearCache();
     }
     if (data.includes(CACHE.POPULAR)) {
         clearPopularContent();
