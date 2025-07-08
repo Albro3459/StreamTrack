@@ -1,7 +1,7 @@
 "use client";
 
 import { initializeApp } from "firebase/app";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, getIdToken, initializeAuth } from "firebase/auth";
+import { Auth, User, UserCredential, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, getIdToken, initializeAuth } from "firebase/auth";
 import * as firebaseAuth from 'firebase/auth';    
 import { apiKey, authDomain, projectId, storageBucket, messagingSenderId, appId } from "@/secrets/firebase_keys";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -25,4 +25,4 @@ const auth = initializeAuth(app, {
     persistence: reactNativePersistence(AsyncStorage),
 });
 
-export { auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, getIdToken };
+export { auth, Auth, User, UserCredential, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, getIdToken };

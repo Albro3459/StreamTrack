@@ -7,7 +7,7 @@ using API.Models;
 using AutoMapper;
 using System.Net.Http.Headers;
 
-namespace API.Services;
+namespace API.Service;
 
 class Posters {
     public string VerticalPoster { get; set; } = string.Empty;
@@ -26,9 +26,10 @@ public class APIService {
     private const string RapidApiHostHeader = "x-rapidapi-host";
     private const string RapidApiHostValue = "streaming-availability.p.rapidapi.com";
 
-
-    private const string TMDB_Base_Url = "https://api.themoviedb.org/3/";
-    private const string TMDB_Ending = "?language=en-US";
+    private const string TMDB_Search_Url = "https://api.themoviedb.org/3/search/multi?query=";
+    private const string TMDB_Search_Ending = "&include_adult=false&language=en-US&page=1";
+    private const string TMDB_Poster_Url = "https://api.themoviedb.org/3/";
+    private const string TMDB_Poster_Ending = "?language=en-US";
 
     public APIService(StreamTrackDbContext _context, HttpClient _httpClient, IMapper _mapper) {
         context = _context;
@@ -70,7 +71,7 @@ public class APIService {
         response.EnsureSuccessStatusCode();
         string? json = await response.Content.ReadAsStringAsync();
 
-        APIContent? apiContent = JsonSerializer.Deserialize<APIContent>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        RapidContent? apiContent = JsonSerializer.Deserialize<RapidContent>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         if (apiContent == null) return null;
 
         // Set rating to 5 point scale
@@ -88,30 +89,80 @@ public class APIService {
             posters.HorizontalPoster = badHorizontalPoster ? posters.HorizontalPoster : contentDTO.HorizontalPoster ?? "";
         }
 
-        return await MapToContentDetail(apiContent, posters.VerticalPoster, posters.LargeVerticalPoster, posters.HorizontalPoster);
+        return await MapRapidContentToContentDetail(apiContent, posters.VerticalPoster, posters.LargeVerticalPoster, posters.HorizontalPoster);
     }
 
-    private async Task<Posters> GetPosters(string tmdbID) {
-        string url = TMDB_Base_Url + tmdbID + TMDB_Ending;
+    public async Task<List<ContentPartialDTO>?> TMDBSearch(string keyword) {
+        string url = TMDB_Search_Url + Uri.EscapeDataString(keyword.Trim()) + TMDB_Search_Ending;
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", API_KEYS.TMDB_BEARER_TOKEN);
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
         using var response = await httpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
-        string? json = await response.Content.ReadAsStringAsync();
+        string json = await response.Content.ReadAsStringAsync();
 
-        using var doc = JsonDocument.Parse(json);
-        string verticalPoster = "", largeVerticalPoster = "", horizontalPoster = "";
-        verticalPoster = doc.RootElement.TryGetProperty("poster_path", out var posterPathElem) && posterPathElem.GetString() is string p && !string.IsNullOrEmpty(p)
-                            ? "https://image.tmdb.org/t/p/w185" + p
-                            : "";
-        largeVerticalPoster = doc.RootElement.TryGetProperty("poster_path", out var largePosterPathElem) && largePosterPathElem.GetString() is string l && !string.IsNullOrEmpty(l)
-                            ? "https://image.tmdb.org/t/p/w500" + l
-                            : "";
-        horizontalPoster = doc.RootElement.TryGetProperty("backdrop_path", out var backPathElem) && backPathElem.GetString() is string b && !string.IsNullOrEmpty(b)
-                            ? "https://image.tmdb.org/t/p/w1280" + b
-                            : "";
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        var data = JsonSerializer.Deserialize<TMDB>(json, options);
+        if (data == null) return null;
+
+        // Filter for movies or tv only (no people)
+        data.Results = data.Results.Where(x => x.MediaType == TMDBMediaType.Movie || x.MediaType == TMDBMediaType.Tv).ToList();
+
+        foreach (var x in data.Results) {
+            x.BackdropPath = string.IsNullOrEmpty(x.BackdropPath)
+                ? null
+                : "https://image.tmdb.org/t/p/w1280" + x.BackdropPath;
+
+            if (string.IsNullOrEmpty(x.PosterPath)) {
+                x.PosterPath = null;
+                x.LargePosterPath = null;
+            }
+            else {
+                var tempPoster = x.PosterPath;
+                x.PosterPath = "https://image.tmdb.org/t/p/w185" + x.PosterPath;
+                x.LargePosterPath = "https://image.tmdb.org/t/p/w500" + tempPoster;
+            }
+        }
+
+        return data.Results.Select(t => MapTMDBContentToContentPartialDTO(t)).ToList();
+    }
+
+    private async Task<Posters> GetPosters(string tmdbID) {
+        string url = TMDB_Poster_Url + tmdbID + TMDB_Poster_Ending;
+        using var request = new HttpRequestMessage(HttpMethod.Get, url);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", API_KEYS.TMDB_BEARER_TOKEN);
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+
+        using var response = await httpClient.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+        string json = await response.Content.ReadAsStringAsync();
+
+        // using var doc = JsonDocument.Parse(json);
+        // string verticalPoster = "", largeVerticalPoster = "", horizontalPoster = "";
+        // verticalPoster = doc.RootElement.TryGetProperty("poster_path", out var posterPathElem) && posterPathElem.GetString() is string p && !string.IsNullOrEmpty(p)
+        //                     ? "https://image.tmdb.org/t/p/w185" + p
+        //                     : "";
+        // largeVerticalPoster = doc.RootElement.TryGetProperty("poster_path", out var largePosterPathElem) && largePosterPathElem.GetString() is string l && !string.IsNullOrEmpty(l)
+        //                     ? "https://image.tmdb.org/t/p/w500" + l
+        //                     : "";
+        // horizontalPoster = doc.RootElement.TryGetProperty("backdrop_path", out var backPathElem) && backPathElem.GetString() is string b && !string.IsNullOrEmpty(b)
+        //                     ? "https://image.tmdb.org/t/p/w1280" + b
+        //                     : "";
+        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+        var tmdbContent = JsonSerializer.Deserialize<TMDBContent>(json, options);
+
+        string verticalPoster = !string.IsNullOrEmpty(tmdbContent?.PosterPath)
+            ? "https://image.tmdb.org/t/p/w185" + tmdbContent.PosterPath
+            : "";
+
+        string largeVerticalPoster = !string.IsNullOrEmpty(tmdbContent?.PosterPath)
+            ? "https://image.tmdb.org/t/p/w500" + tmdbContent.PosterPath
+            : "";
+
+        string horizontalPoster = !string.IsNullOrEmpty(tmdbContent?.BackdropPath)
+            ? "https://image.tmdb.org/t/p/w1280" + tmdbContent.BackdropPath
+            : "";
 
         return new Posters { VerticalPoster = verticalPoster, LargeVerticalPoster = largeVerticalPoster, HorizontalPoster = horizontalPoster };
     }
@@ -123,7 +174,24 @@ public class APIService {
         return false;
     }
 
-    private async Task<ContentDetail> MapToContentDetail(APIContent content, string verticalPoster, string largeVerticalPoster, string horizontalPoster) {
+    private ContentPartialDTO MapTMDBContentToContentPartialDTO(TMDBContent tmdb) {
+        var isMovie = tmdb.MediaType == TMDBMediaType.Movie;
+
+        return new ContentPartialDTO {
+            TMDB_ID = tmdb.MediaType.ToString().ToLower() + "/" + tmdb.ID,
+            Title = isMovie ? tmdb.Title ?? string.Empty : tmdb.Name ?? string.Empty,
+            Overview = tmdb.Overview ?? string.Empty,
+            Rating = Math.Round(tmdb.VoteAverage / 2.0, 2), // convert to 5 point scale
+            ReleaseYear = !string.IsNullOrEmpty(tmdb.ReleaseDate) &&
+                            int.TryParse(tmdb.ReleaseDate.Split('-')[0], out var year)
+                            ? year : 0,
+            VerticalPoster = tmdb.PosterPath,
+            LargeVerticalPoster = tmdb.LargePosterPath ?? "",
+            HorizontalPoster = tmdb.BackdropPath
+        };
+    }
+
+    private async Task<ContentDetail> MapRapidContentToContentDetail(RapidContent content, string verticalPoster, string largeVerticalPoster, string horizontalPoster) {
         var details = new ContentDetail {
             TMDB_ID = content.tmdbId,
             Title = content.title,
@@ -145,28 +213,28 @@ public class APIService {
 
         // List<string> genreNames = content.genres.Select(g => g.name).ToList();
         // details.Genres = await context.Genre.Where(g => genreNames.Contains(g.Name)).ToListAsync();
-        List<APIGenre> apiGenres = content.genres; // List<APIGenre>
+        List<RapidGenre> apiGenres = content.genres; // List<APIGenre>
         List<string> genreNames = apiGenres.Select(g => g.name).ToList();
 
         List<Genre> existingGenres = await context.Genre.Where(g => genreNames.Contains(g.Name)).ToListAsync();
 
         HashSet<string> existingGenreNames = existingGenres.Select(g => g.Name).ToHashSet();
-        List<APIGenre> missingGenres = apiGenres.Where(g => !existingGenreNames.Contains(g.name)).ToList();
+        List<RapidGenre> missingGenres = apiGenres.Where(g => !existingGenreNames.Contains(g.name)).ToList();
 
         var newGenres = new List<Genre>();
         foreach (var apiGenre in missingGenres) {
-            Genre genre = await MapToGenre(apiGenre);
+            Genre genre = await MapRapidGenreToGenre(apiGenre);
             newGenres.Add(genre);
         }
         details.Genres = existingGenres.Concat(newGenres).ToList();
 
         // Go single threaded and use a map to avoid duplicates
-        if (content.streamingOptions.TryGetValue("us", out List<APIStreamingOption>? options)) {
+        if (content.streamingOptions.TryGetValue("us", out List<RapidStreamingOption>? options)) {
             var streamingOptionMap = new Dictionary<(string, string), StreamingOption>();
             foreach (var o in options) {
                 var key = (details.TMDB_ID, o.service.id);
                 if (!streamingOptionMap.ContainsKey(key)) {
-                    var so = await MapToStreamingOption(o, details);
+                    var so = await MapRapidStreamingOptionToStreamingOption(o, details);
                     streamingOptionMap[key] = so;
                 }
             }
@@ -179,7 +247,7 @@ public class APIService {
         return details;
     }
 
-    private async Task<Genre> MapToGenre(APIGenre apiGenre) {
+    private async Task<Genre> MapRapidGenreToGenre(RapidGenre apiGenre) {
         var genre = context.Genre.Local.FirstOrDefault(g => g.Name == apiGenre.name);
         if (genre != null)
             return genre;
@@ -193,7 +261,7 @@ public class APIService {
         return genre;
     }
 
-    private async Task<StreamingOption> MapToStreamingOption(APIStreamingOption option, ContentDetail contentDetail) {
+    private async Task<StreamingOption> MapRapidStreamingOptionToStreamingOption(RapidStreamingOption option, ContentDetail contentDetail) {
         // Find or create the StreamingService
         var serviceName = option.service.name;
         var streamingOption = context.StreamingOption.Local.FirstOrDefault(o => o.TMDB_ID == contentDetail.TMDB_ID && o.StreamingService.Name == serviceName)

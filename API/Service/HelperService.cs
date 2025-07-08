@@ -1,21 +1,19 @@
-using System.Reflection.Metadata.Ecma335;
-using System.Threading.Tasks;
 using API.DTOs;
 using API.Infrastructure;
 using API.Models;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 
-namespace API.Services;
+namespace API.Service;
 
-public class Service {
+public class HelperService {
 
     private readonly StreamTrackDbContext context;
     private readonly IMapper mapper;
 
     private static readonly Random rng = new Random();
 
-    public Service(StreamTrackDbContext _context, IMapper _mapper) {
+    public HelperService(StreamTrackDbContext _context, IMapper _mapper) {
         context = _context;
         mapper = _mapper;
     }

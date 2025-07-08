@@ -2,8 +2,7 @@
 
 import { ContentPartialData, ListMinimalData, UserData } from "@/app/types/dataTypes";
 import { DataAPIURL } from "@/secrets/DataAPIUrl";
-import { signOut, User } from "firebase/auth";
-import { auth } from "@/firebaseConfig";
+import { auth, signOut, User } from "@/firebaseConfig";
 import { setUserData, useUserDataStore } from "@/app/stores/userDataStore";
 import { Alert } from "@/app/components/alertMessageComponent";
 import { Router } from "expo-router";
@@ -35,9 +34,9 @@ export const isItemInList = (lists: ListMinimalData[], listName: string, tmdbID:
     return list.tmdbIDs.includes(tmdbID);
 };
 
-export const isItemInAnyList = (lists: ListMinimalData[], tmdbID: string) => {
-    return lists.flatMap(l => l.tmdbIDs).includes(tmdbID);
-};
+// export const isItemInAnyList = (lists: ListMinimalData[], tmdbID: string) => {
+//     return lists.flatMap(l => l.tmdbIDs).includes(tmdbID);
+// };
 
 export const handleCreateNewTab = async (
                 router: Router,

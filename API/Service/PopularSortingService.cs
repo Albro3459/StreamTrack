@@ -4,7 +4,7 @@ using API.Models;
 using AutoMapper;
 using Microsoft.IdentityModel.Tokens;
 
-namespace API.Services;
+namespace API.Service;
 
 public class PopularSortingService {
 

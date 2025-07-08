@@ -6,7 +6,7 @@ using AutoMapper;
 using API.DTOs;
 using API.Infrastructure;
 using API.Models;
-using API.Services;
+using API.Service;
 using System.Net.NetworkInformation;
 
 namespace API.Controllers;
@@ -16,11 +16,11 @@ namespace API.Controllers;
 public class UserController : ControllerBase {
 
     private readonly StreamTrackDbContext context;
-    private readonly Service service;
+    private readonly HelperService service;
     private readonly IMapper mapper;
     private const string USER_DEFAULT_LIST = "Favorites";
 
-    public UserController(StreamTrackDbContext _context, Service _service, IMapper _mapper) {
+    public UserController(StreamTrackDbContext _context, HelperService _service, IMapper _mapper) {
         context = _context;
         service = _service;
         mapper = _mapper;

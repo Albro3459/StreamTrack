@@ -1,4 +1,4 @@
-namespace API.Services;
+namespace API.Service;
 
 public class QueuedHostedService : BackgroundService {
     private readonly BackgroundTaskQueue taskQueue;

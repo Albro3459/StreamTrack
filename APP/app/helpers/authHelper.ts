@@ -1,6 +1,6 @@
 "use client";
 
-import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, UserCredential } from "firebase/auth";
+import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, UserCredential } from "@/firebaseConfig"
 import { checkIfUserExists, createUser } from "./StreamTrack/userHelper";
 import { CACHE, ClearCache, FetchCache } from "./cacheHelper";
 import { Alert } from "../components/alertMessageComponent";

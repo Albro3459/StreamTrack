@@ -6,7 +6,7 @@ using AutoMapper;
 using API.DTOs;
 using API.Infrastructure;
 using API.Models;
-using API.Services;
+using API.Service;
 using System.Runtime.ExceptionServices;
 
 namespace API.Controllers;
@@ -16,8 +16,8 @@ namespace API.Controllers;
 public class ListController : ControllerBase {
 
     private readonly StreamTrackDbContext context;
-    private readonly Service service;
-    private readonly Services.APIService rapidAPIService;
+    private readonly HelperService service;
+    private readonly APIService APIService;
     private readonly BackgroundTaskQueue taskQueue;
     private readonly IServiceProvider serviceProvider;
     private readonly IMapper mapper;
@@ -25,10 +25,10 @@ public class ListController : ControllerBase {
     private const int MAX_USER_LIST_ITEM_COUNT = 1000;
     private const string USER_DEFAULT_LIST = "Favorites";
 
-    public ListController(StreamTrackDbContext _context, Service _service, Services.APIService _rapidAPIService, BackgroundTaskQueue _taskQueue, IServiceProvider _serviceProvider, IMapper _mapper) {
+    public ListController(StreamTrackDbContext _context, HelperService _service, APIService _APIService, BackgroundTaskQueue _taskQueue, IServiceProvider _serviceProvider, IMapper _mapper) {
         context = _context;
         service = _service;
-        rapidAPIService = _rapidAPIService;
+        APIService = _APIService;
         taskQueue = _taskQueue;
         mapper = _mapper;
         serviceProvider = _serviceProvider;
@@ -180,7 +180,7 @@ public class ListController : ControllerBase {
 
         // send off background Task to fetch and save full content details
         taskQueue.QueueBackgroundWorkItem(async (serviceProvider, token) => {
-            var rapidAPIService = serviceProvider.GetRequiredService<Services.APIService>();
+            var rapidAPIService = serviceProvider.GetRequiredService<APIService>();
             await rapidAPIService.FetchAndSaveMissingContent(contentDTO);
         });
 

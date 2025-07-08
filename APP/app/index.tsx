@@ -5,10 +5,9 @@ import { View, Image, StyleSheet, Pressable, Text } from "react-native";
 import { useRouter } from "expo-router";
 
 import { Colors } from "@/constants/Colors";
-import { onAuthStateChanged, User } from "firebase/auth";
-import { auth } from "@/firebaseConfig";
+import { auth, onAuthStateChanged, User } from "@/firebaseConfig";
 import { checkIfUserExists } from "./helpers/StreamTrack/userHelper";
-import { CACHE, FetchCache } from "./helpers/cacheHelper";
+import { FetchCache } from "./helpers/cacheHelper";
 import AlertMessage, { Alert } from "./components/alertMessageComponent";
 import { LogOut } from "./helpers/authHelper";
 import { appStyles } from "@/styles/appStyles";

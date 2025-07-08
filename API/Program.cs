@@ -4,7 +4,7 @@ using Microsoft.OpenApi.Models;
 // using AutoMapper;
 
 using API.Infrastructure;
-using API.Services;
+using API.Service;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -70,7 +70,7 @@ builder.Services.AddAuthorization(options => {
 builder.Services.AddAutoMapper(typeof(Program)); // All profiles in this project
 
 // Services
-builder.Services.AddScoped<Service>();
+builder.Services.AddScoped<HelperService>();
 builder.Services.AddScoped<PopularSortingService>();
 builder.Services.AddHttpClient<APIService>();
 builder.Services.AddSingleton<BackgroundTaskQueue>();

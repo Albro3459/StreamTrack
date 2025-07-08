@@ -1,6 +1,22 @@
 "use client";
 
-import { SHOW_TYPE, STREAMING_OPTION_TYPE } from "./contentType";
+export enum TMDB_MEDIA_TYPE {
+    MOVIE = "movie",
+    TV = "tv"
+}
+
+export enum SHOW_TYPE {
+    MOVIE = "movie",
+    SERIES = "series"
+}
+
+export enum STREAMING_OPTION_TYPE {
+    ADDON = 'addon',
+    BUY = 'buy',
+    FREE = 'free',
+    RENT = 'rent',
+    SUBSCRIPTION = 'subscription'
+}
 
 // Types I used to send and receive from my StreamTrack API
 

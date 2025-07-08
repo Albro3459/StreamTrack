@@ -1,6 +1,6 @@
 using System.Threading.Channels;
 
-namespace API.Services;
+namespace API.Service;
 
 public class BackgroundTaskQueue {
     private readonly Channel<Func<IServiceProvider, CancellationToken, Task>> queue = Channel.CreateUnbounded<Func<IServiceProvider, CancellationToken, Task>>();

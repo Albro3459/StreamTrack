@@ -1,25 +1,9 @@
 "use client";
 
 import React, { Dispatch, SetStateAction } from "react";
-import { View, Text, Pressable } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { Text, Pressable } from "react-native";
 import { SvgUri } from "react-native-svg";
 import { StreamingServiceData } from "../types/dataTypes";
-
-interface EyeToggleProps {
-    icon: React.ComponentProps<typeof Feather>['name'];
-    onPress: () => void;
-    styles: any;
-}
-
-export const EyeToggle: React.FC<EyeToggleProps> = ({ icon, onPress, styles }) => (
-    <View key={icon} style={styles.eyeContainer}>
-        <Pressable onPress={onPress} style={styles.headerButtons }>
-            <Feather name={icon} size={28} color="black"/>
-        </Pressable>
-    </View>
-);
-
 
 // function to toggle selecting an attribute or bubble
 const toggleSelection = (attribute: string, setState: Dispatch<SetStateAction<Set<string>>>) => {

@@ -7,8 +7,7 @@ import Heart from './components/heartComponent';
 import { useLocalSearchParams, useRouter } from 'expo-router/build/hooks';
 import { appStyles, RalewayFont } from '@/styles/appStyles';
 import { SvgUri } from 'react-native-svg';
-import { TMDB_MEDIA_TYPE } from './types/tmdbType';
-import { ContentData, ContentInfoData, ContentPartialData, ContentRequestData, ListMinimalData, StreamingOptionData } from './types/dataTypes';
+import { ContentData, ContentInfoData, ContentPartialData, ContentRequestData, ListMinimalData, StreamingOptionData, TMDB_MEDIA_TYPE } from './types/dataTypes';
 import { setUserData, useUserDataStore } from './stores/userDataStore';
 import { FAVORITE_TAB, handleCreateNewTab, isItemInList, moveItemToList } from './helpers/StreamTrack/listHelper';
 import MoveModal from './components/moveModalComponent';
@@ -148,16 +147,17 @@ export default function InfoPage() {
 
             const token = await auth.currentUser.getIdToken();
     
-            let content: ContentInfoData | null = getCachedContent(tmdbID);
+            let info: ContentInfoData | null = getCachedContent(tmdbID);
 
             try {
-                if (!content) {
-                    content = await getContentInfo(router, token, {tmdbID:tmdbID, VerticalPoster:verticalPoster, LargeVerticalPoster: largeVerticalPoster, HorizontalPoster:horizontalPoster} as ContentRequestData, setAlertMessage, setAlertType);
+                if (!info || !info?.content?.largeVerticalPoster) {
+                    const shouldRefresh: boolean = !info?.content?.largeVerticalPoster;
+                    info = await getContentInfo(router, token, {tmdbID:tmdbID, VerticalPoster:verticalPoster, LargeVerticalPoster: largeVerticalPoster, HorizontalPoster:horizontalPoster} as ContentRequestData, setAlertMessage, setAlertType, shouldRefresh);
                 }
             } finally {
-                if (content) {
-                    setInfo(content);
-                    cacheContent(content);
+                if (info) {
+                    setInfo(info);
+                    cacheContent(info);
                 }
                 setIsLoading(false);
             }

@@ -8,11 +8,9 @@ import { useRouter } from 'expo-router';
 import debounce from 'lodash.debounce';
 import { appStyles } from '@/styles/appStyles';
 import { Feather } from '@expo/vector-icons';
-import { TMDBSearch } from './helpers/tmdbAPIHelper';
-import { TMDB } from './types/tmdbType';
 import { useUserDataStore } from './stores/userDataStore';
 import { ContentData, ContentPartialData, ContentSimpleData, ListMinimalData } from './types/dataTypes';
-import { FAVORITE_TAB, isItemInAnyList, isItemInList, moveItemToList, sortLists } from './helpers/StreamTrack/listHelper';
+import { FAVORITE_TAB, isItemInList, moveItemToList, sortLists } from './helpers/StreamTrack/listHelper';
 import MoveModal from './components/moveModalComponent';
 import { StarRating } from './components/starRatingComponent';
 import AlertMessage, { Alert } from './components/alertMessageComponent';
@@ -20,6 +18,8 @@ import { useContentCacheStore } from './stores/contentCacheStore';
 import { useFocusEffect } from '@react-navigation/native';
 import { getPoster } from './helpers/StreamTrack/contentHelper';
 import { usePopularContentStore } from './stores/popularContentStore';
+import { searchTMDB } from './helpers/StreamTrack/searchHelper';
+import { auth } from '@/firebaseConfig';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -49,17 +49,17 @@ export default function SearchPage() {
 
     const [contents, setContents] = useState<ContentPartialData[]>([]);
 
-    const debouncedSearch = useRef(
-        debounce(async (text) => {
-            await search(text); // await works here
-        }, 400)
-    ).current;
-
     const noResultsOrTrySearching: (searchText: string, showNoResults: boolean, isSearching: boolean) => boolean = (
         searchText: string, showNoResults: boolean, isSearching: boolean
     ) => { 
             return searchText.length > 0 && showNoResults && !isSearching
     };
+
+    const debouncedSearch = useRef(
+        debounce(async (text) => {
+            await search(text); // await works here
+        }, 400)
+    ).current;
 
     const search = async (searchText: string) => {
         searchText = searchText?.trim();
@@ -67,20 +67,10 @@ export default function SearchPage() {
         if (searchText.length > 0) {
             try {
                 setIsSearching(true);
-                const tmdbContents: TMDB = await TMDBSearch(searchText);
-                const contents: ContentPartialData[] = tmdbContents.results.map(tmdbContent => {
-                    return {
-                        tmdbID: tmdbContent.media_type+"/"+tmdbContent.id.toString(),
-                        title: tmdbContent.media_type === "movie" ? tmdbContent.title : tmdbContent.name,
-                        overview: tmdbContent.overview,
-                        rating:  parseFloat((tmdbContent.vote_average/2).toFixed(2)) ?? 0, // rating is on 10 pt scale so this converts to 5 star scale
-                        releaseYear: tmdbContent.release_date ? parseInt(tmdbContent.release_date.split("-")[0]) : 0,
-                        verticalPoster: tmdbContent.poster_path, 
-                        largeVerticalPoster: tmdbContent.large_poster_path ?? "",
-                        horizontalPoster: tmdbContent.backdrop_path,
-                    }
-                });
-                setContents(contents);
+                Keyboard.dismiss();
+
+                const contents: ContentPartialData[] = await searchTMDB(router, await auth?.currentUser?.getIdToken(), searchText, setAlertMessage, setAlertType);
+                setContents(contents ?? []);
             } finally { // Scroll back up to top
                 if (flatListRef.current && contents && contents.length > 0) {
                     flatListRef.current.scrollToOffset({ animated: true, offset: 0});

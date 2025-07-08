@@ -4,7 +4,6 @@ import { appStyles } from "@/styles/appStyles";
 import { Modal, Pressable, View, Text } from "react-native";
 import Heart from "./heartComponent";
 import { FAVORITE_TAB, handleCreateNewTab, sortLists } from "../helpers/StreamTrack/listHelper";
-import { Colors } from "@/constants/Colors";
 import { Ionicons } from '@expo/vector-icons';
 import { ContentPartialData, ListMinimalData } from "../types/dataTypes";
 import { useState } from "react";

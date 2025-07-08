@@ -6,7 +6,7 @@ using AutoMapper;
 using API.DTOs;
 using API.Infrastructure;
 using API.Models;
-using API.Services;
+using API.Service;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
@@ -17,9 +17,9 @@ namespace API.Controllers;
 public class ContentController : ControllerBase {
 
     private readonly StreamTrackDbContext context;
-    private readonly Service service;
+    private readonly HelperService service;
     private readonly PopularSortingService sortingService;
-    private readonly Services.APIService rapidAPIService;
+    private readonly APIService APIService;
     private readonly IMapper mapper;
 
     private const int maxContents = 10; // max amount of contents to take per each section or carousel
@@ -70,12 +70,48 @@ public class ContentController : ControllerBase {
     };
 
 
-    public ContentController(StreamTrackDbContext _context, Service _service, PopularSortingService _sortingService, Services.APIService _rapidAPIService, IMapper _mapper) {
+    public ContentController(StreamTrackDbContext _context, HelperService _service, PopularSortingService _sortingService, APIService _APIService, IMapper _mapper) {
         context = _context;
         service = _service;
         sortingService = _sortingService;
-        rapidAPIService = _rapidAPIService;
+        APIService = _APIService;
         mapper = _mapper;
+    }
+
+    // GET: API/Content/Search?keyword={keyword}
+    [HttpGet("Search")]
+    public async Task<ActionResult<List<ContentPartialDTO>>> SearchTMDB([FromQuery] string? keyword = "") {
+        // Get the user's auth token to get the firebase uuid to get the correct user's data
+        // User's can only get their own data
+
+        string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(uid))
+            return Unauthorized();
+
+        var user = await context.User.FirstOrDefaultAsync(u => u.UserID == uid);
+        if (user == null) return Unauthorized();
+
+        if (string.IsNullOrWhiteSpace(keyword)) {
+            return BadRequest();
+        }
+
+        try {
+            var contents = await APIService.TMDBSearch(keyword);
+            if (contents == null) {
+                return BadRequest();
+            }
+            else if (contents.Count == 0) {
+                return NotFound();
+            }
+            else {
+                return contents;
+            }
+        }
+        catch (Exception e) {
+            System.Console.WriteLine("Error in Search TMDB: " + e);
+            return BadRequest();
+        }
     }
 
     // // GET: API/Content/GetDetails/{tmdbID}
@@ -127,13 +163,13 @@ public class ContentController : ControllerBase {
 
         try {
             if (detail == null) {
-                detail = await rapidAPIService.FetchContentDetailsByTMDBIDAsync(requestDTO);
+                detail = await APIService.FetchContentDetailsByTMDBIDAsync(requestDTO);
                 if (detail == null) {
                     return NotFound();
                 }
             }
             else if (detail.TTL_UTC < DateTime.UtcNow || shouldRefresh.GetValueOrDefault()) {
-                ContentDetail? updatedDetail = await rapidAPIService.FetchContentDetailsByTMDBIDAsync(requestDTO);
+                ContentDetail? updatedDetail = await APIService.FetchContentDetailsByTMDBIDAsync(requestDTO);
                 if (updatedDetail == null) {
                     return NotFound();
                 }
@@ -176,8 +212,8 @@ public class ContentController : ControllerBase {
                 await context.SaveChangesAsync();
             }
         }
-        catch (Exception ex) {
-            System.Console.WriteLine("Error in GetContentDetails: " + ex);
+        catch (Exception e) {
+            System.Console.WriteLine("Error in GetContentDetails: " + e);
             return BadRequest();
         }
 
