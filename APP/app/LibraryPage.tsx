@@ -86,16 +86,15 @@ export default function LibraryPage() {
     };
 
     const doneDeleting = () => {
-        console.log("DONE");
         setDeleting(false); setDeleteTab(null);
     };
 
     const handleTabDelete = async (listName: string) => {
-        listName = listName.toLowerCase().trim();
-        const success = await deleteUserList(router, await auth?.currentUser?.getIdToken(), listName, setAlertMessage, setAlertType);
+        const normalized = listName.toLowerCase().trim();
+        const success = await deleteUserList(router, await auth?.currentUser?.getIdToken(), normalized, setAlertMessage, setAlertType);
         if (success) {
-            const newListsOwned: ListMinimalData[] = [...userData?.user?.listsOwned.filter(l => l.listName.toLowerCase().trim() !== listName) || []];
-            const newListsSharedWithMe: ListMinimalData[] = [...userData?.user?.listsSharedWithMe.filter(l => l.listName.toLowerCase().trim() !== listName) || []];
+            const newListsOwned: ListMinimalData[] = [...userData?.user?.listsOwned.filter(l => l.listName.toLowerCase().trim() !== normalized) || []];
+            const newListsSharedWithMe: ListMinimalData[] = [...userData?.user?.listsSharedWithMe.filter(l => l.listName.toLowerCase().trim() !== normalized) || []];
 
             setUserData({
                 ...userData,
@@ -107,13 +106,16 @@ export default function LibraryPage() {
             });
 
             setLists(sortLists([...newListsOwned, ...newListsSharedWithMe]));
+
+            handleTabPress(FAVORITE_TAB);
         }
         doneDeleting();
     };
 
     const handleTabPress = (listName: string) => {
+        listName = listName.toLowerCase().trim();
         setActiveTab(listName);
-        pagerViewRef.current?.setPage(lists.map(l => l?.listName).indexOf(listName));
+        pagerViewRef.current?.setPage(lists.map(l => l?.listName.toLowerCase()).indexOf(listName));
 
         setLists(sortLists(lists));
     };
@@ -160,7 +162,6 @@ export default function LibraryPage() {
                 <View style={styles.movieCard} >
                     <Pressable
                         style={({ pressed }) => [
-                            // styles.movieCard,
                             pressed && appStyles.pressed,
                         ]}
                         onPress={() => {
@@ -215,55 +216,69 @@ export default function LibraryPage() {
                 />
 
                 {/* Tab Bar */}
-                <View style={[styles.tabBar, (lists && lists.length <= 4) && {paddingLeft: 24}]}>
-                    <FlatList<string>
-                        data={lists.map(l => l?.listName)}
-                        ref={flatListRef}
-                        horizontal
-                        showsHorizontalScrollIndicator={false}
-                        nestedScrollEnabled
-                        keyExtractor={(listName, index) => listName+"-"+index+"-"+getRandomNumber()}
-                        renderItem={({ item: listName }) => (
-                            <Pressable
-                                style={[styles.tabItem, activeTab === listName && styles.activeTabItem, {paddingHorizontal:8}, (lists && lists.length <= 4) && {paddingHorizontal: 12}]}
-                                onPress={async () => !deleting && handleTabPress(listName) /* do nothing if deleting */}
-                                onLongPress={() => setDeleting(true)}
-                            >
-                                { listName === FAVORITE_TAB ? (
-                                    <Heart 
-                                        size={25}
-                                        onPress={async () => handleTabPress(listName)}
-                                    />
-                                ) : (
-                                    <Text
-                                        style={[styles.tabText, activeTab === listName && styles.activeTabText]}
-                                    >
-                                        {listName}
-                                    </Text>
-                                )}
-                                
-                                {deleting && listName !== FAVORITE_TAB && (
+                <View style={{position: 'relative'}}>
+                    {deleting && (
+                        <Pressable
+                            style={StyleSheet.absoluteFill}
+                            pointerEvents="auto"
+                            onPress={doneDeleting}
+                        />
+                    )}
+                    <View style={[styles.tabBar, (lists && lists.length <= 4) && {paddingLeft: 24}]}
+                        pointerEvents={deleting ? "box-none" : "auto"}
+                    >
+                        <FlatList<string>
+                            data={lists.map(l => l?.listName)}
+                            ref={flatListRef}
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            nestedScrollEnabled
+                            keyExtractor={(listName, index) => listName+"-"+index+"-"+getRandomNumber()}
+                            renderItem={({ item: listName }) => (
+                                <>
                                     <Pressable
-                                        onPress={() => setDeleteTab(listName)}
-                                        style={{position: "absolute", top: 0, right: -3, zIndex: 30}}
+                                        style={[styles.tabItem, activeTab === listName && styles.activeTabItem, {paddingHorizontal:8}, (lists && lists.length <= 4) && {paddingHorizontal: 12}]}
+                                        onPress={async () => deleting ? doneDeleting() : handleTabPress(listName) /* do nothing if deleting */}
+                                        onLongPress={() => lists.length > 1 && setDeleting(true)}
                                     >
-                                        <Ionicons name="close-circle" size={18} color="red" />
+                                        { listName === FAVORITE_TAB ? (
+                                            <Heart 
+                                                size={25}
+                                                onPress={async () => deleting ? doneDeleting() : handleTabPress(listName)}
+                                                disabled={true}
+                                            />
+                                        ) : (
+                                            <Text
+                                                style={[styles.tabText, activeTab === listName && styles.activeTabText]}
+                                            >
+                                                {listName}
+                                            </Text>
+                                        )}
                                     </Pressable>
-                                )}
-                            </Pressable>
 
-                        )}
-                    />
-                    <Pressable onPress={() => setCreateListModalVisible(true)} >
-                            <Ionicons name="add" size={28} color="white" />
-                    </Pressable>
+                                    {deleting && listName !== FAVORITE_TAB && (
+                                        <Pressable
+                                            onPress={() => setDeleteTab(listName)}
+                                            style={{position: "absolute", top: 0, right: -3, zIndex: 30}}
+                                        >
+                                            <Ionicons name="close-circle" size={18} color="red" />
+                                        </Pressable>
+                                    )}
+                                </>
+
+                            )}
+                        />
+                        <Pressable onPress={() => deleting ? doneDeleting() : setCreateListModalVisible(true)} >
+                                <Ionicons name="add" size={28} color="white" />
+                        </Pressable>
+                    </View>
                 </View>
 
                 <View style={{flex: 1}}>
                     {/* Pager View */}
                     <PagerView
                         style={{ flex: 1, marginTop: 20, marginBottom: 50 }}
-                        initialPage={lists.map(l => l?.listName).indexOf(activeTab) ?? 0}
+                        initialPage={lists.map(l => l?.listName.toLowerCase()).indexOf(activeTab.toLowerCase()) ?? 0}
                         key={lists.map(l => l?.listName+"-"+getRandomNumber()).join('-')}
                         ref={pagerViewRef}
                         onPageSelected={(e) => setActiveTab(lists[e.nativeEvent.position]?.listName)}
@@ -274,15 +289,15 @@ export default function LibraryPage() {
                         ))} */}
 
                         {lists.map((list, index) => {
-                            const isActive = (i: number) => (i >= 0 && i === lists.findIndex(item => item?.listName === activeTab));
+                            const isActive = (i: number) => (i >= 0 && i === lists.findIndex(item => item?.listName.toLowerCase() === activeTab.toLowerCase()));
                             // Only rendering neighboring tabs
                             if ((isActive(index) || isActive(index - 1) || isActive(index + 1)) && userData?.contents) {
                                 const contents = getContentsInList(userData.contents, lists, list?.listName);
-                                return <View style={{paddingHorizontal: 5}} key={list?.listName+"-"+(lists.map(l => l?.listName).indexOf(activeTab) ?? 0)+"-"+getRandomNumber()}>
-                                        {renderTabContent(contents, list?.listName)}
+                                return <View style={{paddingHorizontal: 5}} key={list?.listName+"-"+(lists.map(l => l?.listName.toLowerCase()).indexOf(activeTab.toLowerCase()) ?? 0)+"-"+getRandomNumber()}>
+                                        {renderTabContent(contents, list?.listName.toLowerCase())}
                                     </View>;
                             } else {
-                                return <View style={{paddingHorizontal: 5}} key={list?.listName+"-"+(lists.map(l => l?.listName).indexOf(activeTab) ?? 0)+"-"+getRandomNumber()} />;
+                                return <View style={{paddingHorizontal: 5}} key={list?.listName+"-"+(lists.map(l => l?.listName.toLowerCase()).indexOf(activeTab.toLowerCase()) ?? 0)+"-"+getRandomNumber()} />;
                             }
                         })}
                     </PagerView>
@@ -371,7 +386,6 @@ export default function LibraryPage() {
                         />
                     )}
                 </View>
-
 
                 {/* Overlay */}
                 {isLoading && (
