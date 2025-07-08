@@ -151,7 +151,9 @@ public class UserController : ControllerBase {
             user.ListsOwned.Clear();
             user.ListsOwned.Add(new List(user, USER_DEFAULT_LIST)); // Add default list
         }
-        else if (user.ListsOwned.Where(l => l.ListName == USER_DEFAULT_LIST).ToList().Count > 1) {
+
+        var defaultListCount = user.ListsOwned.Where(l => l.ListName == USER_DEFAULT_LIST).ToList().Count;
+        if (defaultListCount > 1) {
             var defaultLists = user.ListsOwned.Where(l => l.ListName == USER_DEFAULT_LIST).ToList();
             if (defaultLists.Count > 1) {
                 // Keep only the first, remove others
@@ -161,8 +163,7 @@ public class UserController : ControllerBase {
                 await context.SaveChangesAsync();
             }
         }
-
-        if (!user.ListsOwned.Any(l => l.ListName == USER_DEFAULT_LIST)) {
+        else if (defaultListCount <= 0) {
             user.ListsOwned.Add(new List(user, USER_DEFAULT_LIST));
         }
 

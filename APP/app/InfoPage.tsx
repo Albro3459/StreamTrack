@@ -272,7 +272,7 @@ export default function InfoPage() {
                                         isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
                                         size={20}
                                         background={true}
-                                        onPress={async () => await moveItemToList(content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)}
+                                        onPress={async () => await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)}
                                     />
                                 </View>
                             </View>
@@ -338,7 +338,7 @@ export default function InfoPage() {
                             <Heart
                                 isSelected={() => isItemInList(lists, FAVORITE_TAB, tmdbID ? tmdbID : info ? info?.content?.tmdbID : "")}
                                 size={35}
-                                onPress={async () => await moveItemToList(info?.content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)}
+                                onPress={async () => await moveItemToList(router, info?.content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)}
                                 disabled={!info || !info.content}
                             />
                         </View>
@@ -367,6 +367,7 @@ export default function InfoPage() {
 
             {/* Lists */}
             <MoveModal
+                router={router}
                 selectedContent={info?.content}
                 lists={lists}
 
@@ -386,6 +387,7 @@ export default function InfoPage() {
                 setAlertTypeFunc={setAlertType}
             />
             <MoveModal
+                router={router}
                 selectedContent={selectedRecommendation}
                 lists={lists}
 
@@ -407,6 +409,7 @@ export default function InfoPage() {
 
             {/* Create List Modal */}
             <CreateNewListModal
+                router={router}
                 visible={createListModalVisible}
                 setVisibilityFunc={setCreateListModalVisible}
                 setIsLoadingFunc={setIsLoading}

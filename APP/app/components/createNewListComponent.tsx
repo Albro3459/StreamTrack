@@ -6,10 +6,13 @@ import React, { useEffect } from "react";
 import { Modal, View, Text, TextInput, Pressable, StyleSheet } from "react-native";
 import { ContentPartialData, ListMinimalData } from "../types/dataTypes";
 import { Alert } from "./alertMessageComponent";
+import { Router } from "expo-router";
 
 interface CreateNewListModalProps {
+    router: Router, 
     visible: boolean;
     setVisibilityFunc: React.Dispatch<React.SetStateAction<boolean>>,
+    setMoveVisibilityFunc?: React.Dispatch<React.SetStateAction<boolean>>,
     setIsLoadingFunc: React.Dispatch<React.SetStateAction<boolean>>,
 
     title?: string;
@@ -20,6 +23,7 @@ interface CreateNewListModalProps {
     setListsFunc: React.Dispatch<React.SetStateAction<ListMinimalData[]>>;
 
     onCreateNewTabFunc: (
+        router: Router, 
         listName: string, 
         lists: ListMinimalData[],
         setListsFunc: React.Dispatch<React.SetStateAction<ListMinimalData[]>>,
@@ -29,7 +33,7 @@ interface CreateNewListModalProps {
         setIsLoadingFunc: React.Dispatch<React.SetStateAction<boolean>>,
         setVisibilityFunc: React.Dispatch<React.SetStateAction<boolean>>,
 
-        moveItemFunc?: (selectedContent: ContentPartialData, listName: string, lists: ListMinimalData[], 
+        moveItemFunc?: (router: Router, selectedContent: ContentPartialData, listName: string, lists: ListMinimalData[], 
             setListsFunc:  React.Dispatch<React.SetStateAction<ListMinimalData[]>>,
             setIsLoadingFunc: React.Dispatch<React.SetStateAction<boolean>>,
             setVisibilityFunc: React.Dispatch<React.SetStateAction<boolean>>,
@@ -42,6 +46,7 @@ interface CreateNewListModalProps {
         setActiveTabFunc?: React.Dispatch<React.SetStateAction<string>>,
     ) => Promise<void>;
     moveItemFunc?: (
+        router: Router, 
         selectedContent: ContentPartialData, listName: string, lists: ListMinimalData[], 
         setListsFunc:  React.Dispatch<React.SetStateAction<ListMinimalData[]>>,
         setIsLoadingFunc: React.Dispatch<React.SetStateAction<boolean>>,
@@ -60,8 +65,10 @@ interface CreateNewListModalProps {
 }
 
 export default function CreateNewListModal({
+    router,
     visible,
     setVisibilityFunc,
+    setMoveVisibilityFunc,
     setIsLoadingFunc,
 
     title = "Create New List",
@@ -104,14 +111,14 @@ export default function CreateNewListModal({
                         placeholderTextColor="darkgrey"
                         value={listName}
                         onChangeText={setListNameFunc}
-                        onSubmitEditing={async () => await onCreateNewTabFunc(listName, lists, setListsFunc, setListNameFunc, setAlertMessageFunc, setAlertTypeFunc, setIsLoadingFunc, setVisibilityFunc, moveItemFunc, selectedContent, setAutoPlayFunc, setRefsFunc, setActiveTabFunc)}
+                        onSubmitEditing={async () => {await onCreateNewTabFunc(router, listName, lists, setListsFunc, setListNameFunc, setAlertMessageFunc, setAlertTypeFunc, setIsLoadingFunc, setVisibilityFunc, moveItemFunc, selectedContent, setAutoPlayFunc, setRefsFunc, setActiveTabFunc); if (setMoveVisibilityFunc) setMoveVisibilityFunc(true);}}
                         autoFocus
                     />
                     <View style={styles.buttonRow}>
                         <Pressable style={styles.cancelButton} onPress={onRequestCloseFunc}>
                             <Text style={styles.cancelButtonText}>Cancel</Text>
                         </Pressable>
-                        <Pressable style={styles.button} onPress={async () => await onCreateNewTabFunc(listName, lists, setListsFunc, setListNameFunc, setAlertMessageFunc, setAlertTypeFunc, setIsLoadingFunc, setVisibilityFunc, moveItemFunc, selectedContent, setAutoPlayFunc, setRefsFunc, setActiveTabFunc)}>
+                        <Pressable style={styles.button} onPress={async () => {await onCreateNewTabFunc(router, listName, lists, setListsFunc, setListNameFunc, setAlertMessageFunc, setAlertTypeFunc, setIsLoadingFunc, setVisibilityFunc, moveItemFunc, selectedContent, setAutoPlayFunc, setRefsFunc, setActiveTabFunc); if (setMoveVisibilityFunc) setMoveVisibilityFunc(true);}}>
                             <Text style={styles.buttonText}>Add</Text>
                         </Pressable>
                     </View>

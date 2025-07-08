@@ -68,7 +68,7 @@ export default function LibraryPage() {
         setAlertMessage("");
         setAlertType(Alert.Error);
         try {
-            await fetchUserData(await auth.currentUser.getIdToken());
+            await fetchUserData(router, await auth.currentUser.getIdToken());
         } finally {
             setRefreshing(false);
         }
@@ -155,7 +155,7 @@ export default function LibraryPage() {
                                 isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
                                 size={20}
                                 background={true}
-                                onPress={async () => await moveItemToList(content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)}
+                                onPress={async () => await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)}
                             />
                         </View>
                     </Pressable>
@@ -213,7 +213,7 @@ export default function LibraryPage() {
             <PagerView
                 style={{ flex: 1, marginTop: 20, marginBottom: 50 }}
                 initialPage={lists.map(l => l?.listName).indexOf(activeTab) ?? 0}
-                key={lists.map(l => l?.listName).join('-')}
+                key={lists.map(l => l?.listName+"-"+getRandomNumber()).join('-')}
                 ref={pagerViewRef}
                 onPageSelected={(e) => setActiveTab(lists[e.nativeEvent.position]?.listName)}
             >
@@ -237,6 +237,7 @@ export default function LibraryPage() {
             </PagerView>
 
             <MoveModal
+                router={router}
                 selectedContent={selectedContent}
                 lists={lists}
 
@@ -260,6 +261,7 @@ export default function LibraryPage() {
 
             {/* Create List Modal */}
             <CreateNewListModal
+                router={router}
                 visible={createListModalVisible}
                 setVisibilityFunc={setCreateListModalVisible}
                 setIsLoadingFunc={setIsLoading}

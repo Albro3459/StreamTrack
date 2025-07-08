@@ -10,8 +10,6 @@ import { useFonts, Raleway_800ExtraBold } from '@expo-google-fonts/raleway';
 import { appStyles } from "@/styles/appStyles";
 // import { Kurale_400Regular } from '@expo-google-fonts/kurale';
 
-// import { ClearLoadState, Global } from "@/Global";
-
 // Prevent splash screen from hiding until fonts are loaded
 SplashScreen.preventAutoHideAsync();
 

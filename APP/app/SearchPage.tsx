@@ -190,7 +190,7 @@ export default function SearchPage() {
                                             <Heart 
                                                 isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
                                                 size={30}
-                                                onPress={async () => await moveItemToList(content, FAVORITE_TAB, lists, setLists, setIsSearching, () => {}, () => {}, setAlertMessage, setAlertType)}
+                                                onPress={async () => await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsSearching, () => {}, () => {}, setAlertMessage, setAlertType)}
                                             />
                                         </View>
                                     </Pressable>
@@ -237,7 +237,7 @@ export default function SearchPage() {
                                         <Heart 
                                             isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
                                             size={30}
-                                            onPress={async () => await moveItemToList(content, FAVORITE_TAB, lists, setLists, setIsSearching, () => {}, () => {}, setAlertMessage, setAlertType)}
+                                            onPress={async () => await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsSearching, () => {}, () => {}, setAlertMessage, setAlertType)}
                                         />
                                     </View>
                                 </Pressable>
@@ -274,7 +274,7 @@ export default function SearchPage() {
                             <Heart 
                                 isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
                                 size={35}
-                                onPress={async () => await moveItemToList(content, FAVORITE_TAB, lists, setLists, setIsSearching, () => {}, () => {}, setAlertMessage, setAlertType)}
+                                onPress={async () => await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsSearching, () => {}, () => {}, setAlertMessage, setAlertType)}
                             />
                         </View>
                     </Pressable>
@@ -283,6 +283,7 @@ export default function SearchPage() {
                 )}
 
                 <MoveModal
+                    router={router}
                     selectedContent={selectedContent}
                     lists={lists}
 

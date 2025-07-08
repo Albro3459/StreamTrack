@@ -6,6 +6,7 @@ import { signOut, User } from "firebase/auth";
 import { auth } from "@/firebaseConfig";
 import { setUserData, useUserDataStore } from "@/app/stores/userDataStore";
 import { Alert } from "@/app/components/alertMessageComponent";
+import { Router } from "expo-router";
 
 export const FAVORITE_TAB = "Favorites";
 
@@ -39,6 +40,7 @@ export const isItemInAnyList = (lists: ListMinimalData[], tmdbID: string) => {
 };
 
 export const handleCreateNewTab = async (
+                router: Router,
                 listName: string, 
                 lists: ListMinimalData[],
                 setListsFunc: React.Dispatch<React.SetStateAction<ListMinimalData[]>>,
@@ -48,7 +50,7 @@ export const handleCreateNewTab = async (
                 setIsLoadingFunc: React.Dispatch<React.SetStateAction<boolean>>,
                 setVisibilityFunc: React.Dispatch<React.SetStateAction<boolean>>,
                
-                moveItemFunc?: (selectedContent: ContentPartialData, listName: string, lists: ListMinimalData[], 
+                moveItemFunc?: (router: Router, selectedContent: ContentPartialData, listName: string, lists: ListMinimalData[], 
                     setListsFunc:  React.Dispatch<React.SetStateAction<ListMinimalData[]>>,
                     setIsLoadingFunc: React.Dispatch<React.SetStateAction<boolean>>,
                     setVisibilityFunc: React.Dispatch<React.SetStateAction<boolean>>,
@@ -80,7 +82,7 @@ export const handleCreateNewTab = async (
                         return;
                     }
                     const token = await user.getIdToken();
-                    const newList: ListMinimalData = await createNewUserList(token, listName, setAlertMessageFunc, setAlertTypeFunc);
+                    const newList: ListMinimalData = await createNewUserList(router, token, listName, setAlertMessageFunc, setAlertTypeFunc);
                     setListNameFunc("");
                     finalLists = sortLists([...lists, newList]);
                     setListsFunc(finalLists);
@@ -95,7 +97,7 @@ export const handleCreateNewTab = async (
                     });
                 
                     if (setActiveTabFunc) setActiveTabFunc(listName);
-                    if (moveItemFunc) await moveItemFunc(selectedContent, listName, finalLists, setListsFunc, setIsLoadingFunc, setVisibilityFunc, setAutoPlayFunc, );
+                    if (moveItemFunc) await moveItemFunc(router, selectedContent, listName, finalLists, setListsFunc, setIsLoadingFunc, setVisibilityFunc, setAutoPlayFunc, );
                 } else {
                     console.warn(`List "${listName}" already exists`);
                     setAlertMessageFunc(`List "${listName}" already exists`);
@@ -113,7 +115,7 @@ export const handleCreateNewTab = async (
     }
 };
 
-export const moveItemToList = async (content: ContentPartialData, listName: string, lists: ListMinimalData[], 
+export const moveItemToList = async (router: Router, content: ContentPartialData, listName: string, lists: ListMinimalData[], 
                                 setLists: React.Dispatch<React.SetStateAction<ListMinimalData[]>>,
                                 setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
                                 setMoveModalVisible?: React.Dispatch<React.SetStateAction<boolean>>,      
@@ -137,8 +139,8 @@ export const moveItemToList = async (content: ContentPartialData, listName: stri
 
         const shouldRemove: boolean = list.tmdbIDs.includes(content.tmdbID);
         const updatedList: ListMinimalData = shouldRemove 
-                ? await removeContentFromUserList(token, list.listName, content.tmdbID, setAlertMessageFunc, setAlertTypeFunc)
-                : await addContentToUserList(token, list.listName, content, setAlertMessageFunc, setAlertTypeFunc);
+                ? await removeContentFromUserList(router, token, list.listName, content.tmdbID, setAlertMessageFunc, setAlertTypeFunc)
+                : await addContentToUserList(router, token, list.listName, content, setAlertMessageFunc, setAlertTypeFunc);
         if (updatedList) {
             const userData: UserData = { ...useUserDataStore.getState().userData };
             const newListsOwned: ListMinimalData[] = userData.user.listsOwned.map(l => l.listName === updatedList.listName ? updatedList : l);
@@ -179,7 +181,7 @@ export const moveItemToList = async (content: ContentPartialData, listName: stri
     }
 };
 
-export const addContentToUserList = async (token: string | null, listName: string, content: ContentPartialData,
+export const addContentToUserList = async (router: Router, token: string | null, listName: string, content: ContentPartialData,
                                             setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                             setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ): Promise<ListMinimalData | null> => {
@@ -234,7 +236,7 @@ export const addContentToUserList = async (token: string | null, listName: strin
     }
 };
 
-export const removeContentFromUserList = async (token: string | null, listName: string, tmdbID: string,
+export const removeContentFromUserList = async (router: Router, token: string | null, listName: string, tmdbID: string,
                                                 setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                                 setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ): Promise<ListMinimalData | null> => {
@@ -283,7 +285,7 @@ export const removeContentFromUserList = async (token: string | null, listName: 
     }
 };
 
-export const createNewUserList = async (token: string | null, listName: string, 
+export const createNewUserList = async (router: Router, token: string | null, listName: string, 
                                         setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                         setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
                                     ) : Promise<ListMinimalData | null> => {

@@ -10,8 +10,10 @@ import { ContentPartialData, ListMinimalData } from "../types/dataTypes";
 import { useState } from "react";
 import CreateNewListModal from "./createNewListComponent";
 import { Alert } from "./alertMessageComponent";
+import { Router } from "expo-router";
 
 interface MoveModalProps {
+    router: Router, 
     selectedContent: ContentPartialData;
     lists: ListMinimalData[];
 
@@ -23,7 +25,7 @@ interface MoveModalProps {
     setIsLoadingFunc: React.Dispatch<React.SetStateAction<boolean>>;
     setAutoPlayFunc?: React.Dispatch<React.SetStateAction<boolean>>;
     
-    moveItemFunc: (selectedItem: any, listName: string, lists: ListMinimalData[], 
+    moveItemFunc: (router: Router, selectedItem: any, listName: string, lists: ListMinimalData[], 
                     setListsFunc:  React.Dispatch<React.SetStateAction<ListMinimalData[]>>,
                     setIsLoadingFunc: React.Dispatch<React.SetStateAction<boolean>>,
                     setVisibilityFunc: React.Dispatch<React.SetStateAction<boolean>>,
@@ -44,6 +46,7 @@ interface MoveModalProps {
 }
 
 export default function MoveModal({ 
+    router,
     selectedContent,
     lists, 
     showLabel = true, 
@@ -71,7 +74,7 @@ export default function MoveModal({
         <Modal
             transparent={true}
             visible={visibility}
-            animationType="fade"
+            animationType="none"
             onRequestClose={() => { setVisibilityFunc(false); setAutoPlayFunc && setAutoPlayFunc(true); }}
         >
             <Pressable
@@ -104,7 +107,7 @@ export default function MoveModal({
                                         appStyles.modalButton,
                                         isSelected && appStyles.selectedModalButton,
                                     ]}
-                                    onPress={async () => await moveItemFunc(selectedContent, list.listName, lists, setListsFunc, setIsLoadingFunc, setVisibilityFunc, setAutoPlayFunc, setAlertMessageFunc, setAlertTypeFunc)}
+                                    onPress={async () => await moveItemFunc(router, selectedContent, list.listName, lists, setListsFunc, setIsLoadingFunc, setVisibilityFunc, setAutoPlayFunc, setAlertMessageFunc, setAlertTypeFunc)}
                                 >
                                     <Text style={[
                                         appStyles.modalButtonText,
@@ -115,21 +118,6 @@ export default function MoveModal({
                                 </Pressable>)}
                         )}
 
-                        {/* Create new list and add item button */}
-                        {/* <Pressable
-                            key={`LandingPage-${selectedContent.tmdbID}-CreateNewList`}
-                            style={[
-                                appStyles.modalButton, {backgroundColor: Colors.goldColor}
-                            ]}
-                            onPress={() => {setVisibilityFunc(false); setCreateListModalVisible(true);}}
-                        >
-                            <Text style={[
-                                appStyles.modalButtonText, {color: Colors.altBackgroundColor}
-                            ]}>
-                                Create New List & Add
-                            </Text>
-                        </Pressable> */}
-
                         {/* Render FAVORITE_TAB at the bottom */}
                         {showHeart && lists.find(l => l.listName === FAVORITE_TAB) && (
                             <View
@@ -139,7 +127,7 @@ export default function MoveModal({
                             <Heart
                                 isSelected={() => isItemInListFunc(lists, FAVORITE_TAB, selectedContent?.tmdbID)}
                                 size={35}
-                                onPress={async () => await moveItemFunc(selectedContent, FAVORITE_TAB, lists, setListsFunc, setIsLoadingFunc, setVisibilityFunc, setAutoPlayFunc)}
+                                onPress={async () => await moveItemFunc(router, selectedContent, FAVORITE_TAB, lists, setListsFunc, setIsLoadingFunc, setVisibilityFunc, setAutoPlayFunc)}
                             />
                             </View>
                         )}
@@ -149,8 +137,10 @@ export default function MoveModal({
         </Modal>
         
         <CreateNewListModal
+            router={router}
             visible={createListModalVisible}
             setVisibilityFunc={setCreateListModalVisible}
+            setMoveVisibilityFunc={setVisibilityFunc}
             setIsLoadingFunc={setIsLoadingFunc}
 
             title={"Create & Add to New List"}

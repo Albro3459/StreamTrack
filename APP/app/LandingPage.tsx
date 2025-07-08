@@ -200,7 +200,7 @@ export default function LandingPage () {
                                                     isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
                                                     size={20}
                                                     background={true}
-                                                    onPress={async () => await moveItemToList(content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)}
+                                                    onPress={async () => await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)}
                                                 />
                                             </View>
                                         </View>
@@ -224,6 +224,7 @@ export default function LandingPage () {
 
             {/* Move Modal */}
             <MoveModal
+                router={router}
                 selectedContent={selectedContent}
                 lists={lists}
 
