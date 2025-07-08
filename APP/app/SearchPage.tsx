@@ -36,12 +36,12 @@ export default function SearchPage() {
     const flatListRef = useRef<FlatList>(null);
     const searchInputRef = useRef<TextInput>(null);  
     
-    const [isSearching, setIsSearching] = useState(false);
-    const [showNoResults, setShowNoResults] = useState(false);
+    const [isSearching, setIsSearching] = useState<boolean>(false);
+    const [showNoResults, setShowNoResults] = useState<boolean>(false);
 
-    const [searchText, setSearchText] = useState('');
+    const [searchText, setSearchText] = useState<string>('');
 
-    const [moveModalVisible, setMoveModalVisible] = useState(false);
+    const [moveModalVisible, setMoveModalVisible] = useState<boolean>(false);
 
     const [lists, setLists] = useState<ListMinimalData[] | null>([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]);
 
@@ -56,7 +56,7 @@ export default function SearchPage() {
     };
 
     const debouncedSearch = useRef(
-        debounce(async (text) => {
+        debounce(async (text: string) => {
             await search(text); // await works here
         }, 400)
     ).current;
@@ -67,7 +67,6 @@ export default function SearchPage() {
         if (searchText.length > 0) {
             try {
                 setIsSearching(true);
-                Keyboard.dismiss();
 
                 const contents: ContentPartialData[] = await searchTMDB(router, await auth?.currentUser?.getIdToken(), searchText, setAlertMessage, setAlertType);
                 setContents(contents ?? []);
@@ -135,10 +134,10 @@ export default function SearchPage() {
                 {/* Recommended && Recently Viewed && Search Results */}
                 {(!contents || contents.length <= 0) ? 
                     (!contentCache || contentCache.length <= 0) || noResultsOrTrySearching(searchText, showNoResults, isSearching) ? (
-                        (!popularContent?.search ? 
+                        ((searchText?.length > 0) || !popularContent?.search ? 
                             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 16 }}>
                                 <Text style={{ fontSize: 16, color: 'gray', textAlign: 'center', marginTop: -80 }}>
-                                {noResultsOrTrySearching(searchText, showNoResults, isSearching) ? "No Results :(" : "Try Searching for a Show or Movie!"}
+                                {noResultsOrTrySearching(searchText, showNoResults, isSearching) ? "No Results :(" : ""}
                                 </Text>
                             </View>
                             :
@@ -149,6 +148,7 @@ export default function SearchPage() {
                                     data={popularContent?.search}
                                     keyExtractor={(item) => item.tmdbID}
                                     showsVerticalScrollIndicator={false}
+                                    onScroll={Keyboard.dismiss}
                                     renderItem={({ item: content }) => (
                                     <Pressable
                                         style={({ pressed }) => [
@@ -196,6 +196,7 @@ export default function SearchPage() {
                                 data={contentCache?.map(i => i.content)}
                                 keyExtractor={(item) => item.tmdbID}
                                 showsVerticalScrollIndicator={false}
+                                onScroll={Keyboard.dismiss}
                                 renderItem={({ item: content }) => (
                                 <Pressable
                                     style={({ pressed }) => [
@@ -241,6 +242,7 @@ export default function SearchPage() {
                     data={contents}
                     keyExtractor={(item) => item.tmdbID}
                     showsVerticalScrollIndicator={false}
+                    onScroll={Keyboard.dismiss}
                     renderItem={({ item: content }) => (
                     <Pressable
                         style={({ pressed }) => [

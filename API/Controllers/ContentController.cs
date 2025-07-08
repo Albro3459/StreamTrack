@@ -7,8 +7,6 @@ using API.DTOs;
 using API.Infrastructure;
 using API.Models;
 using API.Service;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 
 namespace API.Controllers;
 
@@ -98,15 +96,7 @@ public class ContentController : ControllerBase {
 
         try {
             var contents = await APIService.TMDBSearch(keyword);
-            if (contents == null) {
-                return BadRequest();
-            }
-            else if (contents.Count == 0) {
-                return NotFound();
-            }
-            else {
-                return contents;
-            }
+            return contents;
         }
         catch (Exception e) {
             System.Console.WriteLine("Error in Search TMDB: " + e);

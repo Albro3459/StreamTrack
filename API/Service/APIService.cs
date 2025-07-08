@@ -92,7 +92,7 @@ public class APIService {
         return await MapRapidContentToContentDetail(apiContent, posters.VerticalPoster, posters.LargeVerticalPoster, posters.HorizontalPoster);
     }
 
-    public async Task<List<ContentPartialDTO>?> TMDBSearch(string keyword) {
+    public async Task<List<ContentPartialDTO>> TMDBSearch(string keyword) {
         string url = TMDB_Search_Url + Uri.EscapeDataString(keyword.Trim()) + TMDB_Search_Ending;
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", API_KEYS.TMDB_BEARER_TOKEN);
@@ -103,8 +103,15 @@ public class APIService {
         string json = await response.Content.ReadAsStringAsync();
 
         var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-        var data = JsonSerializer.Deserialize<TMDB>(json, options);
-        if (data == null) return null;
+        TMDB? data = null;
+        try {
+            data = JsonSerializer.Deserialize<TMDB>(json, options);
+        }
+        catch (Exception e) {
+            System.Console.WriteLine("Error deserializing JSON for TMDB search: " + e);
+            return new();
+        }
+        if (data == null) return new();
 
         // Filter for movies or tv only (no people)
         data.Results = data.Results.Where(x => x.MediaType == TMDBMediaType.Movie || x.MediaType == TMDBMediaType.Tv).ToList();
