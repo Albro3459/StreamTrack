@@ -3,10 +3,9 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, StyleSheet, ActivityIndicator, Pressable, TouchableWithoutFeedback, Keyboard } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { auth, UserCredential } from "@/firebaseConfig";
+import { auth } from "@/firebaseConfig";
 import { Router, useLocalSearchParams, useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
-import { createUser } from "./helpers/StreamTrack/userHelper";
 import { GoogleSignIn, GoogleSignUp, LogOut, SignIn, SignUp } from "./helpers/authHelper";
 import { appStyles } from "@/styles/appStyles";
 import AlertMessage, { Alert } from "./components/alertMessageComponent";

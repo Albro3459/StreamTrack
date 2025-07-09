@@ -28,7 +28,7 @@ interface GoogleSignInButtonProps {
 const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ 
     router, onSignIn, onSignUp, setAlertMessageFunc, setAlertTypeFunc 
 }) => {
-    const [request, response, promptAsync] = Google.useAuthRequest({
+    const [request, response, promptAsync] = Google?.useAuthRequest({
             clientId: authKeys.clientID,
             scopes: ["profile", "email"], // default and required
             redirectUri
@@ -37,7 +37,7 @@ const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
     useEffect(() => {
         if (response?.type === "success") {
             const { id_token } = response.params;
-            const credential = GoogleAuthProvider.credential(id_token);
+            const credential = GoogleAuthProvider?.credential(id_token);
             signInWithCredential(auth, credential)
                 .then((userCredential: UserCredential) => {
                     const isNewUser = (userCredential as any).additionalUserInfo?.isNewUser; // Have to force it
