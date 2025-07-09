@@ -56,7 +56,7 @@ export default function Index() {
 
             {badUserAccount && (
                 <Pressable style={[appStyles.button, {position: "absolute", bottom: 50, alignSelf: "center"}]} onPress={async () => {await LogOut(auth); router.replace('/LoginPage');}}>
-                    <Text style={appStyles.buttonText}>Reload App</Text>
+                    <Text style={appStyles.buttonText}>Reset App</Text>
                 </Pressable>
             )}
         </View>

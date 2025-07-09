@@ -3,13 +3,14 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, StyleSheet, ActivityIndicator, Pressable, TouchableWithoutFeedback, Keyboard } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { auth } from "@/firebaseConfig";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { auth, UserCredential } from "@/firebaseConfig";
+import { Router, useLocalSearchParams, useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { createUser } from "./helpers/StreamTrack/userHelper";
-import { LogOut, SignIn, SignUp } from "./helpers/authHelper";
+import { GoogleSignIn, GoogleSignUp, LogOut, SignIn, SignUp } from "./helpers/authHelper";
 import { appStyles } from "@/styles/appStyles";
 import AlertMessage, { Alert } from "./components/alertMessageComponent";
+import GoogleSignInButton from "./components/auth/GoogleSignInButton";
 
 interface LoginPageParams {
     unauthorized?: number;
@@ -176,6 +177,14 @@ export default function LoginPage() {
                             {isSignUp ? "Sign In" : "Sign Up"}
                         </Text>
                     </Pressable>
+
+                    <GoogleSignInButton
+                        router={router}
+                        onSignIn={GoogleSignIn}    
+                        onSignUp={GoogleSignUp}       
+                        setAlertMessageFunc={setAlertMessage}
+                        setAlertTypeFunc={setAlertType}         
+                    />
                 </View>
 
                 {/* Overlay */}

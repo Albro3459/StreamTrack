@@ -2,6 +2,7 @@
   "expo": {
     "name": "stream_track",
     "slug": "stream_track",
+    "owner": "albro3459",
     "version": "1.0.0",
     "orientation": "portrait",
     "newArchEnabled": true,

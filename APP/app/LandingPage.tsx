@@ -49,7 +49,6 @@ export default function LandingPage () {
 
     const [carouselIndex, setCarouselIndex] = useState<number>(0);
     const carouselRef = useRef(null);
-    const timerRef = useRef<NodeJS.Timeout | number | null>(null);
 
     const [isLoading, setIsLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -142,7 +141,7 @@ export default function LandingPage () {
                 <View style={{ marginBottom: 24, alignItems: "center" }}>
                     <Carousel<ContentSimpleData>
                         ref={carouselRef}
-                        loop={true} // Causes bugs when clicking dots :(
+                        loop={true}
                         width={screenWidth * 0.90}
                         height={screenWidth * 0.50}
                         windowSize={3}
