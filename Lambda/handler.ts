@@ -4,7 +4,6 @@ import { fetchByServiceAndGenre } from "./helpers/contentAPIHelper";
 import { updatePopularContents } from "./helpers/streamTrackAPIHelper";
 import { getFirebaseToken } from "./helpers/firebaseHelper";
 import { ContentData } from "./types/dataTypes";
-import { TMDB_MEDIA_TYPE } from "./types/tmdbType";
 import { GENRE, ORDER_BY, ORDER_DIRECTION, SERVICE, SHOW_TYPE } from "./types/contentFilterOptions";
 
 // OLD Cron Schedule: (Min: 0, Hour: 0, Days of the month: (1,5,9,13,17,21,25,29 skips when no 29th), Month: * any, Day of week: ? use day of month, Year: 2025 just in case)
@@ -18,8 +17,8 @@ import { GENRE, ORDER_BY, ORDER_DIRECTION, SERVICE, SHOW_TYPE } from "./types/co
 // }
 
 const RATING_CUTOFF: number = 70;
-const genres: GENRE[] = [GENRE.ROMANCE];
-const services: SERVICE[] = [SERVICE.HULU];
+const genres: GENRE[] = [GENRE.ACTION, GENRE.COMEDY, GENRE.DRAMA, GENRE.THRILLER, GENRE.SCIFI, GENRE.ROMANCE, GENRE.HORROR, GENRE.WESTERN];
+const services: SERVICE[] = [SERVICE.NETFLIX, SERVICE.HULU, SERVICE.HBO, SERVICE.PRIME, SERVICE.DISNEY, SERVICE.APPLE, SERVICE.PARAMOUNT, SERVICE.PEACOCK];
 
 const order_by: ORDER_BY = ORDER_BY.POPULARITY_1WEEK;
 const order_direction: ORDER_DIRECTION = ORDER_DIRECTION.ASC;
