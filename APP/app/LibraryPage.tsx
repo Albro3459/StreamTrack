@@ -301,12 +301,6 @@ export default function LibraryPage() {
                                             </Pressable>
 
                                             {deleting && listName !== FAVORITE_TAB && (
-                                                // <Pressable
-                                                //     onPress={() => setDeleteTab(listName)}
-                                                //     style={{position: "absolute", top: 0, right: -3, zIndex: 30}}
-                                                // >
-                                                //     <Ionicons name="close-circle" size={18} color="red" />
-                                                // </Pressable>
                                                 <Pressable
                                                     onPress={() => setDeleteTab(listName)}
                                                     style={styles.deleteButton}
