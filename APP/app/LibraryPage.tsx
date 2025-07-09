@@ -10,9 +10,9 @@ import {
   Modal,
   Pressable,
   Dimensions,
-  TextInput,
   ActivityIndicator,
   RefreshControl,
+  Animated,
 } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import * as SplashScreen from "expo-splash-screen";
@@ -38,8 +38,9 @@ SplashScreen.preventAutoHideAsync();
 
 export default function LibraryPage() {
     const router = useRouter();
-    const pagerViewRef = useRef(null); // Which tab is seleted
-    const flatListRef = useRef<FlatList<string>>(null); // Scrolling the tab names to show current one
+    const pagerViewRef = useRef<PagerView | null>(null); // Which tab is seleted
+    const flatListRef = useRef<FlatList<string> | null>(null); // Scrolling the tab names to show current one
+    const wiggleAnimations = useRef([]);
 
     const { userData } = useUserDataStore();
 
@@ -61,6 +62,21 @@ export default function LibraryPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
+    const startWiggle = (index) => {
+        Animated?.loop(
+            Animated?.sequence([
+                Animated?.timing(wiggleAnimations.current[index], { toValue: 1, duration: 70, useNativeDriver: true }),
+                Animated?.timing(wiggleAnimations.current[index], { toValue: 0, duration: 70, useNativeDriver: true }),
+                Animated?.timing(wiggleAnimations.current[index], { toValue: -1, duration: 70, useNativeDriver: true }),
+            ])
+        )?.start();
+    };
+
+    const stopWiggle = (index) => {
+        wiggleAnimations.current[index]?.stopAnimation();
+        wiggleAnimations.current[index]?.setValue(0);
+    };
+
     const getRandomNumber = (min: number = 0, max: number = 1000): number => {
         return Math.floor(Math.random() * (max - min + 1)) + min;
     };
@@ -78,15 +94,26 @@ export default function LibraryPage() {
 
     const setRefs = (index: number, length: number) => {
         index = index >= 0 ? index : 0;
-        pagerViewRef.current?.setPage(index);
-        flatListRef.current.scrollToIndex({ 
+        pagerViewRef?.current?.setPage(index);
+        flatListRef?.current?.scrollToIndex({ 
             index: index, animated: true, 
             viewPosition: index <= 1 ? 0 : index === length - 1 ? 1 : 0.5 // 0: start, 0.5: center, 1: end
         });
     };
 
-    const doneDeleting = () => {
+    const startDeleting = (lists: ListMinimalData[]) => {
+        setDeleting(true);
+        lists.forEach((l, index) => {
+            if (index === lists.findIndex(l => l.listName === FAVORITE_TAB)) return;
+            startWiggle(index);
+        });
+    };
+
+    const doneDeleting = (lists: ListMinimalData[]) => {
         setDeleting(false); setDeleteTab(null);
+        lists.forEach((l, index) => {
+            stopWiggle(index);
+        });
     };
 
     const handleTabDelete = async (listName: string) => {
@@ -109,13 +136,13 @@ export default function LibraryPage() {
 
             handleTabPress(FAVORITE_TAB);
         }
-        doneDeleting();
+        doneDeleting(lists);
     };
 
     const handleTabPress = (listName: string) => {
         listName = listName.toLowerCase().trim();
         setActiveTab(listName);
-        pagerViewRef.current?.setPage(lists.map(l => l?.listName.toLowerCase()).indexOf(listName));
+        pagerViewRef?.current?.setPage(lists.map(l => l?.listName.toLowerCase()).indexOf(listName));
 
         setLists(sortLists(lists));
     };
@@ -128,11 +155,20 @@ export default function LibraryPage() {
         }, [userData])
     );
 
-    useEffect(() => {
-        if (lists && isLoading) {
-            setIsLoading(false);
+     useEffect(() => {
+        if (lists) {
+            if (isLoading) {
+                setIsLoading(false);
+            }
+
+            while (wiggleAnimations?.current?.length < lists.length) {
+                wiggleAnimations?.current?.push(new Animated.Value(0));
+            }
+            while (wiggleAnimations?.current?.length > lists.length) {
+                wiggleAnimations?.current?.pop();
+            }
         }
-    }, [lists, isLoading]);
+    }, [lists, isLoading, wiggleAnimations]);
 
     const renderTabContent = (contents: ContentPartialData[], list: string) => {
         if (!contents || contents.length === 0) {
@@ -201,7 +237,7 @@ export default function LibraryPage() {
             <Stack.Screen
                 options={{
                     headerLeft: deleting ? () => (
-                        <Pressable onPress={doneDeleting} style={{ marginRight: 16 }}>
+                        <Pressable onPress={() => doneDeleting(lists)} style={{ marginRight: 16 }}>
                             <Text style={{ color: Colors.selectedTextColor, fontWeight: "bold" }}>Done</Text>
                         </Pressable>
                     ) : undefined, // undefined means show the back button. I know its fucking stupid
@@ -221,7 +257,7 @@ export default function LibraryPage() {
                         <Pressable
                             style={StyleSheet.absoluteFill}
                             pointerEvents="auto"
-                            onPress={doneDeleting}
+                            onPress={() => doneDeleting(lists)}
                         />
                     )}
                     <View style={[styles.tabBar, (lists && lists.length <= 4) && {paddingLeft: 24}]}
@@ -234,41 +270,57 @@ export default function LibraryPage() {
                             showsHorizontalScrollIndicator={false}
                             nestedScrollEnabled
                             keyExtractor={(listName, index) => listName+"-"+index+"-"+getRandomNumber()}
-                            renderItem={({ item: listName }) => (
-                                <>
-                                    <Pressable
-                                        style={[styles.tabItem, activeTab === listName && styles.activeTabItem, {paddingHorizontal:8}, (lists && lists.length <= 4) && {paddingHorizontal: 12}]}
-                                        onPress={async () => deleting ? doneDeleting() : handleTabPress(listName) /* do nothing if deleting */}
-                                        onLongPress={() => lists.length > 1 && setDeleting(true)}
-                                    >
-                                        { listName === FAVORITE_TAB ? (
-                                            <Heart 
-                                                size={25}
-                                                onPress={async () => deleting ? doneDeleting() : handleTabPress(listName)}
-                                                disabled={true}
-                                            />
-                                        ) : (
-                                            <Text
-                                                style={[styles.tabText, activeTab === listName && styles.activeTabText]}
+                            contentContainerStyle={{ alignItems: "center" }}
+                            renderItem={({ item: listName, index }) => {
+                                const wiggle = wiggleAnimations.current[index]?.interpolate({
+                                    inputRange: [-1, 1],
+                                    outputRange: ['-3deg', '3deg'],
+                                });
+                                
+                                return (
+                                    <Animated.View style={{ transform: [{ rotate: deleting ? wiggle : '0deg' }] }}>
+                                        <>
+                                            <Pressable
+                                                style={[styles.tabItem, activeTab === listName && styles.activeTabItem, {paddingHorizontal:8}, (lists && lists.length <= 4) && {paddingHorizontal: 12}]}
+                                                onPress={async () => deleting ? doneDeleting(lists) : handleTabPress(listName) /* do nothing if deleting */}
+                                                onLongPress={() => lists.length > 1 && startDeleting(lists)}
                                             >
-                                                {listName}
-                                            </Text>
-                                        )}
-                                    </Pressable>
+                                                { listName === FAVORITE_TAB ? (
+                                                    <Heart 
+                                                        size={25}
+                                                        onPress={async () => deleting ? doneDeleting(lists) : handleTabPress(listName)}
+                                                        disabled={true}
+                                                    />
+                                                ) : (
+                                                    <Text
+                                                        style={[styles.tabText, activeTab === listName && styles.activeTabText]}
+                                                    >
+                                                        {listName}
+                                                    </Text>
+                                                )}
+                                            </Pressable>
 
-                                    {deleting && listName !== FAVORITE_TAB && (
-                                        <Pressable
-                                            onPress={() => setDeleteTab(listName)}
-                                            style={{position: "absolute", top: 0, right: -3, zIndex: 30}}
-                                        >
-                                            <Ionicons name="close-circle" size={18} color="red" />
-                                        </Pressable>
-                                    )}
-                                </>
+                                            {deleting && listName !== FAVORITE_TAB && (
+                                                // <Pressable
+                                                //     onPress={() => setDeleteTab(listName)}
+                                                //     style={{position: "absolute", top: 0, right: -3, zIndex: 30}}
+                                                // >
+                                                //     <Ionicons name="close-circle" size={18} color="red" />
+                                                // </Pressable>
+                                                <Pressable
+                                                    onPress={() => setDeleteTab(listName)}
+                                                    style={styles.deleteButton}
+                                                >
+                                                    <Ionicons name="close" size={14} color="white" />
+                                                </Pressable>
+                                            )}
+                                        </>
+                                    </Animated.View>
+                                );
 
-                            )}
+                            }}
                         />
-                        <Pressable onPress={() => deleting ? doneDeleting() : setCreateListModalVisible(true)} >
+                        <Pressable onPress={() => deleting ? doneDeleting(lists) : setCreateListModalVisible(true)} >
                                 <Ionicons name="add" size={28} color="white" />
                         </Pressable>
                     </View>
@@ -352,9 +404,9 @@ export default function LibraryPage() {
                             transparent
                             visible={!!deleteTab}
                             animationType="none"
-                            onRequestClose={doneDeleting}
+                            onRequestClose={() => doneDeleting(lists)}
                         >
-                            <Pressable style={styles.modalOverlay} onPress={doneDeleting}>
+                            <Pressable style={styles.modalOverlay} onPress={() => doneDeleting(lists)}>
                                 <View style={styles.modalContent}>
                                     <Text style={styles.modalTitle}>Delete List?</Text>
                                     <Text style={[appStyles.optionText, {marginTop: 10, marginBottom: 15, textAlign: "center", fontSize: 14}]}>
@@ -363,7 +415,7 @@ export default function LibraryPage() {
                                         This cannot be undone.
                                     </Text>
                                     <View style={styles.buttonRow}>
-                                        <Pressable style={styles.cancelButton} onPress={doneDeleting}>
+                                        <Pressable style={styles.cancelButton} onPress={() => doneDeleting(lists)}>
                                             <Text style={styles.cancelButtonText}>Cancel</Text>
                                         </Pressable>
                                         <Pressable style={styles.button} onPress={async () => await handleTabDelete(deleteTab)}>
@@ -382,7 +434,7 @@ export default function LibraryPage() {
                                 top: 0, left: 0, right: 0, bottom: 0,
                                 zIndex: 10,
                             }}
-                            onPress={doneDeleting}
+                            onPress={() => doneDeleting(lists)}
                         />
                     )}
                 </View>
@@ -399,6 +451,18 @@ export default function LibraryPage() {
 };
 
 const styles = StyleSheet.create({
+    deleteButton: {
+        position: "absolute",
+        top: -3,      // slightly above the tab
+        right: -3,    // slightly outside the tab
+        zIndex: 50,
+        backgroundColor: "red",
+        borderRadius: 999,
+        alignItems: "center",
+        justifyContent: "center",
+        ...appStyles.shadow
+},
+
     loadingContainer: {
         flex: 1,
         justifyContent: 'center',
@@ -416,7 +480,11 @@ const styles = StyleSheet.create({
         paddingVertical: 15,
         paddingLeft: 15,
         paddingRight: "3.5%",
-        alignItems: "center"
+        alignItems: "center",
+        alignContent: "center",
+        justifyContent: "center",
+        overflow: "visible",
+        zIndex: 0
     },
     tabItem: {
         paddingVertical: 5,
