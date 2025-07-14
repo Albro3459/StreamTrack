@@ -108,7 +108,7 @@ public class APIService {
             data = JsonSerializer.Deserialize<TMDB>(json, options);
         }
         catch (Exception e) {
-            System.Console.WriteLine("Error deserializing JSON for TMDB search: " + e);
+            System.Console.Error.WriteLine("Error deserializing JSON for TMDB search: " + e);
             return new();
         }
         if (data == null) return new();

@@ -6,12 +6,14 @@ import { DataAPIURL } from "@/secrets/DataAPIUrl";
 import { auth, signOut } from "@/firebaseConfig";
 import { Router } from "expo-router";
 
-const missingPoster: number = require('@/assets/images/MissingPoster.png') || "";
+const missingVerticalPoster: number = require('@/assets/images/MissingVerticalPoster.png') || "";
+const missingHorizontalPoster: number = require('@/assets/images/MissingHorizontalPoster.png') || "";
 
 export enum POSTER {
     VERTICAL = "vertical",
     LARGE_VERTICAL = "large_vertical",
-    HORIZONTAL = "horizontal"
+    HORIZONTAL = "horizontal",
+    EMPTY = "empty"
 };
 
 export type PosterURI = {
@@ -19,18 +21,31 @@ export type PosterURI = {
 };
 
 // Returns regular vertical poster first unless a certain poster is specified
-export const getPoster = (content: ContentPartialData | ContentSimpleData | ContentData, poster?: POSTER) : PosterURI | number => {
-    if (poster === POSTER.VERTICAL) {
-        return content?.verticalPoster ? { uri: content?.verticalPoster } : missingPoster;
+export const getPoster = (content: ContentPartialData | ContentSimpleData | ContentData | null, ...posterTypes: POSTER[]) : PosterURI | number => {
+    if (posterTypes.includes(POSTER.EMPTY)) {
+        if (posterTypes.includes(POSTER.VERTICAL)) {
+            return missingVerticalPoster;
+        }
+        else if (posterTypes.includes(POSTER.LARGE_VERTICAL)) {
+            return missingVerticalPoster;
+        }
+        else if (posterTypes.includes(POSTER.HORIZONTAL)) {
+            return missingHorizontalPoster;
+        } else {
+            return missingVerticalPoster;
+        }
     }
-    if (poster === POSTER.LARGE_VERTICAL) {
-        return content?.largeVerticalPoster ? { uri: content?.largeVerticalPoster } : missingPoster;
+    else if (posterTypes.includes(POSTER.VERTICAL)) {
+        return content?.verticalPoster ? { uri: content?.verticalPoster } : missingVerticalPoster;
     }
-    if (poster === POSTER.HORIZONTAL) {
-        return content?.horizontalPoster ? { uri: content?.horizontalPoster } : missingPoster;
+    else if (posterTypes.includes(POSTER.LARGE_VERTICAL)) {
+        return content?.largeVerticalPoster ? { uri: content?.largeVerticalPoster } : missingVerticalPoster;
+    }
+    else if (posterTypes.includes(POSTER.HORIZONTAL)) {
+        return content?.horizontalPoster ? { uri: content?.horizontalPoster } : missingVerticalPoster;
     }
     
-    if (content?.verticalPoster) {
+    else if (content?.verticalPoster) {
         return { uri: content?.verticalPoster };
     }
     else if (content?.largeVerticalPoster) {
@@ -39,7 +54,7 @@ export const getPoster = (content: ContentPartialData | ContentSimpleData | Cont
     else if (content?.horizontalPoster) {
         return { uri: content?.horizontalPoster };
     } else {
-        return missingPoster;
+        return missingVerticalPoster;
     }
 }
 

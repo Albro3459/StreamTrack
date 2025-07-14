@@ -16,7 +16,7 @@ import { runOnJS } from 'react-native-reanimated';
 import { auth } from "@/firebaseConfig";
 import AlertMessage, { Alert } from "./components/alertMessageComponent";
 import { useFocusEffect } from "@react-navigation/native";
-import { getPoster, POSTER } from "./helpers/StreamTrack/contentHelper";
+import { getPoster, POSTER, PosterURI } from "./helpers/StreamTrack/contentHelper";
 import Heart from "./components/heartComponent";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
@@ -50,6 +50,7 @@ export default function LandingPage () {
     const [carouselIndex, setCarouselIndex] = useState<number>(0);
     const carouselRef = useRef(null);
 
+    const [carouselImagesLoading, setCarouselImagesLoading] = useState(true);
     const [isLoading, setIsLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
@@ -66,11 +67,23 @@ export default function LandingPage () {
 
     useFocusEffect(
         useCallback(() => {
-            if (userData) {
+            if (userData && !carouselImagesLoading) {
                 setLists(sortLists([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]));
             }
-        }, [userData])
+        }, [userData, carouselImagesLoading])
     );
+
+    // Make sure carousel images are loaded
+    useEffect(() => {
+        if (popularContent?.carousel && popularContent.carousel.length > 0) {
+            const uris : string[] = popularContent.carousel.map(item => getPoster(item, POSTER.HORIZONTAL))
+                                                            .filter(poster => typeof poster === 'object' && poster.uri)
+                                                            .map(poster => typeof poster === 'object' && poster.uri);
+            Promise.all(uris.map(uri => Image.prefetch(uri)))
+                .then(() => setCarouselImagesLoading(false))
+                .catch(() => setCarouselImagesLoading(false)); // fail open, show what you can
+        }
+    }, [popularContent]);
 
     useEffect(() => {
         const store = usePopularContentStore.getState(); 
@@ -108,15 +121,16 @@ export default function LandingPage () {
         const combinedGesture = Gesture.Exclusive(longPressGesture, tapGesture);
         
         return (
-        <GestureDetector gesture={combinedGesture}>
-            <View style={styles.slide}>
-                <Image
-                    source={getPoster(content, POSTER.HORIZONTAL)}
-                    style={styles.carouselImage}
-                    resizeMode="cover"
-                />
-            </View>
-        </GestureDetector>);
+            <GestureDetector gesture={combinedGesture}>
+                <View style={styles.slide}>
+                    <Image
+                        source={carouselImagesLoading ? getPoster(null, POSTER.EMPTY, POSTER.HORIZONTAL) : getPoster(content, POSTER.HORIZONTAL)}
+                        style={styles.carouselImage}
+                        resizeMode="cover"
+                    />
+                </View>
+            </GestureDetector>
+        );
     };
 
     return (
@@ -167,7 +181,7 @@ export default function LandingPage () {
                 </View>
                 
                 {/* Sections */}
-                {popularContent?.main && Object.entries(popularContent.main).length > 0 ? (
+                { (popularContent?.main && Object.entries(popularContent.main).length > 0 ? (
                     Object.entries(popularContent.main).map(([sectionTitle, sectionItems]) =>
                         sectionItems.length > 0 ? (
                         <View key={sectionTitle} style={styles.section}>
@@ -190,7 +204,7 @@ export default function LandingPage () {
                                     >
                                         <View style={[styles.imageWrapper]}>
                                             <Image
-                                                source={getPoster(content)}
+                                                source={carouselImagesLoading ? getPoster(null, POSTER.EMPTY, POSTER.VERTICAL) : getPoster(content)}
                                                 style={styles.image}
                                                 resizeMode="cover"
                                             />
@@ -208,15 +222,14 @@ export default function LandingPage () {
                             />
                         </View>
                         ) : null
-                    )
-                    ) : (
+                    )) : (
                     <View style={styles.nothingFoundContainer}>
                         <Text style={styles.nothingFoundText}>Nothing found.</Text>
                         {/* <Pressable onPress={clearAllFilters} style={styles.clearButton}>
                             <Text style={styles.clearButtonText}>Clear Filters</Text>
                         </Pressable> */}
                     </View>
-                    )}
+                ))}
 
 
             </ScrollView>
@@ -254,7 +267,7 @@ export default function LandingPage () {
             </View>
 
             {/* Loading Overlay */}
-            {isLoading && (
+            {(isLoading || carouselImagesLoading) && (
                 <View style={appStyles.overlay}>
                     <ActivityIndicator size="large" color="#fff" />
                 </View>
