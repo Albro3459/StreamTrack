@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, StyleSheet, ActivityIndicator, Pressable, TouchableWithoutFeedback, Keyboard } from "react-native";
+import { View, Text, TextInput, StyleSheet, ActivityIndicator, Pressable, TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, ScrollView, Platform } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { auth } from "@/firebaseConfig";
 import { Router, useLocalSearchParams, useRouter } from "expo-router";
@@ -93,106 +93,118 @@ export default function LoginPage() {
 
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-            <View style={styles.container}>
-                <AlertMessage
-                    type={alertType}
-                    message={alertMessage}
-                    setMessage={setAlertMessage}
-                    onIndex={true}
-                />
-                <Text style={styles.title}>Stream Track</Text>
-                
-                <View style={[styles.inputContainer, { paddingBottom: isSignUp ? 4 : 10 } ]}>
-                    <TextInput
-                        style={appStyles.textInput}
-                        placeholder="Email"
-                        placeholderTextColor={Colors.italicTextColor}
-                        value={email}
-                        onChangeText={setEmail}
-                        autoCapitalize="none"
-                        keyboardType="email-address"
-                    />
-                    <View style={appStyles.passwordContainter}>
-                        <TextInput
-                            style={[appStyles.textInput, { flex: 1, marginBottom: 0 }]}
-                            placeholder="Password"
-                            placeholderTextColor={Colors.italicTextColor}
-                            value={password}
-                            onChangeText={setPassword}
-                            onSubmitEditing={() => {!isSignUp && handleAuth()}}
-                            secureTextEntry={!showPassword}
+            <KeyboardAvoidingView 
+                style={{ flex: 1, backgroundColor: Colors.backgroundColor }} 
+                behavior={Platform.OS === "ios" ? "padding" : "height"}
+                keyboardVerticalOffset={-50} // adjust as needed for your header/nav
+            >
+                <ScrollView 
+                    contentContainerStyle={{ flexGrow: 1 }}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                >
+                    <View style={styles.container}>
+                        <AlertMessage
+                            type={alertType}
+                            message={alertMessage}
+                            setMessage={setAlertMessage}
+                            onIndex={true}
                         />
-                        {password.length > 0 && (
-                            <Pressable onPress={() => setShowPassword(prev => !prev)} style={{paddingRight: 10}}>
-                                <Icon
-                                    name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                                    size={24}
-                                    color={Colors.italicTextColor}
-                                />
-                            </Pressable>
-                        )}
-                    </View>
-                    {isSignUp ? (
-                        <View style={appStyles.passwordContainter}>
+                        <Text style={styles.title}>Stream Track</Text>
+                        
+                        <View style={[styles.inputContainer, { paddingBottom: isSignUp ? 4 : 10 } ]}>
                             <TextInput
-                                style={[appStyles.textInput, { flex: 1, marginBottom: 0 }]}
-                                placeholder="Confirm Password"
+                                style={appStyles.textInput}
+                                placeholder="Email"
                                 placeholderTextColor={Colors.italicTextColor}
-                                value={confirmPassword}
-                                onChangeText={setConfirmPassword}
-                                onSubmitEditing={() => {isSignUp && handleAuth()}}
-                                secureTextEntry={!showConfirmPassword}
+                                value={email}
+                                onChangeText={setEmail}
+                                autoCapitalize="none"
+                                keyboardType="email-address"
                             />
-                            {confirmPassword.length > 0 && (
-                                <Pressable onPress={() => setShowConfirmPassword(prev => !prev)} style={{paddingRight: 10}}>
-                                    <Icon
-                                        name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
-                                        size={24}
-                                        color={Colors.italicTextColor}
+                            <View style={appStyles.passwordContainter}>
+                                <TextInput
+                                    style={[appStyles.textInput, { flex: 1, marginBottom: 0 }]}
+                                    placeholder="Password"
+                                    placeholderTextColor={Colors.italicTextColor}
+                                    value={password}
+                                    onChangeText={setPassword}
+                                    onSubmitEditing={() => {!isSignUp && handleAuth()}}
+                                    secureTextEntry={!showPassword}
+                                />
+                                {password.length > 0 && (
+                                    <Pressable onPress={() => setShowPassword(prev => !prev)} style={{paddingRight: 10}}>
+                                        <Icon
+                                            name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                                            size={24}
+                                            color={Colors.italicTextColor}
+                                        />
+                                    </Pressable>
+                                )}
+                            </View>
+                            {isSignUp ? (
+                                <View style={appStyles.passwordContainter}>
+                                    <TextInput
+                                        style={[appStyles.textInput, { flex: 1, marginBottom: 0 }]}
+                                        placeholder="Confirm Password"
+                                        placeholderTextColor={Colors.italicTextColor}
+                                        value={confirmPassword}
+                                        onChangeText={setConfirmPassword}
+                                        onSubmitEditing={() => {isSignUp && handleAuth()}}
+                                        secureTextEntry={!showConfirmPassword}
                                     />
-                                </Pressable>
+                                    {confirmPassword.length > 0 && (
+                                        <Pressable onPress={() => setShowConfirmPassword(prev => !prev)} style={{paddingRight: 10}}>
+                                            <Icon
+                                                name={showConfirmPassword ? 'eye-off-outline' : 'eye-outline'}
+                                                size={24}
+                                                color={Colors.italicTextColor}
+                                            />
+                                        </Pressable>
+                                    )}
+                                </View>
+                            ) : (
+                                <View style={styles.row}>
+                                    <Pressable onPress={() => {setAlertMessage("Forgot Email Feature coming soon"); setAlertType(Alert.Info);}}>
+                                        <Text style={styles.linkText}>Forgot Email?</Text>
+                                    </Pressable>
+                                    <Pressable onPress={() => {setAlertMessage("Forgot Password Feature coming soon"); setAlertType(Alert.Info);}}>
+                                        <Text style={styles.linkText}>Forgot Password?</Text>
+                                    </Pressable>
+                                </View>
                             )}
                         </View>
-                    ) : (
-                        <View style={styles.row}>
-                            <Pressable onPress={() => {setAlertMessage("Forgot Email Feature coming soon"); setAlertType(Alert.Info);}}>
-                                <Text style={styles.linkText}>Forgot Email?</Text>
+                        <View style={appStyles.buttonContainer}>
+                            <Pressable style={[appStyles.button, {marginBottom: 15}]} onPress={handleAuth}>
+                                <Text style={appStyles.buttonText}>{isSignUp ? "Sign Up" : "Sign In"}</Text>
                             </Pressable>
-                            <Pressable onPress={() => {setAlertMessage("Forgot Password Feature coming soon"); setAlertType(Alert.Info);}}>
-                                <Text style={styles.linkText}>Forgot Password?</Text>
+                            <Pressable
+                                style={[appStyles.button, appStyles.secondaryButton]}
+                                onPress={() => setIsSignUp(!isSignUp)}
+                            >
+                                <Text style={[appStyles.buttonText, appStyles.secondaryButtonText]}>
+                                    {isSignUp ? "Sign In" : "Sign Up"}
+                                </Text>
                             </Pressable>
+
+                            <GoogleSignInButton
+                                router={router}
+                                onSignIn={GoogleSignIn}    
+                                onSignUp={GoogleSignUp}       
+                                setAlertMessageFunc={setAlertMessage}
+                                setAlertTypeFunc={setAlertType}         
+                            />
                         </View>
-                    )}
-                </View>
-                <View style={appStyles.buttonContainer}>
-                    <Pressable style={[appStyles.button, {marginBottom: 15}]} onPress={handleAuth}>
-                        <Text style={appStyles.buttonText}>{isSignUp ? "Sign Up" : "Sign In"}</Text>
-                    </Pressable>
-                    <Pressable
-                        style={[appStyles.button, appStyles.secondaryButton]}
-                        onPress={() => setIsSignUp(!isSignUp)}
-                    >
-                        <Text style={[appStyles.buttonText, appStyles.secondaryButtonText]}>
-                            {isSignUp ? "Sign In" : "Sign Up"}
-                        </Text>
-                    </Pressable>
 
-                    <GoogleSignInButton
-                        router={router}
-                        onSignIn={GoogleSignIn}    
-                        onSignUp={GoogleSignUp}       
-                        setAlertMessageFunc={setAlertMessage}
-                        setAlertTypeFunc={setAlertType}         
-                    />
-                </View>
-
-                {/* Overlay */}
-                {signing && (
-                    <View style={appStyles.overlay}>
-                        <ActivityIndicator size="large" color="#fff" />
+                        {/* Overlay */}
+                        {signing && (
+                            <View style={appStyles.overlay}>
+                                <ActivityIndicator size="large" color="#fff" />
+                            </View>
+                        )}
                     </View>
-                )}
-            </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
         </TouchableWithoutFeedback>
     );
 }
