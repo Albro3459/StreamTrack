@@ -1,3 +1,5 @@
+using API.Helpers;
+
 namespace API.Service;
 
 public class QueuedHostedService : BackgroundService {
@@ -18,7 +20,7 @@ public class QueuedHostedService : BackgroundService {
             }
             catch (Exception ex) {
                 // Log error
-                System.Console.WriteLine("Error executing async background task: " + ex);
+                ConsoleLogger.Error("Error executing async background task: " + ex);
             }
         }
     }

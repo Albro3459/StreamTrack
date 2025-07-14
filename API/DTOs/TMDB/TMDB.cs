@@ -8,6 +8,9 @@ public enum TMDBMediaType {
     [JsonPropertyName("tv")]
     Tv,
 
+    [JsonPropertyName("person")]
+    Person,
+
     [JsonPropertyName("collection")]
     Collection,
 }
@@ -56,10 +59,13 @@ public class TMDBContent {
     public double Popularity { get; set; }
 
     [JsonPropertyName("release_date")]
-    public string ReleaseDate { get; set; } = string.Empty;
+    public string? ReleaseDate { get; set; } = string.Empty;
+
+    [JsonPropertyName("first_air_date")]
+    public string? FirstAirDate { get; set; } = string.Empty;
 
     [JsonPropertyName("video")]
-    public bool Video { get; set; }
+    public bool? Video { get; set; }
 
     [JsonPropertyName("vote_average")]
     public double VoteAverage { get; set; }

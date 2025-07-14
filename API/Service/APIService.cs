@@ -6,6 +6,7 @@ using API.Infrastructure;
 using API.Models;
 using AutoMapper;
 using System.Net.Http.Headers;
+using API.Helpers;
 
 namespace API.Service;
 
@@ -55,7 +56,7 @@ public class APIService {
             }
         }
         catch (Exception ex) {
-            System.Console.WriteLine("Error in background content fetch (probably on save): " + ex);
+            ConsoleLogger.Error("Error in background content fetch (probably on save): " + ex);
         }
     }
 
@@ -108,7 +109,7 @@ public class APIService {
             data = JsonSerializer.Deserialize<TMDB>(json, options);
         }
         catch (Exception e) {
-            System.Console.Error.WriteLine("Error deserializing JSON for TMDB search: " + e);
+            ConsoleLogger.Error("Error deserializing JSON for TMDB search: " + e);
             return new();
         }
         if (data == null) return new();
@@ -190,8 +191,12 @@ public class APIService {
             Overview = tmdb.Overview ?? string.Empty,
             Rating = Math.Round(tmdb.VoteAverage / 2.0, 2), // convert to 5 point scale
             ReleaseYear = !string.IsNullOrEmpty(tmdb.ReleaseDate) &&
-                            int.TryParse(tmdb.ReleaseDate.Split('-')[0], out var year)
-                            ? year : 0,
+                            int.TryParse(tmdb.ReleaseDate.Split('-')[0], out var releaseDateYear)
+                            ? releaseDateYear
+                        : !string.IsNullOrEmpty(tmdb.FirstAirDate) &&
+                            int.TryParse(tmdb.FirstAirDate.Split('-')[0], out var firstAirDateYear)
+                            ? firstAirDateYear
+                        : 0,
             VerticalPoster = tmdb.PosterPath,
             LargeVerticalPoster = tmdb.LargePosterPath ?? "",
             HorizontalPoster = tmdb.BackdropPath

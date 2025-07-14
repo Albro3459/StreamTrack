@@ -7,6 +7,7 @@ using API.DTOs;
 using API.Infrastructure;
 using API.Models;
 using API.Service;
+using API.Helpers;
 
 namespace API.Controllers;
 
@@ -100,7 +101,7 @@ public class ContentController : ControllerBase {
             return contents;
         }
         catch (Exception e) {
-            System.Console.WriteLine("Error in Search TMDB: " + e);
+            ConsoleLogger.Error("Error in Search TMDB: " + e);
             return BadRequest();
         }
     }
@@ -166,7 +167,7 @@ public class ContentController : ControllerBase {
                 }
                 if (updatedDetail.TMDB_ID != requestDTO.TMDB_ID) {
                     // Should NEVER happen. How would the ID change in the API. Anyways...
-                    System.Console.WriteLine($"Content data TMDB ID changed in RapidAPI: should be {requestDTO.TMDB_ID}, received {updatedDetail.TMDB_ID}");
+                    ConsoleLogger.Error($"Content data TMDB ID changed in RapidAPI: should be {requestDTO.TMDB_ID}, received {updatedDetail.TMDB_ID}");
                     return BadRequest("Content data TMDB ID changed in RapidAPI.");
                 }
                 // UPDATE
@@ -204,7 +205,7 @@ public class ContentController : ControllerBase {
             }
         }
         catch (Exception e) {
-            System.Console.WriteLine("Error in GetContentDetails: " + e);
+            ConsoleLogger.Error("Error in GetContentDetails: " + e);
             return BadRequest();
         }
 
@@ -353,18 +354,14 @@ public class ContentController : ControllerBase {
         }
 
         if (previouslyPopular.Count > 0) {
-            Console.WriteLine("Should Delete");
             context.ContentPartial.RemoveRange(previouslyPopular);
-        }
-        else {
-            Console.WriteLine("Not Deleting");
         }
 
         try {
             await context.SaveChangesAsync();
         }
         catch (Exception ex) {
-            System.Console.WriteLine("Error saving in BulkPopularUpdate: " + ex);
+            ConsoleLogger.Error("Error saving in BulkPopularUpdate: " + ex);
             return BadRequest();
         }
 
