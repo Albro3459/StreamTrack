@@ -7,6 +7,7 @@ using API.Models;
 using AutoMapper;
 using System.Net.Http.Headers;
 using API.Helpers;
+using API.Secrets;
 
 namespace API.Service;
 

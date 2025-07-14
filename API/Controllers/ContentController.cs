@@ -8,6 +8,7 @@ using API.Infrastructure;
 using API.Models;
 using API.Service;
 using API.Helpers;
+using API.Secrets;
 
 namespace API.Controllers;
 
@@ -275,7 +276,7 @@ public class ContentController : ControllerBase {
                 Section = pair.Value,  // display name
                 Contents = sortingService.filterSectionContent(pair.Key, contents.OrderBy(_ => rng.Next()).ToList(), maxContents)
             })
-            .Where(pair => pair.Contents.Count > 0) // filter out empty sections (filtering failed)
+            .Where(pair => pair.Contents.Count >= 3) // filter out sections without enough contents
             .ToDictionary(
                 pair => pair.Section,  // display name
                 pair => pair.Contents
@@ -296,7 +297,6 @@ public class ContentController : ControllerBase {
         return popularContents;
     }
 
-    // Maybe add timestamp in the future for recent content, but it doesn't matter right now
     // POST: API/Content/Popular/Update
     [HttpPost("Popular/Update")]
     public async Task<ActionResult<ContentDTO>> UpdatePopularContent(List<ContentDTO> dtos) {

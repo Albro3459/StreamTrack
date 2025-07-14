@@ -1,7 +1,9 @@
 
 export enum TMDB_MEDIA_TYPE {
     MOVIE = "movie",
-    TV = "tv"
+    TV = "tv",
+    PERSON = "person",
+    COLLECTION = "collection"
 }
 
 export type TMDB_Content = {
@@ -10,10 +12,12 @@ export type TMDB_Content = {
     // Movie:
     title: string | null;
     original_title: string | null;
+    release_date: string | null;
 
     // TV Show:
     name: string | null;
     original_name:  string | null;
+    first_air_date: string | null;
 
     // Both
     overview: string;
@@ -24,7 +28,6 @@ export type TMDB_Content = {
     original_language: string;
     genre_ids: number[];
     popularity: number;
-    release_date: string;
     video: boolean;
     vote_average: number;
     vote_count: number;

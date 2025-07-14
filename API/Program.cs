@@ -1,16 +1,26 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.JwtBearer; // Going to need to use firebase tokens
+using Microsoft.AspNetCore.Authentication.JwtBearer; // Needed to use firebase tokens
 using Microsoft.OpenApi.Models;
-// using AutoMapper;
 
 using API.Infrastructure;
 using API.Service;
+using API.Secrets;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddDbContext<StreamTrackDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("Development"))
+var baseConnectionString = builder.Configuration.GetConnectionString("Default") ?? "";
+var connectionString = baseConnectionString
+    .Replace("Username=;", $"Username={PostgreSQL.Username};")
+    .Replace("Password=;", $"Password={PostgreSQL.Password};");
+
+builder.Services.AddDbContext<StreamTrackDbContext>(
+    options => options.UseNpgsql(connectionString)
 );
+
+// SQLite
+// builder.Services.AddDbContext<StreamTrackDbContext>(options =>
+//     options.UseSqlite(builder.Configuration.GetConnectionString("Development"))
+// );
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

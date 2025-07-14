@@ -59,10 +59,10 @@ public class TMDBContent {
     public double Popularity { get; set; }
 
     [JsonPropertyName("release_date")]
-    public string? ReleaseDate { get; set; } = string.Empty;
+    public string? ReleaseDate { get; set; } = string.Empty; // Movies
 
     [JsonPropertyName("first_air_date")]
-    public string? FirstAirDate { get; set; } = string.Empty;
+    public string? FirstAirDate { get; set; } = string.Empty; // TV Shows
 
     [JsonPropertyName("video")]
     public bool? Video { get; set; }

@@ -5,6 +5,7 @@ CREATE TABLE "ContentPartial" (
     "Rating" REAL NOT NULL,
     "ReleaseYear" INTEGER NOT NULL,
     "VerticalPoster" TEXT NOT NULL,
+    "LargeVerticalPoster" TEXT NOT NULL,
     "HorizontalPoster" TEXT NOT NULL,
     "IsDeleted" INTEGER NOT NULL
 );
@@ -47,7 +48,9 @@ CREATE TABLE "ContentDetail" (
     "SeasonCount" INTEGER NULL,
     "EpisodeCount" INTEGER NULL,
     "VerticalPoster" TEXT NOT NULL,
+    "LargeVerticalPoster" TEXT NOT NULL,
     "HorizontalPoster" TEXT NOT NULL,
+    "TTL_UTC" TEXT NOT NULL,
     "IsDeleted" INTEGER NOT NULL,
     CONSTRAINT "FK_ContentDetail_ContentPartial_TMDB_ID" FOREIGN KEY ("TMDB_ID") REFERENCES "ContentPartial" ("TMDB_ID") ON DELETE CASCADE
 );
@@ -112,6 +115,72 @@ CREATE TABLE "ListShares" (
     CONSTRAINT "FK_ListShares_List_ListID" FOREIGN KEY ("ListID") REFERENCES "List" ("ListID") ON DELETE CASCADE,
     CONSTRAINT "FK_ListShares_User_UserID" FOREIGN KEY ("UserID") REFERENCES "User" ("UserID") ON DELETE CASCADE
 );
+
+INSERT INTO "Genre" ("GenreID", "IsDeleted", "Name")
+VALUES ('1', 0, 'Action');
+SELECT changes();
+
+INSERT INTO "Genre" ("GenreID", "IsDeleted", "Name")
+VALUES ('2', 0, 'Comedy');
+SELECT changes();
+
+INSERT INTO "Genre" ("GenreID", "IsDeleted", "Name")
+VALUES ('3', 0, 'Drama');
+SELECT changes();
+
+INSERT INTO "Genre" ("GenreID", "IsDeleted", "Name")
+VALUES ('4', 0, 'Horror');
+SELECT changes();
+
+INSERT INTO "Genre" ("GenreID", "IsDeleted", "Name")
+VALUES ('5', 0, 'Romance');
+SELECT changes();
+
+INSERT INTO "Genre" ("GenreID", "IsDeleted", "Name")
+VALUES ('6', 0, 'Science Fiction');
+SELECT changes();
+
+INSERT INTO "Genre" ("GenreID", "IsDeleted", "Name")
+VALUES ('7', 0, 'Thriller');
+SELECT changes();
+
+INSERT INTO "Genre" ("GenreID", "IsDeleted", "Name")
+VALUES ('8', 0, 'Western');
+SELECT changes();
+
+
+INSERT INTO "StreamingService" ("ServiceID", "DarkLogo", "IsDeleted", "LightLogo", "Name")
+VALUES ('1', 'https://media.movieofthenight.com/services/netflix/logo-dark-theme.svg', 0, 'https://media.movieofthenight.com/services/netflix/logo-light-theme.svg', 'Netflix');
+SELECT changes();
+
+INSERT INTO "StreamingService" ("ServiceID", "DarkLogo", "IsDeleted", "LightLogo", "Name")
+VALUES ('2', 'https://media.movieofthenight.com/services/hulu/logo-dark-theme.svg', 0, 'https://media.movieofthenight.com/services/hulu/logo-light-theme.svg', 'Hulu');
+SELECT changes();
+
+INSERT INTO "StreamingService" ("ServiceID", "DarkLogo", "IsDeleted", "LightLogo", "Name")
+VALUES ('3', 'https://media.movieofthenight.com/services/max/logo-dark-theme.svg', 0, 'https://media.movieofthenight.com/services/max/logo-light-theme.svg', 'Max');
+SELECT changes();
+
+INSERT INTO "StreamingService" ("ServiceID", "DarkLogo", "IsDeleted", "LightLogo", "Name")
+VALUES ('4', 'https://media.movieofthenight.com/services/prime/logo-dark-theme.svg', 0, 'https://media.movieofthenight.com/services/prime/logo-light-theme.svg', 'Prime Video');
+SELECT changes();
+
+INSERT INTO "StreamingService" ("ServiceID", "DarkLogo", "IsDeleted", "LightLogo", "Name")
+VALUES ('5', 'https://media.movieofthenight.com/services/disney/logo-dark-theme.svg', 0, 'https://media.movieofthenight.com/services/disney/logo-light-theme.svg', 'Disney+');
+SELECT changes();
+
+INSERT INTO "StreamingService" ("ServiceID", "DarkLogo", "IsDeleted", "LightLogo", "Name")
+VALUES ('6', 'https://media.movieofthenight.com/services/apple/logo-dark-theme.svg', 0, 'https://media.movieofthenight.com/services/apple/logo-light-theme.svg', 'Apple TV');
+SELECT changes();
+
+INSERT INTO "StreamingService" ("ServiceID", "DarkLogo", "IsDeleted", "LightLogo", "Name")
+VALUES ('7', 'https://media.movieofthenight.com/services/paramount/logo-dark-theme.svg', 0, 'https://media.movieofthenight.com/services/paramount/logo-light-theme.svg', 'Paramount+');
+SELECT changes();
+
+INSERT INTO "StreamingService" ("ServiceID", "DarkLogo", "IsDeleted", "LightLogo", "Name")
+VALUES ('8', 'https://media.movieofthenight.com/services/peacock/logo-dark-theme.svg', 0, 'https://media.movieofthenight.com/services/peacock/logo-light-theme.svg', 'Peacock');
+SELECT changes();
+
 
 CREATE INDEX "IX_ContentGenre_GenresGenreID" ON "ContentGenre" ("GenresGenreID");
 

@@ -17,15 +17,15 @@ namespace StreamTrack.Migrations
                 name: "ContentPartial",
                 columns: table => new
                 {
-                    TMDB_ID = table.Column<string>(type: "TEXT", nullable: false),
-                    Title = table.Column<string>(type: "TEXT", nullable: false),
-                    Overview = table.Column<string>(type: "TEXT", nullable: false),
-                    Rating = table.Column<double>(type: "REAL", nullable: false),
-                    ReleaseYear = table.Column<int>(type: "INTEGER", nullable: false),
-                    VerticalPoster = table.Column<string>(type: "TEXT", nullable: false),
-                    LargeVerticalPoster = table.Column<string>(type: "TEXT", nullable: false),
-                    HorizontalPoster = table.Column<string>(type: "TEXT", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false)
+                    TMDB_ID = table.Column<string>(type: "text", nullable: false),
+                    Title = table.Column<string>(type: "text", nullable: false),
+                    Overview = table.Column<string>(type: "text", nullable: false),
+                    Rating = table.Column<double>(type: "double precision", nullable: false),
+                    ReleaseYear = table.Column<int>(type: "integer", nullable: false),
+                    VerticalPoster = table.Column<string>(type: "text", nullable: false),
+                    LargeVerticalPoster = table.Column<string>(type: "text", nullable: false),
+                    HorizontalPoster = table.Column<string>(type: "text", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -36,9 +36,9 @@ namespace StreamTrack.Migrations
                 name: "Genre",
                 columns: table => new
                 {
-                    GenreID = table.Column<string>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false)
+                    GenreID = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -49,11 +49,11 @@ namespace StreamTrack.Migrations
                 name: "StreamingService",
                 columns: table => new
                 {
-                    ServiceID = table.Column<string>(type: "TEXT", nullable: false),
-                    Name = table.Column<string>(type: "TEXT", nullable: false),
-                    LightLogo = table.Column<string>(type: "TEXT", nullable: false),
-                    DarkLogo = table.Column<string>(type: "TEXT", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false)
+                    ServiceID = table.Column<string>(type: "text", nullable: false),
+                    Name = table.Column<string>(type: "text", nullable: false),
+                    LightLogo = table.Column<string>(type: "text", nullable: false),
+                    DarkLogo = table.Column<string>(type: "text", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -64,11 +64,11 @@ namespace StreamTrack.Migrations
                 name: "User",
                 columns: table => new
                 {
-                    UserID = table.Column<string>(type: "TEXT", nullable: false),
-                    Email = table.Column<string>(type: "TEXT", nullable: false),
-                    FirstName = table.Column<string>(type: "TEXT", nullable: false),
-                    LastName = table.Column<string>(type: "TEXT", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false)
+                    UserID = table.Column<string>(type: "text", nullable: false),
+                    Email = table.Column<string>(type: "text", nullable: false),
+                    FirstName = table.Column<string>(type: "text", nullable: false),
+                    LastName = table.Column<string>(type: "text", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -79,25 +79,25 @@ namespace StreamTrack.Migrations
                 name: "ContentDetail",
                 columns: table => new
                 {
-                    TMDB_ID = table.Column<string>(type: "TEXT", nullable: false),
-                    IsPopular = table.Column<bool>(type: "INTEGER", nullable: false),
-                    Title = table.Column<string>(type: "TEXT", nullable: false),
-                    Overview = table.Column<string>(type: "TEXT", nullable: false),
-                    ReleaseYear = table.Column<int>(type: "INTEGER", nullable: false),
-                    RapidID = table.Column<string>(type: "TEXT", nullable: false),
-                    IMDB_ID = table.Column<string>(type: "TEXT", nullable: false),
-                    ShowType = table.Column<string>(type: "TEXT", nullable: false),
-                    Cast = table.Column<string>(type: "TEXT", nullable: false),
-                    Directors = table.Column<string>(type: "TEXT", nullable: false),
-                    Rating = table.Column<double>(type: "REAL", nullable: false),
-                    Runtime = table.Column<int>(type: "INTEGER", nullable: true),
-                    SeasonCount = table.Column<int>(type: "INTEGER", nullable: true),
-                    EpisodeCount = table.Column<int>(type: "INTEGER", nullable: true),
-                    VerticalPoster = table.Column<string>(type: "TEXT", nullable: false),
-                    LargeVerticalPoster = table.Column<string>(type: "TEXT", nullable: false),
-                    HorizontalPoster = table.Column<string>(type: "TEXT", nullable: false),
-                    TTL_UTC = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false)
+                    TMDB_ID = table.Column<string>(type: "text", nullable: false),
+                    IsPopular = table.Column<bool>(type: "boolean", nullable: false),
+                    Title = table.Column<string>(type: "text", nullable: false),
+                    Overview = table.Column<string>(type: "text", nullable: false),
+                    ReleaseYear = table.Column<int>(type: "integer", nullable: false),
+                    RapidID = table.Column<string>(type: "text", nullable: false),
+                    IMDB_ID = table.Column<string>(type: "text", nullable: false),
+                    ShowType = table.Column<string>(type: "text", nullable: false),
+                    Cast = table.Column<string>(type: "text", nullable: false),
+                    Directors = table.Column<string>(type: "text", nullable: false),
+                    Rating = table.Column<double>(type: "double precision", nullable: false),
+                    Runtime = table.Column<int>(type: "integer", nullable: true),
+                    SeasonCount = table.Column<int>(type: "integer", nullable: true),
+                    EpisodeCount = table.Column<int>(type: "integer", nullable: true),
+                    VerticalPoster = table.Column<string>(type: "text", nullable: false),
+                    LargeVerticalPoster = table.Column<string>(type: "text", nullable: false),
+                    HorizontalPoster = table.Column<string>(type: "text", nullable: false),
+                    TTL_UTC = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -114,11 +114,11 @@ namespace StreamTrack.Migrations
                 name: "List",
                 columns: table => new
                 {
-                    ListID = table.Column<string>(type: "TEXT", nullable: false),
-                    OwnerUserID = table.Column<string>(type: "TEXT", nullable: false),
-                    ListName = table.Column<string>(type: "TEXT", nullable: false),
-                    Version = table.Column<byte[]>(type: "BLOB", rowVersion: true, nullable: true),
-                    IsDeleted = table.Column<bool>(type: "INTEGER", nullable: false)
+                    ListID = table.Column<string>(type: "text", nullable: false),
+                    OwnerUserID = table.Column<string>(type: "text", nullable: false),
+                    ListName = table.Column<string>(type: "text", nullable: false),
+                    Version = table.Column<byte[]>(type: "bytea", rowVersion: true, nullable: true),
+                    IsDeleted = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -135,8 +135,8 @@ namespace StreamTrack.Migrations
                 name: "UserGenre",
                 columns: table => new
                 {
-                    GenresGenreID = table.Column<string>(type: "TEXT", nullable: false),
-                    UsersUserID = table.Column<string>(type: "TEXT", nullable: false)
+                    GenresGenreID = table.Column<string>(type: "text", nullable: false),
+                    UsersUserID = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -159,8 +159,8 @@ namespace StreamTrack.Migrations
                 name: "UserService",
                 columns: table => new
                 {
-                    StreamingServicesServiceID = table.Column<string>(type: "TEXT", nullable: false),
-                    UsersUserID = table.Column<string>(type: "TEXT", nullable: false)
+                    StreamingServicesServiceID = table.Column<string>(type: "text", nullable: false),
+                    UsersUserID = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -183,8 +183,8 @@ namespace StreamTrack.Migrations
                 name: "ContentGenre",
                 columns: table => new
                 {
-                    ContentDetailsTMDB_ID = table.Column<string>(type: "TEXT", nullable: false),
-                    GenresGenreID = table.Column<string>(type: "TEXT", nullable: false)
+                    ContentDetailsTMDB_ID = table.Column<string>(type: "text", nullable: false),
+                    GenresGenreID = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -207,11 +207,11 @@ namespace StreamTrack.Migrations
                 name: "StreamingOption",
                 columns: table => new
                 {
-                    TMDB_ID = table.Column<string>(type: "TEXT", nullable: false),
-                    ServiceID = table.Column<string>(type: "TEXT", nullable: false),
-                    Type = table.Column<string>(type: "TEXT", nullable: false),
-                    Price = table.Column<string>(type: "TEXT", nullable: true),
-                    DeepLink = table.Column<string>(type: "TEXT", nullable: false)
+                    TMDB_ID = table.Column<string>(type: "text", nullable: false),
+                    ServiceID = table.Column<string>(type: "text", nullable: false),
+                    Type = table.Column<string>(type: "text", nullable: false),
+                    Price = table.Column<string>(type: "text", nullable: true),
+                    DeepLink = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -234,8 +234,8 @@ namespace StreamTrack.Migrations
                 name: "ListContent",
                 columns: table => new
                 {
-                    ContentPartialsTMDB_ID = table.Column<string>(type: "TEXT", nullable: false),
-                    ListsListID = table.Column<string>(type: "TEXT", nullable: false)
+                    ContentPartialsTMDB_ID = table.Column<string>(type: "text", nullable: false),
+                    ListsListID = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -258,9 +258,9 @@ namespace StreamTrack.Migrations
                 name: "ListShares",
                 columns: table => new
                 {
-                    ListID = table.Column<string>(type: "TEXT", nullable: false),
-                    UserID = table.Column<string>(type: "TEXT", nullable: false),
-                    Permission = table.Column<string>(type: "TEXT", nullable: false)
+                    ListID = table.Column<string>(type: "text", nullable: false),
+                    UserID = table.Column<string>(type: "text", nullable: false),
+                    Permission = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {

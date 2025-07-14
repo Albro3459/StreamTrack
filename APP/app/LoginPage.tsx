@@ -96,7 +96,7 @@ export default function LoginPage() {
             <KeyboardAvoidingView 
                 style={{ flex: 1, backgroundColor: Colors.backgroundColor }} 
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
-                keyboardVerticalOffset={-50} // adjust as needed for your header/nav
+                keyboardVerticalOffset={!isSignUp ? -80 : -50}
             >
                 <ScrollView 
                     contentContainerStyle={{ flexGrow: 1 }}

@@ -14,3 +14,20 @@ dotnet ef migrations add MIGRATION_NAME -o Migrations
 
 #### If NOT updated database yet
 dotnet ef migration remove
+
+#### How to print the migrations schema
+dotnet ef migrations script
+
+
+## PostgreSQL
+
+#### Start background service
+brew services start postgresql@14
+
+#### Open postgres shell
+psql postgres
+
+CREATE USER username WITH PASSWORD '...';
+CREATE DATABASE "StreamTrack" OWNER username;
+GRANT ALL PRIVILEGES ON DATABASE "StreamTrack" TO username;
+\q
