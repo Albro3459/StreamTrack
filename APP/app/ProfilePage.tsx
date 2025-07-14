@@ -1,6 +1,6 @@
 "use client";
 
-import { Text, TextInput, View, StyleSheet, ScrollView, Pressable, ActivityIndicator, Dimensions, RefreshControl } from "react-native";
+import { Text, TextInput, View, StyleSheet, ScrollView, Pressable, ActivityIndicator, Dimensions, RefreshControl, Keyboard } from "react-native";
 import React, { useEffect, useState } from 'react';
 import { PressableBubblesGroup,} from './components/formComponents';
 import { Stack, useLocalSearchParams, useRouter } from "expo-router"
@@ -127,6 +127,7 @@ export default function ProfilePage() {
                 />
                 <ScrollView 
                     style={styles.background}
+                    onScroll={Keyboard.dismiss}
                     refreshControl={
                         <RefreshControl
                             refreshing={refreshing}
@@ -145,6 +146,7 @@ export default function ProfilePage() {
                             style={styles.textInput}
                             placeholderTextColor={Colors.italicTextColor}
                             value={firstNameText || ""}
+                            autoCapitalize="words"
                             onChangeText={(newText) => {setFirstNameText(newText); setIsEditing(true);}}
                         />
                         <View style={styles.labelContainer}>
@@ -154,6 +156,7 @@ export default function ProfilePage() {
                             style={styles.textInput}
                             placeholderTextColor={Colors.italicTextColor}
                             value={lastNameText || ""}
+                            autoCapitalize="words"
                             onChangeText={(newText) => {setLastNameText(newText); setIsEditing(true);}}
                         />
 

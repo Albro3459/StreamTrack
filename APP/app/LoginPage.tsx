@@ -128,6 +128,7 @@ export default function LoginPage() {
                                     placeholder="Password"
                                     placeholderTextColor={Colors.italicTextColor}
                                     value={password}
+                                    autoCapitalize="none"
                                     onChangeText={setPassword}
                                     onSubmitEditing={() => {!isSignUp && handleAuth()}}
                                     secureTextEntry={!showPassword}
@@ -149,6 +150,7 @@ export default function LoginPage() {
                                         placeholder="Confirm Password"
                                         placeholderTextColor={Colors.italicTextColor}
                                         value={confirmPassword}
+                                        autoCapitalize="none"
                                         onChangeText={setConfirmPassword}
                                         onSubmitEditing={() => {isSignUp && handleAuth()}}
                                         secureTextEntry={!showConfirmPassword}

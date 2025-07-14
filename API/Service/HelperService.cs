@@ -201,20 +201,38 @@ public class HelperService {
             HorizontalPoster = dto.HorizontalPoster
         };
 
-        var genreTasks = dto.Genres.Select(g => GenreDTOToGenre(g)).ToList();
-        content.Genres = (await Task.WhenAll(genreTasks)).ToList();
+        // Can't do this with Postgres because of concurrency issues
+        // var genreTasks = dto.Genres.Select(g => GenreDTOToGenre(g)).ToList();
+        // content.Genres = (await Task.WhenAll(genreTasks)).ToList();
+
+        var genres = new List<Genre>();
+        foreach (var g in dto.Genres) {
+            genres.Add(await GenreDTOToGenre(g));
+        }
+        content.Genres = genres;
+
 
         context.ContentDetail.Add(content);
 
-        var streamingOptionTasks = dto.StreamingOptions.Select(s => StreamingOptionDTOToStreamingOption(s, content)).ToList();
-        var streamingOptions = await Task.WhenAll(streamingOptionTasks);
-        if (streamingOptions.Any(s => s == null)) {
-            return null;
+        // Can't do this with Postgres because of concurrency issues
+        // var streamingOptionTasks = dto.StreamingOptions.Select(s => StreamingOptionDTOToStreamingOption(s, content)).ToList();
+        // var streamingOptions = await Task.WhenAll(streamingOptionTasks);
+        // if (streamingOptions.Any(s => s == null)) {
+        //     return null;
+        // }
+        // content.StreamingOptions = streamingOptions
+        //                             .Where(s => s != null)
+        //                             .Cast<StreamingOption>()
+        //                             .ToList();
+
+        var streamingOptions = new List<StreamingOption>();
+        foreach (var s in dto.StreamingOptions) {
+            var streamingOption = await StreamingOptionDTOToStreamingOption(s, content);
+            if (streamingOption != null) {
+                streamingOptions.Add(streamingOption);
+            }
         }
-        content.StreamingOptions = streamingOptions
-                                    .Where(s => s != null)
-                                    .Cast<StreamingOption>()
-                                    .ToList();
+        content.StreamingOptions = streamingOptions;
 
         return content;
     }
