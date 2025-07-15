@@ -33,6 +33,7 @@ services:
             - ASPNETCORE_ENVIRONMENT=Production
             - DOTNET_RUNNING_IN_CONTAINER=true
             - AWS_REGION=us-west-1
+            - ASPNETCORE_URLS=http://+:5000
         ports:
             - "5000:5000"
 
