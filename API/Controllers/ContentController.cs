@@ -8,7 +8,6 @@ using API.Infrastructure;
 using API.Models;
 using API.Service;
 using API.Helpers;
-using API.Secrets;
 
 namespace API.Controllers;
 
@@ -304,7 +303,7 @@ public class ContentController : ControllerBase {
 
         string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (string.IsNullOrEmpty(uid) || uid != LAMBDA.UID) {
+        if (string.IsNullOrEmpty(uid) || uid != await AWSSecretHelper.GetSecretKey(AWS_Secrets.LambdaUID)) {
             return Unauthorized();
         }
 

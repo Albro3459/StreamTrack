@@ -1,6 +1,3 @@
-@StreamTrack_HostAddress = http://localhost:5047
-
-GET {{StreamTrack_HostAddress}}/weatherforecast/
-Accept: application/json
+@StreamTrack_HostAddress = http://localhost:5000
 
 ###

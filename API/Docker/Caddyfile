@@ -1,0 +1,8 @@
+streamtrack.cloudlaunch.live {
+    reverse_proxy api:5000
+    encode gzip
+    log {
+        output stdout
+        format console
+    }
+}

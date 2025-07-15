@@ -4,14 +4,19 @@ using Microsoft.OpenApi.Models;
 
 using API.Infrastructure;
 using API.Service;
-using API.Secrets;
+using API.Helpers;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// DB Connection
+var usernameTask = AWSSecretHelper.GetSecretKey(AWS_Secrets.PostgresUsername);
+var passwordTask = AWSSecretHelper.GetSecretKey(AWS_Secrets.PostgresPassword);
+await Task.WhenAll(usernameTask, passwordTask);
+
 var baseConnectionString = builder.Configuration.GetConnectionString("Default") ?? "";
 var connectionString = baseConnectionString
-    .Replace("Username=;", $"Username={PostgreSQL.Username};")
-    .Replace("Password=;", $"Password={PostgreSQL.Password};");
+    .Replace("Username=;", $"Username={usernameTask.Result};")
+    .Replace("Password=;", $"Password={passwordTask.Result}");
 
 builder.Services.AddDbContext<StreamTrackDbContext>(
     options => options.UseNpgsql(connectionString)

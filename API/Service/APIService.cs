@@ -7,7 +7,6 @@ using API.Models;
 using AutoMapper;
 using System.Net.Http.Headers;
 using API.Helpers;
-using API.Secrets;
 
 namespace API.Service;
 
@@ -66,7 +65,7 @@ public class APIService {
         string url = $"{RapidAPI_Base_Url}{contentDTO.TMDB_ID}{RapidAPI_Ending}";
 
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Add(RapidApiKeyHeader, API_KEYS.RAPID);
+        request.Headers.Add(RapidApiKeyHeader, await AWSSecretHelper.GetSecretKey(AWS_Secrets.RapidAPIKey_Main));
         request.Headers.Add(RapidApiHostHeader, RapidApiHostValue);
 
         using var response = await httpClient.SendAsync(request);
@@ -97,7 +96,7 @@ public class APIService {
     public async Task<List<ContentPartialDTO>> TMDBSearch(string keyword) {
         string url = TMDB_Search_Url + Uri.EscapeDataString(keyword.Trim()) + TMDB_Search_Ending;
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", API_KEYS.TMDB_BEARER_TOKEN);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await AWSSecretHelper.GetSecretKey(AWS_Secrets.TMDBBearerToken));
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
         using var response = await httpClient.SendAsync(request);
@@ -140,7 +139,7 @@ public class APIService {
     private async Task<Posters> GetPosters(string tmdbID) {
         string url = TMDB_Poster_Url + tmdbID + TMDB_Poster_Ending;
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", API_KEYS.TMDB_BEARER_TOKEN);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await AWSSecretHelper.GetSecretKey(AWS_Secrets.TMDBBearerToken));
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
         using var response = await httpClient.SendAsync(request);

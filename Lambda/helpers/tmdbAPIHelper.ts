@@ -46,7 +46,7 @@ export const getPosters = async (tmdbID: string): Promise<Posters> => {
         method: 'GET',
         headers: {
             accept: 'application/json',
-            Authorization: TMDB_BEARER_TOKEN
+            Authorization: "Bearer " + TMDB_BEARER_TOKEN
         }
     };
 

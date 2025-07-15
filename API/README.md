@@ -1,6 +1,6 @@
 # API
 
-Swagger URL: http://localhost:5047/swagger/index.html
+Swagger URL: http://localhost:5000/swagger/index.html
 
 ## Commands
 
@@ -31,3 +31,6 @@ CREATE USER username WITH PASSWORD '...';
 CREATE DATABASE "StreamTrack" OWNER username;
 GRANT ALL PRIVILEGES ON DATABASE "StreamTrack" TO username;
 \q
+
+## Docker
+DockerScript.sh is the main script, which when called in the EC2 instance will run everything else
