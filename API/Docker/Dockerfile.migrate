@@ -1,0 +1,19 @@
+# Migration stage
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+# Copy project and restore
+COPY ./StreamTrack.csproj ./
+RUN dotnet restore ./StreamTrack.csproj
+
+# Copy full API source
+COPY ./ ./
+
+RUN apt-get update && apt-get install -y netcat-openbsd
+
+# Copy entrypoint script from context
+COPY ./Docker/MigrationScript.sh .
+RUN chmod +x /app/MigrationScript.sh
+
+EXPOSE 5000
+ENTRYPOINT ["./MigrationScript.sh"]

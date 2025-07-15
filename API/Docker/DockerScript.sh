@@ -20,4 +20,13 @@ export POSTGRES_HOST="db"
 export POSTGRES_PORT="5432"
 
 # Run Docker Compose
-docker compose up --build -d
+echo "Starting only the database service..."
+docker compose up -d db # DB first (background)
+
+echo "Running database migrations..."
+docker compose run --rm migrate # Then Migrations (--rm means remove when done)
+
+echo "Starting API and Caddy reverse proxy..."
+docker compose up -d api caddy # Then start API and Caddy reverse proxy (background)
+
+# Stop docker with `docker compose down`

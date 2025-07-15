@@ -39,3 +39,14 @@ RUN FROM INSIDE THE Docker/ DIRECTORY!
 
 To stop docker:
 docker compose down
+
+#### Debugging
+Check if API is running
+docker compose ps
+
+Check logs
+docker compose logs caddy
+
+docker compose logs api
+or to stream
+docker compose logs -f api

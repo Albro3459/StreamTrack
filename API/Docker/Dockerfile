@@ -9,6 +9,9 @@ RUN dotnet restore ./StreamTrack.csproj
 # Copy full API source
 COPY ./ ./
 
+RUN dotnet tool install --global dotnet-ef
+ENV PATH="${PATH}:/root/.dotnet/tools"
+
 RUN dotnet publish ./StreamTrack.csproj -c Release -o /app/publish /p:UseAppHost=false
 
 # Runtime stage
@@ -17,7 +20,7 @@ WORKDIR /app
 
 COPY --from=build /app/publish .
 
-RUN apt-get update && apt-get install -y netcat
+RUN apt-get update && apt-get install -y netcat-openbsd
 
 # Copy entrypoint script from context
 COPY ./Docker/APIScript.sh .
