@@ -1,3 +1,4 @@
+#!/bin/bash
 
 echo "Waiting for Postgres..."
 until nc -z db 5432; do # Wait on post 5432

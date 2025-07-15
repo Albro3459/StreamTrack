@@ -19,4 +19,4 @@ COPY ./Docker/MigrationScript.sh .
 RUN chmod +x ./MigrationScript.sh
 
 EXPOSE 5000
-ENTRYPOINT ["./MigrationScript.sh"]
+ENTRYPOINT ["bash", "./MigrationScript.sh"]

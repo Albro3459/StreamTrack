@@ -24,4 +24,4 @@ COPY ./Docker/APIScript.sh .
 RUN chmod +x /app/APIScript.sh
 
 EXPOSE 5000
-ENTRYPOINT ["./APIScript.sh"]
+ENTRYPOINT ["bash", "./APIScript.sh"]
