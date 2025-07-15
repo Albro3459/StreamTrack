@@ -33,4 +33,6 @@ GRANT ALL PRIVILEGES ON DATABASE "StreamTrack" TO username;
 \q
 
 ## Docker
-DockerScript.sh is the main script, which when called in the EC2 instance will run everything else
+DockerScript.sh is the main script, which when called in the EC2 instance will run everything else.
+
+RUN FROM INSIDE THE Docker/ DIRECTORY!
