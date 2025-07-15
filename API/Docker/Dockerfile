@@ -8,15 +8,16 @@ RUN dotnet restore ./StreamTrack.csproj
 
 # Copy full API source
 COPY ./ ./
-WORKDIR /src/StreamTrack/API
 
-RUN dotnet publish -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish ./StreamTrack.csproj -c Release -o /app/publish /p:UseAppHost=false
 
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 
 COPY --from=build /app/publish .
+
+RUN apt-get update && apt-get install -y netcat
 
 # Copy entrypoint script from context
 COPY ./Docker/APIScript.sh .
