@@ -1,5 +1,5 @@
 # Migration stage
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0
 WORKDIR /src
 
 # Copy project and restore
@@ -11,9 +11,12 @@ COPY ./ ./
 
 RUN apt-get update && apt-get install -y netcat-openbsd
 
+RUN dotnet tool install --global dotnet-ef
+ENV PATH="${PATH}:/root/.dotnet/tools"
+
 # Copy entrypoint script from context
 COPY ./Docker/MigrationScript.sh .
-RUN chmod +x /app/MigrationScript.sh
+RUN chmod +x ./MigrationScript.sh
 
 EXPOSE 5000
 ENTRYPOINT ["./MigrationScript.sh"]

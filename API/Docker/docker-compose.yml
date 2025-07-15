@@ -1,27 +1,4 @@
 services:
-    api:
-        build:
-            context: ../ # StreamTrack/API/
-            dockerfile: Docker/Dockerfile
-        depends_on:
-            - db
-        environment:
-            - ASPNETCORE_ENVIRONMENT=Production
-            - DOTNET_RUNNING_IN_CONTAINER=true
-            - AWS_REGION=us-west-1
-        ports:
-            - "5000:5000"
-
-    migrate:
-        build:
-            context: ../ # StreamTrack/API/
-            dockerfile: Docker/Dockerfile.migrate
-        depends_on:
-            - db
-        environment:
-            - ASPNETCORE_ENVIRONMENT=Production
-            - DOTNET_RUNNING_IN_CONTAINER=true
-            - AWS_REGION=us-west-1
 
     db:
         image: postgres:15
@@ -34,6 +11,30 @@ services:
             - pgdata:/var/lib/postgresql/data
         ports:
             - "5432:5432"
+
+    migrate:
+        build:
+            context: ../ # StreamTrack/API/
+            dockerfile: Docker/Dockerfile.migrate
+        depends_on:
+            - db
+        environment:
+            - ASPNETCORE_ENVIRONMENT=Production
+            - DOTNET_RUNNING_IN_CONTAINER=true
+            - AWS_REGION=us-west-1
+
+    api:
+        build:
+            context: ../ # StreamTrack/API/
+            dockerfile: Docker/Dockerfile
+        depends_on:
+            - db
+        environment:
+            - ASPNETCORE_ENVIRONMENT=Production
+            - DOTNET_RUNNING_IN_CONTAINER=true
+            - AWS_REGION=us-west-1
+        ports:
+            - "5000:5000"
 
     caddy:
         image: caddy:latest
