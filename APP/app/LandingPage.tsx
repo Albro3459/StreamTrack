@@ -224,10 +224,9 @@ export default function LandingPage () {
                         ) : null
                     )) : (
                     <View style={styles.nothingFoundContainer}>
-                        <Text style={styles.nothingFoundText}>Nothing found.</Text>
-                        {/* <Pressable onPress={clearAllFilters} style={styles.clearButton}>
-                            <Text style={styles.clearButtonText}>Clear Filters</Text>
-                        </Pressable> */}
+                        { !(isLoading || carouselImagesLoading) && (
+                            <Text style={styles.nothingFoundText}>No Content Found :(</Text>
+                        )}
                     </View>
                 ))}
 

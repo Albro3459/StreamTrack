@@ -4,8 +4,9 @@ import { Button } from "react-native";
 import { Alert } from "../alertMessageComponent";
 import { Router } from "expo-router";
 
-// const redirectUri: string = AuthSession?.makeRedirectUri();
-const redirectUri: string = authKeys.redirectURI;
+const redirectUri = (AuthSession.makeRedirectUri as any)({
+    useProxy: false
+});
 
 interface GoogleSignInButtonProps {
     router: Router, 
@@ -28,8 +29,9 @@ interface GoogleSignInButtonProps {
 const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ 
     router, onSignIn, onSignUp, setAlertMessageFunc, setAlertTypeFunc 
 }) => {
-    const [request, response, promptAsync] = Google?.useAuthRequest({
+    const [request, response, promptAsync] = Google?.useIdTokenAuthRequest({
             clientId: authKeys.clientID,
+            iosClientId: authKeys.clientID,
             scopes: ["profile", "email"], // default and required
             redirectUri
     });
