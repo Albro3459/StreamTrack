@@ -1,9 +1,8 @@
 "use client";
 
-import { DataAPIURL } from "../../../secrets/DataAPIUrl";
 import { GenreData } from "../../types/dataTypes";
 import { Alert } from "../../../app/components/alertMessageComponent";
-import { auth, signOut } from "../../../firebaseConfig";
+import { auth, signOut, secrets } from "../../../firebaseConfig";
 import { Router } from "expo-router";
 
 export const getGenreData = async (router: Router, token: string,
@@ -11,7 +10,7 @@ export const getGenreData = async (router: Router, token: string,
                                     setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ): Promise<GenreData[] | null> => {
     try {
-        const url = DataAPIURL + "API/Genre/GetMain";
+        const url = secrets.dataAPIURL + "API/Genre/GetMain";
 
         const options = {
             method: 'GET',

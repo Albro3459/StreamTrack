@@ -1,7 +1,6 @@
 import { Alert } from "../../../app/components/alertMessageComponent";
 import { ContentPartialData } from "../../../app/types/dataTypes";
-import { auth, signOut } from "../../../firebaseConfig";
-import { DataAPIURL } from "../../../secrets/DataAPIUrl";
+import { auth, signOut, secrets } from "../../../firebaseConfig";
 import { Router } from "expo-router";
 
 export const searchTMDB = async (router: Router, token: string, keyword: string,
@@ -17,7 +16,7 @@ export const searchTMDB = async (router: Router, token: string, keyword: string,
         return [];
     }
     try {
-        const url = DataAPIURL + "API/Content/Search?keyword=" + encodeURIComponent(keyword);
+        const url = secrets.dataAPIURL + "API/Content/Search?keyword=" + encodeURIComponent(keyword);
 
         const options = {
             method: 'GET',

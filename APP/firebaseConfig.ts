@@ -1,36 +1,41 @@
 "use client";
 
-import { initializeApp } from "firebase/app";
+import { FirebaseApp, initializeApp } from "firebase/app";
 import { GoogleAuthProvider, signInWithCredential, Auth, User, UserCredential, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, getIdToken, initializeAuth } from "firebase/auth";
 import * as firebaseAuth from 'firebase/auth'; 
 import * as Google from 'expo-auth-session/providers/google';
 import * as AuthSession from 'expo-auth-session';
 
 
-import * as authKeys from "./secrets/authKeys";
+import * as secrets from "./secrets";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const reactNativePersistence = (firebaseAuth as any).getReactNativePersistence;
 
 const firebaseConfig = {
-  apiKey: authKeys.apiKey,
-  authDomain: authKeys.authDomain,
-  projectId: authKeys.projectId,
-  storageBucket: authKeys.storageBucket,
-  messagingSenderId: authKeys.messagingSenderId,
-  appId: authKeys.appId
+  apiKey: secrets.apiKey,
+  authDomain: secrets.authDomain,
+  projectId: secrets.projectId,
+  storageBucket: secrets.storageBucket,
+  messagingSenderId: secrets.messagingSenderId,
+  appId: secrets.appId
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+let app = {} as FirebaseApp, auth = {} as Auth;
+try {
+    // Initialize Firebase
+    app = initializeApp(firebaseConfig);
 
-// Initialize Auth with React Native persistence
-const auth = initializeAuth(app, {
-    persistence: reactNativePersistence(AsyncStorage),
-});
+    // Initialize Auth with React Native persistence
+    auth = initializeAuth(app, {
+        persistence: reactNativePersistence(AsyncStorage),
+    });
+} catch(e: any) {
+    console.warn("Error initializing firebase: ", e);
+}
 
 export { 
-    authKeys,
+    secrets,
     AuthSession, Google, GoogleAuthProvider, signInWithCredential, // Google
     auth, Auth, User, UserCredential, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, getIdToken 
 };

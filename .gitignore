@@ -31,5 +31,6 @@ API/obj
 
 # Hide all the keys
 **/secrets/
+**/.env
 
 **/.vscode/

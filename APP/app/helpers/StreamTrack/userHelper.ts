@@ -1,9 +1,8 @@
 "use client";
 
-import { DataAPIURL } from "../../../secrets/DataAPIUrl";
 import { ContentPartialData, UpdateUserProfileData, UserMinimalData } from "../../types/dataTypes";
 import { Alert } from "../../../app/components/alertMessageComponent";
-import { auth, signOut } from "../../../firebaseConfig";
+import { auth, signOut, secrets } from "../../../firebaseConfig";
 import { Router } from "expo-router";
 
 export const checkIfUserExists = async (token: string,
@@ -11,7 +10,7 @@ export const checkIfUserExists = async (token: string,
                                         setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ): Promise<boolean> => {
     try {
-        const url = DataAPIURL + "API/User/Check";
+        const url = secrets.dataAPIURL + "API/User/Check";
 
         const options = {
             method: 'GET',
@@ -49,7 +48,7 @@ export const getUserMinimalData = async (router: Router, token: string,
                                         setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ): Promise<UserMinimalData | null> => {
     try {
-        const url = DataAPIURL + "API/User/Get";
+        const url = secrets.dataAPIURL + "API/User/Get";
 
         const options = {
             method: 'GET',
@@ -95,7 +94,7 @@ export const getUserContents = async (router: Router, token: string,
                                         setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ): Promise<ContentPartialData[] | null> => {
     try {
-        const url = DataAPIURL + "API/User/GetContents";
+        const url = secrets.dataAPIURL + "API/User/GetContents";
 
         const options = {
             method: 'GET',
@@ -143,7 +142,7 @@ export const createUser = async (router: Router, token: string | null,
     try {
         if (!token) return null;
 
-        const url = DataAPIURL + "API/User/Create";
+        const url = secrets.dataAPIURL + "API/User/Create";
 
         const options = {
             method: 'POST',
@@ -189,7 +188,7 @@ export const updateUserProfile = async (router: Router, token: string | null, fi
     try {
         if (!token) return null;    
 
-        const url = DataAPIURL + "API/User/Update";
+        const url = secrets.dataAPIURL + "API/User/Update";
 
         const body: UpdateUserProfileData = {
             ...(firstName && { FirstName: firstName?.trim() }),

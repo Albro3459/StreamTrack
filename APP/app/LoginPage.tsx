@@ -9,7 +9,7 @@ import { Colors } from "../constants/Colors";
 import { GoogleSignIn, GoogleSignUp, LogOut, SignIn, SignUp } from "./helpers/authHelper";
 import { appStyles } from "../styles/appStyles";
 import AlertMessage, { Alert } from "./components/alertMessageComponent";
-import GoogleSignInButton from "./components/auth/GoogleSignInButton";
+// import { GoogleSignInButton } from "./components/auth/GoogleSignInButton";
 
 interface LoginPageParams {
     unauthorized?: number;
@@ -189,13 +189,13 @@ export default function LoginPage() {
                                 </Text>
                             </Pressable>
 
-                            <GoogleSignInButton
+                            {/* <GoogleSignInButton
                                 router={router}
                                 onSignIn={GoogleSignIn}    
                                 onSignUp={GoogleSignUp}       
                                 setAlertMessageFunc={setAlertMessage}
                                 setAlertTypeFunc={setAlertType}         
-                            />
+                            /> */}
                         </View>
 
                         {/* Overlay */}

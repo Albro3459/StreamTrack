@@ -1,8 +1,7 @@
 "use client";
 
 import { ContentPartialData, ListMinimalData, UserData } from "../../../app/types/dataTypes";
-import { DataAPIURL } from "../../../secrets/DataAPIUrl";
-import { auth, signOut, User } from "../../../firebaseConfig";
+import { auth, signOut, User, secrets } from "../../../firebaseConfig";
 import { setUserData, useUserDataStore } from "../../../app/stores/userDataStore";
 import { Alert } from "../../../app/components/alertMessageComponent";
 import { Router } from "expo-router";
@@ -187,7 +186,7 @@ export const addContentToUserList = async (router: Router, token: string | null,
     try {
         if (!token) return null;
 
-        const url = DataAPIURL + `API/List/${encodeURIComponent(listName.trim())}/Add`;
+        const url = secrets.dataAPIURL + `API/List/${encodeURIComponent(listName.trim())}/Add`;
                 
         const options = {
             method: 'POST',
@@ -242,7 +241,7 @@ export const removeContentFromUserList = async (router: Router, token: string | 
     try {
         if (!token) return null;
 
-        const url = DataAPIURL + `API/List/${encodeURIComponent(listName.trim())}/Remove/${encodeURIComponent(tmdbID.trim())}`;
+        const url = secrets.dataAPIURL + `API/List/${encodeURIComponent(listName.trim())}/Remove/${encodeURIComponent(tmdbID.trim())}`;
 
         const options = {
             method: 'DELETE',
@@ -291,7 +290,7 @@ export const createNewUserList = async (router: Router, token: string | null, li
     try {
         if (!token) return null;
 
-        const url = DataAPIURL + `API/List/${encodeURIComponent(listName.trim())}/Create`;
+        const url = secrets.dataAPIURL + `API/List/${encodeURIComponent(listName.trim())}/Create`;
                 
         const options = {
             method: 'POST',
@@ -340,7 +339,7 @@ export const deleteUserList = async (router: Router, token: string | null, listN
     try {
         if (!token) return null;
 
-        const url = DataAPIURL + `API/List/${encodeURIComponent(listName.trim())}/Remove`;
+        const url = secrets.dataAPIURL + `API/List/${encodeURIComponent(listName.trim())}/Remove`;
                 
         const options = {
             method: 'DELETE',

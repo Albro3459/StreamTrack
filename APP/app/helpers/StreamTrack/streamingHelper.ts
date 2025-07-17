@@ -2,8 +2,7 @@
 
 import { Alert } from "../../../app/components/alertMessageComponent";
 import { StreamingServiceData } from "../../../app/types/dataTypes";
-import { DataAPIURL } from "../../../secrets/DataAPIUrl";
-import { auth, signOut } from "../../../firebaseConfig";
+import { auth, signOut, secrets } from "../../../firebaseConfig";
 import { Router } from "expo-router";
 
 export const getStreamingServiceData = async (router: Router, token: string,
@@ -11,7 +10,7 @@ export const getStreamingServiceData = async (router: Router, token: string,
                                                 setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ): Promise<StreamingServiceData[] | null> => {
     try {
-        const url = DataAPIURL + "API/Streaming/GetMain";
+        const url = secrets.dataAPIURL + "API/Streaming/GetMain";
 
         const options = {
             method: 'GET',

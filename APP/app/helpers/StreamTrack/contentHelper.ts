@@ -2,8 +2,7 @@
 
 import { Alert } from "../../../app/components/alertMessageComponent";
 import { ContentData, ContentInfoData, ContentPartialData, ContentRequestData, ContentSimpleData, PopularContentData } from "../../../app/types/dataTypes";
-import { DataAPIURL } from "../../../secrets/DataAPIUrl";
-import { auth, signOut } from "../../../firebaseConfig";
+import { auth, signOut, secrets } from "../../../firebaseConfig";
 import { Router } from "expo-router";
 
 const missingVerticalPoster: number = require('@/assets/images/MissingVerticalPoster.png') || "";
@@ -77,7 +76,7 @@ export const getContentInfo = async (router: Router, token: string, content: Con
                                         shouldRefresh: boolean = false,
 ): Promise<ContentInfoData | null> => {
     try {
-        const url = DataAPIURL + "API/Content/Info" + (shouldRefresh ? "?shouldRefresh=true" : "");
+        const url = secrets.dataAPIURL + "API/Content/Info" + (shouldRefresh ? "?shouldRefresh=true" : "");
 
         const options = {
             method: 'POST',
@@ -124,7 +123,7 @@ export const getPopularContent = async (router: Router, token: string,
                                         setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ) : Promise<PopularContentData | null> => {
     try {
-        const url = DataAPIURL + "API/Content/Popular";
+        const url = secrets.dataAPIURL + "API/Content/Popular";
 
         const options = {
             method: 'GET',
