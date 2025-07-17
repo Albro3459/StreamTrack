@@ -207,3 +207,30 @@ or to stream
 ```sh
 docker compose logs -f api
 ```
+
+##### Extras :)
+
+Creating a swap file (just in case)
+
+First, check if swap is on:
+```sh
+sudo swapon --show
+```
+
+If not, then:
+```sh
+sudo fallocate -l 1G /swapfile # 1 GB or Virtual Memory
+sudo chmod 600 /swapfile
+sudo mkswap /swapfile
+sudo swapon /swapfile
+```
+
+Verify
+```sh
+sudo swapon --show
+```
+
+If everything looks good, make it permanent for reboots:
+```sh
+echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
+```
