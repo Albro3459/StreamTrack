@@ -11,7 +11,7 @@ export default {
     orientation: "portrait",
     newArchEnabled: true,
     icon: "./assets/images/AppIconDark.png",
-    scheme: "myapp",
+    scheme: "streamtrack",
     userInterfaceStyle: "automatic",
     splash: {
       image: "./assets/images/AppLogoClear.png",
@@ -38,9 +38,10 @@ export default {
       favicon: "./assets/images/AppIconDark.png"
     },
     plugins: [
-      "expo-router",
-      "expo-font",
-      "expo-asset"
+        "expo-router",
+        "expo-font",
+        "expo-asset",
+        "expo-apple-authentication"
     ],
     experiments: {
       typedRoutes: true
@@ -64,9 +65,10 @@ export default {
       MEASUREMENT_ID: process.env.MEASUREMENT_ID,
       CLIENT_ID: process.env.CLIENT_ID,
     },
-    runtimeVersion: {
-      policy: "appVersion"
-    },
+    // runtimeVersion: { // EAS Build
+    //   policy: "appVersion"
+    // },
+    runtimeVersion: "1.0.0", // npx expo run:ios
     updates: {
       url: "https://u.expo.dev/8b6758e2-1727-486e-9570-b2fecd06aa1e"
     }

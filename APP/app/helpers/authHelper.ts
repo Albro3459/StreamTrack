@@ -5,6 +5,7 @@ import { checkIfUserExists, createUser } from "./StreamTrack/userHelper";
 import { CACHE, ClearCache, FetchCache } from "./cacheHelper";
 import { Alert } from "../components/alertMessageComponent";
 import { Router } from "expo-router";
+import { AppleUserCredential } from "../types/AppleUserCredential";
 
 export const SignIn = async (auth: Auth, router: Router, email: string, password: string,
                                 setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
@@ -95,35 +96,35 @@ export const SignUp = async (auth: Auth, router: Router, email: string, password
     }
 };
 
-export const GoogleSignIn = async (userCreds: UserCredential, router: Router, email: string,
+export const AppleSignIn = async (userCreds: AppleUserCredential, router: Router, email: string,
                                 setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                 setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ) : Promise<boolean> => {
     ClearCache(CACHE.USER);
     if (!userCreds) {
         if (setAlertMessageFunc) setAlertMessageFunc(prev => {
-            console.warn('Google Sign In invalid credentials'); 
+            console.warn('Apple Sign In invalid credentials'); 
             if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
-            return 'Google Sign In invalid credentials';
+            return 'Apple Sign In invalid credentials';
         });
         return false;
     }
+
     email = email?.trim();
     if (!email.includes('@') || !email.includes('.')) {
         if (setAlertMessageFunc) setAlertMessageFunc(prev => {
-            console.warn('Google Sign In invalid email: ' + email); 
+            console.warn('Apple Sign In invalid email: ' + email); 
             if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
-            return 'Google Sign In invalid email';
+            return 'Apple Sign In invalid email';
         });
         return false;
     }
 
     const user = userCreds.user;
-    const token = await user?.getIdToken() ?? null;
+    const token = user?.stsTokenManager.accessToken ?? null;
     if (token) {
         if (!await checkIfUserExists(token)) { // intentionally NOT passing error funcs
             // doesnt exist in DB, but does in Firebase, so try to create the user
-            const token = await user?.getIdToken() ?? null;
             const success: boolean = await createUser(router, token); // intentionally NOT passing error funcs
             if (success) {
                 FetchCache(router, token, setAlertMessageFunc, setAlertTypeFunc);
@@ -133,46 +134,47 @@ export const GoogleSignIn = async (userCreds: UserCredential, router: Router, em
             FetchCache(router, token, setAlertMessageFunc, setAlertTypeFunc);
             return true;
         }
-    }
+    } 
+
     if (setAlertMessageFunc) setAlertMessageFunc(prev => {
-        console.warn('Google Sign In redirect to Sign Up user failed'); 
+        console.warn('Apple Sign In redirect to Sign Up user failed'); 
         if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
-        return 'Google Sign In failed';
+        return 'Apple Sign In failed';
     });
     return false;
 };
 
-export const GoogleSignUp = async (userCreds: UserCredential, router: Router, email: string,
+export const AppleSignUp = async (userCreds: AppleUserCredential, router: Router, email: string,
                                 setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                 setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ) => {
     ClearCache(CACHE.USER);
     if (!userCreds) {
         if (setAlertMessageFunc) setAlertMessageFunc(prev => {
-            console.warn('Google Sign Up invalid credentials'); 
+            console.warn('Apple Sign Up invalid credentials'); 
             if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
-            return 'Google Sign Up invalid credentials';
+            return 'Apple Sign Up invalid credentials';
         });
         return;
     }
     email = email?.trim();
     if (!email.includes('@') || !email.includes('.')) {
         if (setAlertMessageFunc) setAlertMessageFunc(prev => {
-            console.warn('Google Sign Up invalid email: ' + email); 
+            console.warn('Apple Sign Up invalid email: ' + email); 
             if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
-            return 'Google Sign Up invalid email';
+            return 'Apple Sign Up invalid email';
         });
         return;
     }
 
     const user = userCreds.user;
     if (user) {
-        const token = await user?.getIdToken() ?? null;
+        const token = user?.stsTokenManager.accessToken ?? null;
         await createUser(router, token, setAlertMessageFunc, setAlertTypeFunc);
         token && FetchCache(router, token, setAlertMessageFunc, setAlertTypeFunc);
     } else {
-        console.warn('Google Sign Up user failed'); 
-        if (setAlertMessageFunc) setAlertMessageFunc('Google Sign Up user failed'); 
+        console.warn('Apple Sign Up user failed'); 
+        if (setAlertMessageFunc) setAlertMessageFunc('Apple Sign Up user failed'); 
         if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
     }
 };

@@ -6,7 +6,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { auth } from "../firebaseConfig";
 import { Router, useLocalSearchParams, useRouter } from "expo-router";
 import { Colors } from "../constants/Colors";
-import { GoogleSignIn, GoogleSignUp, LogOut, SignIn, SignUp } from "./helpers/authHelper";
+import { AppleSignIn, AppleSignUp, LogOut, SignIn, SignUp } from "./helpers/authHelper";
 import { appStyles } from "../styles/appStyles";
 import AlertMessage, { Alert } from "./components/alertMessageComponent";
 import { GoogleSignInButton } from "./components/auth/GoogleSignInButton";
@@ -63,11 +63,14 @@ export default function LoginPage() {
                 
                 setSigning(true);
                 await SignUp(auth, router, email?.trim(), password, setAlertMessage, setAlertType);
-                router.replace({
-                    pathname: '/ProfilePage',
-                    params: { isSigningUp: 1 }, // Have to pass as number or string
-                });
-                
+                if (auth?.currentUser) {
+                    router.replace({
+                        pathname: '/ProfilePage',
+                        params: { isSigningUp: 1 }, // Have to pass as number or string
+                    });
+                } else {
+                    await LogOut(auth);
+                }                
             } else {
                 setSigning(true);
                 const success: boolean = await SignIn(auth, router, email?.trim(), password, setAlertMessage, setAlertType);
@@ -195,18 +198,18 @@ export default function LoginPage() {
                                 </Text>
                             </Pressable>
 
-                            <GoogleSignInButton
+                            {/* <GoogleSignInButton
                                 router={router}
                                 onSignIn={GoogleSignIn}    
                                 onSignUp={GoogleSignUp}       
                                 setAlertMessageFunc={setAlertMessage}
                                 setAlertTypeFunc={setAlertType}         
-                            />
+                            /> */}
 
                             <AppleSignInButton
                                 router={router}
-                                onSignIn={GoogleSignIn}    
-                                onSignUp={GoogleSignUp}       
+                                onSignIn={AppleSignIn}    
+                                onSignUp={AppleSignUp}       
                                 setAlertMessageFunc={setAlertMessage}
                                 setAlertTypeFunc={setAlertType}         
                             />

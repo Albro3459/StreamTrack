@@ -1,6 +1,16 @@
 ### To run:
 ```sh
 cd StreamTrack/APP
+```
+
+Things have changed so when developing try to just run it on the iOS 18.5 simulator.
+Make sure you are signed into iCloud on the simulator for sign in with Apple
+```sh
+npx expo run:ios
+```
+
+Older way:
+```sh
 npm start
 ```
 
@@ -15,6 +25,8 @@ npx expo start -c
 ```
 
 ### To connect to iPhone:
+
+Can't really do now.
 
 In StreamTrack/APP/.env, change DATA_API_URL from localhost to the computer's or servers IP Address.
 

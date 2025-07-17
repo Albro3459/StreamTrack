@@ -1,21 +1,23 @@
 import * as AppleAuthentication from 'expo-apple-authentication';
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Text, Image, Pressable, ActivityIndicator, StyleSheet } from "react-native";
 import { auth, OAuthProvider, signInWithCredential, UserCredential } from "../../../firebaseConfig";
 import { Alert } from "../alertMessageComponent";
 import { Router } from "expo-router";
-import { appStyles } from "@/styles/appStyles";
-import { Colors } from "@/constants/Colors";
+import { appStyles } from "../../../styles/appStyles";
+import { Colors } from "../../../constants/Colors";
+import { AppleUserCredential } from '../../../app/types/AppleUserCredential';
+import { LogOut } from '../../../app/helpers/authHelper';
 
 interface AppleSignInButtonProps {
     router: Router, 
     onSignIn: (
-        userCreds: UserCredential, router: Router, email: string,
+        userCreds: AppleUserCredential, router: Router, email: string,
         setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
         setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
     ) => Promise<boolean>;
     onSignUp: (
-        userCreds: UserCredential, router: Router, email: string,
+        userCreds: AppleUserCredential, router: Router, email: string,
         setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
         setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
     ) => Promise<void>;
@@ -31,10 +33,10 @@ export const AppleSignInButton: React.FC<AppleSignInButtonProps> = ({
     const handleAppleSignIn = async () => {
         setLoading(true);
         try {
-            const credential = await AppleAuthentication.signInAsync({
+            const credential = await AppleAuthentication?.signInAsync({
                 requestedScopes: [
-                    AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-                    AppleAuthentication.AppleAuthenticationScope.EMAIL,
+                    AppleAuthentication?.AppleAuthenticationScope?.FULL_NAME,
+                    AppleAuthentication?.AppleAuthenticationScope?.EMAIL,
                 ],
             });
 
@@ -50,21 +52,37 @@ export const AppleSignInButton: React.FC<AppleSignInButtonProps> = ({
             const firebaseCredential = provider.credential({ idToken: identityToken });
 
             signInWithCredential(auth, firebaseCredential)
-                .then((userCredential: UserCredential) => {
-                    const isNewUser = (userCredential as any).additionalUserInfo?.isNewUser;
+                .then(async (userCredential: UserCredential) => {
+                    const appleCredential = (userCredential as any) as AppleUserCredential;
+                    const isNewUser = appleCredential?._tokenResponse?.isNewUser;
                     if (isNewUser) {
-                        onSignUp(userCredential, router, userCredential?.user?.email, setAlertMessageFunc, setAlertTypeFunc);
+                        await onSignUp(appleCredential, router, appleCredential?.user?.email, setAlertMessageFunc, setAlertTypeFunc);
+                        if (auth?.currentUser) {
+                            router.replace({
+                                pathname: '/ProfilePage',
+                                params: { isSigningUp: 1 }, // Have to pass as number or string
+                            });
+                        } else {
+                            await LogOut(auth);
+                        }
                     } else {
-                        onSignIn(userCredential, router, userCredential?.user?.email, setAlertMessageFunc, setAlertTypeFunc);
+                        const success: boolean = await  onSignIn(appleCredential, router, appleCredential?.user?.email, setAlertMessageFunc, setAlertTypeFunc);
+                        if (success === true) {
+                            router.replace("/LandingPage");
+                        } else {
+                            await LogOut(auth);
+                        }
                     }
                 })
                 .catch((error: any) => {
+                    console.warn("Error on Apple Sign In/Up", error);
                     setAlertMessageFunc("Error on Apple Sign In/Up");
                     setAlertTypeFunc(Alert.Error);
                 })
-                .finally(() => setLoading(false));
+                .finally(() => {setLoading(false);});
         } catch (e: any) {
             if (e.code !== "ERR_CANCELED") {
+                console.warn("Apple Sign In Error", e);
                 setAlertMessageFunc("Apple Sign In Error");
                 setAlertTypeFunc(Alert.Error);
             }
@@ -73,14 +91,21 @@ export const AppleSignInButton: React.FC<AppleSignInButtonProps> = ({
     };
 
     return (
-        <Pressable
-            onPress={handleAppleSignIn}
+        // <Pressable
+        //     onPress={handleAppleSignIn}
+        //     style={[appleStyles.button, loading && appleStyles.buttonDisabled]}
+        //     disabled={loading}
+        // >
+        //     <Image source={require("../../../assets/images/AppleLogo.png")} style={appleStyles.logo} />
+        //     <Text style={appleStyles.text}>Sign in with Apple</Text>
+        // </Pressable>
+        <AppleAuthentication.AppleAuthenticationButton
+            buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+            buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+            cornerRadius={5}
             style={[appleStyles.button, loading && appleStyles.buttonDisabled]}
-            disabled={loading}
-        >
-            <Image source={require("../../../assets/images/AppleLogo.png")} style={appleStyles.logo} />
-            <Text style={appleStyles.text}>Sign in with Apple</Text>
-        </Pressable>
+            onPress={handleAppleSignIn}
+        />
     );
 };
 
