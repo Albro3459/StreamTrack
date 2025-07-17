@@ -7,7 +7,7 @@ export const Colors = {
     tabBarColor: "#4f4f77",
     selectedTabColor: '#6c6c91',
 
-    grayCell: "#dcdde0",
+    grayCell: "#ddd",
 
     selectedColor: "#65709D",
     selectedTextColor: "#FFFFFF",

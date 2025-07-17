@@ -1,7 +1,7 @@
 "use client";
 
 import { FirebaseApp, initializeApp } from "firebase/app";
-import { GoogleAuthProvider, signInWithCredential, Auth, User, UserCredential, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, getIdToken, initializeAuth } from "firebase/auth";
+import { OAuthProvider, GoogleAuthProvider, signInWithCredential, Auth, User, UserCredential, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, getIdToken, initializeAuth } from "firebase/auth";
 import * as firebaseAuth from 'firebase/auth'; 
 import * as Google from 'expo-auth-session/providers/google';
 import * as AuthSession from 'expo-auth-session';
@@ -36,6 +36,6 @@ try {
 
 export { 
     secrets,
-    AuthSession, Google, GoogleAuthProvider, signInWithCredential, // Google
+    OAuthProvider, AuthSession, Google, GoogleAuthProvider, signInWithCredential,
     auth, Auth, User, UserCredential, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, getIdToken 
 };

@@ -1,5 +1,7 @@
 import 'dotenv/config';
 
+const BackgroundColor = require("./constants/BackgroundColor");
+
 export default {
   expo: {
     name: "StreamTrack",
@@ -8,31 +10,32 @@ export default {
     version: "1.0.0",
     orientation: "portrait",
     newArchEnabled: true,
-    icon: "./assets/images/AppNameImage.png",
+    icon: "./assets/images/AppIconDark.png",
     scheme: "myapp",
     userInterfaceStyle: "automatic",
     splash: {
-      image: "./assets/images/AppNameImage.png",
+      image: "./assets/images/AppLogoClear.png",
       resizeMode: "contain",
-      backgroundColor: "#1c2237"
+      backgroundColor: BackgroundColor.backgroundColor
     },
     ios: {
-      supportsTablet: true,
-      bundleIdentifier: "live.cloudlaunch.streamtrack",
-      infoPlist: {
-        ITSAppUsesNonExemptEncryption: false
-      }
+        supportsTablet: true,
+        bundleIdentifier: "live.cloudlaunch.streamtrack",
+        usesAppleSignIn: true,
+        infoPlist: {
+            ITSAppUsesNonExemptEncryption: false
+        }
     },
     android: {
       adaptiveIcon: {
-        foregroundImage: "./assets/images/AppNameImage.png",
-        backgroundColor: "#1c2237"
+        foregroundImage: "./assets/images/AppLogoClear.png",
+        backgroundColor: BackgroundColor.backgroundColor
       }
     },
     web: {
       bundler: "metro",
       output: "static",
-      favicon: "./assets/images/AppNameImage.png"
+      favicon: "./assets/images/AppIconDark.png"
     },
     plugins: [
       "expo-router",

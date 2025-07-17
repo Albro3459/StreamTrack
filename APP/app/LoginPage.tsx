@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { View, Text, TextInput, StyleSheet, ActivityIndicator, Pressable, TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, ScrollView, Platform } from "react-native";
+import { View, Image, Text, TextInput, StyleSheet, ActivityIndicator, Pressable, TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, ScrollView, Platform } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { auth } from "../firebaseConfig";
 import { Router, useLocalSearchParams, useRouter } from "expo-router";
@@ -9,7 +9,8 @@ import { Colors } from "../constants/Colors";
 import { GoogleSignIn, GoogleSignUp, LogOut, SignIn, SignUp } from "./helpers/authHelper";
 import { appStyles } from "../styles/appStyles";
 import AlertMessage, { Alert } from "./components/alertMessageComponent";
-// import { GoogleSignInButton } from "./components/auth/GoogleSignInButton";
+import { GoogleSignInButton } from "./components/auth/GoogleSignInButton";
+import { AppleSignInButton } from "./components/auth/AppleSignInButton";
 
 interface LoginPageParams {
     unauthorized?: number;
@@ -39,12 +40,12 @@ export default function LoginPage() {
         setAlertType(Alert.Error);
         try {
             if (!email.includes("@") || !email.includes(".")) {
-                setAlertMessage("Invalid email\nEnter a valid email address.");
+                setAlertMessage("Invalid email. Enter a valid email address.");
                 setAlertType(Alert.Error);
                 return;
             }
             if (!password) {
-                setAlertMessage("Missing password\nEnter a password.");
+                setAlertMessage("Missing password. Enter a password.");
                 setAlertType(Alert.Error);
                 return;
             }
@@ -96,7 +97,7 @@ export default function LoginPage() {
             <KeyboardAvoidingView 
                 style={{ flex: 1, backgroundColor: Colors.backgroundColor }} 
                 behavior={Platform.OS === "ios" ? "padding" : "height"}
-                keyboardVerticalOffset={!isSignUp ? -80 : -50}
+                // keyboardVerticalOffset={!isSignUp ? -80 : -50 /* When using a text title */}
             >
                 <ScrollView 
                     contentContainerStyle={{ flexGrow: 1 }}
@@ -110,7 +111,12 @@ export default function LoginPage() {
                             setMessage={setAlertMessage}
                             onIndex={true}
                         />
-                        <Text style={styles.title}>Stream Track</Text>
+                        {/* <Text style={styles.title}>Stream Track</Text> */}
+                        <Image
+                            source={require("../assets/images/AppLogoClear.png")}
+                            style={styles.logo}
+                            resizeMode="contain"
+                        />
                         
                         <View style={[styles.inputContainer, { paddingBottom: isSignUp ? 4 : 10 } ]}>
                             <TextInput
@@ -181,7 +187,7 @@ export default function LoginPage() {
                                 <Text style={appStyles.buttonText}>{isSignUp ? "Sign Up" : "Sign In"}</Text>
                             </Pressable>
                             <Pressable
-                                style={[appStyles.button, appStyles.secondaryButton]}
+                                style={[appStyles.button, appStyles.secondaryButton, {marginBottom: 15}]}
                                 onPress={() => setIsSignUp(!isSignUp)}
                             >
                                 <Text style={[appStyles.buttonText, appStyles.secondaryButtonText]}>
@@ -189,13 +195,21 @@ export default function LoginPage() {
                                 </Text>
                             </Pressable>
 
-                            {/* <GoogleSignInButton
+                            <GoogleSignInButton
                                 router={router}
                                 onSignIn={GoogleSignIn}    
                                 onSignUp={GoogleSignUp}       
                                 setAlertMessageFunc={setAlertMessage}
                                 setAlertTypeFunc={setAlertType}         
-                            /> */}
+                            />
+
+                            <AppleSignInButton
+                                router={router}
+                                onSignIn={GoogleSignIn}    
+                                onSignUp={GoogleSignUp}       
+                                setAlertMessageFunc={setAlertMessage}
+                                setAlertTypeFunc={setAlertType}         
+                            />
                         </View>
 
                         {/* Overlay */}
@@ -217,6 +231,13 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         padding: 24,
         backgroundColor: Colors.backgroundColor,
+    },
+    logo: {
+        alignSelf: "center",
+        width: 1000,
+        height: 300,
+        marginTop: -90,
+        marginBottom: -40,
     },
     title: {
         fontSize: 45,

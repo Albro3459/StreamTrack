@@ -16,7 +16,7 @@ npx expo start -c
 
 ### To connect to iPhone:
 
-In StreamTrack/APP/secrets/DataAPIURL.ts, change localhost to the computer's or servers IP Address.
+In StreamTrack/APP/.env, change DATA_API_URL from localhost to the computer's or servers IP Address.
 
 In StreamTrack/API/Properties/launchSettings.json, change localhost to 0.0.0.0 to allow anyone on the same network. Mainly just in the HTTP section.
 
@@ -31,6 +31,13 @@ npx eas build:configure
 ```
 
 Choose iOS
+
+Secrets needed to be added to the EAS ENV:
+```sh
+eas env:create --name SECRET_NAME --value "..."
+```
+You can only do one at a time. Use the spacebar to pick the options. I did Development & Production
+
 
 Make sure you are in the Git branch you want to build from, then build:
 ```sh

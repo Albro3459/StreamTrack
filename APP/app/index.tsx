@@ -49,7 +49,7 @@ export default function Index() {
                 onIndex={true}
             />
             <Image
-                source={require("../assets/images/AppNameImage.png")}
+                source={require("../assets/images/AppLogoClear.png")}
                 style={styles.logo}
                 resizeMode="contain"
             />
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     logo: {
-        width: "51%",
-        height: 150,
+        width: "100%",
+        height: 220,
     },
 });

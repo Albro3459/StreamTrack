@@ -63,7 +63,7 @@ export default function RootLayout() {
             <Stack.Screen
                 name="LandingPage"
                 options={() => ({
-                    title: "Stream Track",
+                    title: "Stream Tracker",
                     gestureEnabled: false,
                     headerBackVisible: false,
                     headerTitleStyle: appStyles.headerTitleStyle,
