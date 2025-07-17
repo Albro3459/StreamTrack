@@ -163,6 +163,7 @@ Then u are good, but make sure u clone with the SSH version not the https versio
 ```sh
 cd ~
 git clone -b dev git@github.com:Albro3459/StreamTrack.git # -b dev for dev branch
+# Optional for space saving: rm -rf StreamTrack/API StreamTrack/Lambda
 ```
 
 ### Docker
@@ -180,7 +181,13 @@ Make sure Database Update command is uncommented!
 ./DockerScript.sh
 ```
 
-To stop docker:
+To Stop and Start again:
+```sh
+docker compose stop
+docker compose start db api caddy
+```
+
+To fully cleanup and stop containers (requires full rebuild):
 ```sh
 docker compose down
 ```

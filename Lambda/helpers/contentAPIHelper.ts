@@ -1,25 +1,34 @@
 import axios from 'axios';
 
-import { RAPIDAPI_KEY } from '../secrets/API_keys';
+// import { RAPIDAPI_KEY } from '../secrets/API_keys';
 import { Content } from '../types/contentType';
 import { ContentData } from '../types/dataTypes';
 import { convertContentToContentData } from './contentHelper';
 import { GENRE, ORDER_BY, ORDER_DIRECTION, SERVICE, SHOW_TYPE } from '../types/contentFilterOptions';
-import { getPosters, Posters } from './tmdbAPIHelper';
+import { getPosters } from './tmdbAPIHelper';
+import { RapidAPI_Base_Url, RapidAPI_Headers, x_rapidapi_host } from '../URLs';
+import { TMDB_Posters } from '../types/tmdbType';
 
-// Details API
-const RapidAPI_Base_Url = 'https://streaming-availability.p.rapidapi.com/shows/';
-const RapidAPI_Headers = {
-    'x-rapidapi-key': RAPIDAPI_KEY,
-    'x-rapidapi-host': 'streaming-availability.p.rapidapi.com'
-};
+
 
 const isBadPoster = (url: string): boolean => {
     if (!url ||  url.toLowerCase().includes('svg') || url.toLowerCase().startsWith("https://www.")) return true;
     return false;
 };
 
-export const fetchByServiceAndGenre = async (RATING_CUTOFF: number, service: SERVICE, genre: GENRE, show_type: SHOW_TYPE, order_by: ORDER_BY, order_direction: ORDER_DIRECTION): Promise<ContentData[] | null> => {
+export const fetchByServiceAndGenre = async (RAPIDAPI_KEY: string, TMDB_BEARER_TOKEN: string, RATING_CUTOFF: number, service: SERVICE, genre: GENRE, show_type: SHOW_TYPE, order_by: ORDER_BY, order_direction: ORDER_DIRECTION): Promise<ContentData[] | null> => {
+    // Details API
+    // const RapidAPI_Base_Url = 'https://streaming-availability.p.rapidapi.com/shows/';
+    // const RapidAPI_Headers = {
+    //     'x-rapidapi-key': RAPIDAPI_KEY,
+    //     'x-rapidapi-host': 'streaming-availability.p.rapidapi.com'
+    // };
+
+    const RapidAPI_Header: RapidAPI_Headers = {
+        'x-rapidapi-key': RAPIDAPI_KEY,
+        'x-rapidapi-host': x_rapidapi_host
+    };
+
     const options = {
         method: 'GET',
         url: RapidAPI_Base_Url+"search/filters",
@@ -34,7 +43,7 @@ export const fetchByServiceAndGenre = async (RATING_CUTOFF: number, service: SER
             catalogs: service,
             show_type: show_type
         },
-        headers: RapidAPI_Headers
+        headers: RapidAPI_Header
     };
 
     const response = await axios.request(options);
@@ -50,7 +59,7 @@ export const fetchByServiceAndGenre = async (RATING_CUTOFF: number, service: SER
         const badHorizontalPoster: boolean = isBadPoster(c.horizontalPoster);
         if (badVerticalPoster || badLargeVerticalPoster || badHorizontalPoster) {
             try {
-                const posters: Posters = await getPosters(c.tmdbID);
+                const posters: TMDB_Posters = await getPosters(TMDB_BEARER_TOKEN, c.tmdbID);
                 c.verticalPoster = badVerticalPoster ? posters.verticalPoster : c.verticalPoster;
                 c.largeVerticalPoster = badLargeVerticalPoster ? posters.largeVerticalPoster : c.largeVerticalPoster;
                 c.horizontalPoster = badHorizontalPoster ? posters.horizontalPoster : c.horizontalPoster;

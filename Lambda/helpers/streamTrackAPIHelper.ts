@@ -1,4 +1,4 @@
-import { DataAPIURL } from "../secrets/DataAPIUrl";
+import { DataAPIURL } from "../URLs";
 import { ContentData } from "../types/dataTypes";
 
 export const updatePopularContents = async (token: string | null, contents: ContentData[]): Promise<number | null> => {

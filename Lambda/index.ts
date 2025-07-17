@@ -5,18 +5,15 @@ import { updatePopularContents } from "./helpers/streamTrackAPIHelper";
 import { getFirebaseToken } from "./helpers/firebaseHelper";
 import { ContentData } from "./types/dataTypes";
 import { GENRE, ORDER_BY, ORDER_DIRECTION, SERVICE, SHOW_TYPE } from "./types/contentFilterOptions";
+import { getAllSecrets } from "./helpers/AWSSecretsHelper";
+import { AWSSecrets } from "./types/AWSSecretsType";
 
-// Cron Schedule: (Min: 0, Hour: 0, Days of the month: ? none specified, Month: * any, Day of week: 0 Sunday, Year: 2025 just in case)
-// corn(0, 0, ? * 0 2025)
-
-// export const handler = async (event: APIGatewayEvent, context: Context) => {
-
-// }
+// Cron Schedule: (Min: 59, Hour: 23, Days of the month: ? none specified, Month: * any, Day of week: SUN Sunday, Year: 2025 just in case)
+// cron(59, 23, ? * SUN 2025)
 
 const RATING_CUTOFF: number = 70;
 const genres: GENRE[] = [GENRE.ACTION, GENRE.COMEDY, GENRE.DRAMA, GENRE.THRILLER, GENRE.SCIFI, GENRE.ROMANCE, GENRE.HORROR, GENRE.WESTERN];
 const services: SERVICE[] = [SERVICE.NETFLIX, SERVICE.HULU, SERVICE.HBO, SERVICE.PRIME, SERVICE.DISNEY, SERVICE.APPLE, SERVICE.PARAMOUNT, SERVICE.PEACOCK];
-
 const order_by: ORDER_BY = ORDER_BY.POPULARITY_1WEEK;
 const order_direction: ORDER_DIRECTION = ORDER_DIRECTION.ASC;
 
@@ -24,9 +21,14 @@ const order_direction: ORDER_DIRECTION = ORDER_DIRECTION.ASC;
 
 // Maybe add pulls from shows/top https://docs.movieofthenight.com/resource/shows#get-top-shows
 
-export const handler = async () => {
+export const handler = async (event: APIGatewayEvent, context: Context) => {
 
-    const token: string | null = await getFirebaseToken();
+    const secrets: AWSSecrets = await getAllSecrets();
+
+    console.log(JSON.stringify(secrets, null, 2));
+
+    const token: string | null = await getFirebaseToken(secrets);
+    console.log(token);
 
     let requestCount = 0, itemCount = 0, totalRequests = genres.length * services.length * Object.values(SHOW_TYPE).length;
 
@@ -36,7 +38,7 @@ export const handler = async () => {
         for (const genre of genres) {
             for (const show_type of Object.values(SHOW_TYPE)) {
                 try {
-                    const results: ContentData[] | null = await fetchByServiceAndGenre(RATING_CUTOFF, service, genre, show_type, order_by, order_direction);
+                    const results: ContentData[] | null = await fetchByServiceAndGenre(secrets.RapidAPIKey_Lambda, secrets.TMDBBearerToken, RATING_CUTOFF, service, genre, show_type, order_by, order_direction);
                     if (results === null || results === undefined) throw "failed to fetch posters";
                     for (const item of results) {
                         uniqueContentMap.set(item.tmdbID, item);
@@ -66,4 +68,4 @@ export const handler = async () => {
 };
 
 // Only needed for script. NOT when running on AWS Lambda
-handler();
+// handler();

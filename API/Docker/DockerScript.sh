@@ -30,4 +30,7 @@ docker compose up -d db # DB first (background)
 echo "Starting API and Caddy reverse proxy..."
 docker compose up -d api caddy # Then start API and Caddy reverse proxy (background)
 
-# Stop docker with `docker compose down`
+
+# To Stop with `docker compose stop` and Start with `docker compose start db api caddy`
+
+# or to Fully cleanup and stop containers (requires full rebuild) with `docker compose down`
