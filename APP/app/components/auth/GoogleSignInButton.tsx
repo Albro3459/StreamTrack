@@ -1,4 +1,4 @@
-import { Auth, auth, authKeys, AuthSession, Google, GoogleAuthProvider, signInWithCredential, UserCredential } from "@/firebaseConfig";
+import { Auth, auth, authKeys, AuthSession, Google, GoogleAuthProvider, signInWithCredential, UserCredential } from "../../../firebaseConfig";
 import { useEffect } from "react";
 import { Button } from "react-native";
 import { Alert } from "../alertMessageComponent";

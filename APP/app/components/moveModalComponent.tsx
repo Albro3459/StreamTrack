@@ -1,6 +1,6 @@
 "use client";
 
-import { appStyles } from "@/styles/appStyles";
+import { appStyles } from "../../styles/appStyles";
 import { Modal, Pressable, View, Text } from "react-native";
 import Heart from "./heartComponent";
 import { FAVORITE_TAB, handleCreateNewTab, sortLists } from "../helpers/StreamTrack/listHelper";

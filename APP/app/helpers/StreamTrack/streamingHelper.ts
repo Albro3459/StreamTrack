@@ -1,9 +1,9 @@
 "use client";
 
-import { Alert } from "@/app/components/alertMessageComponent";
-import { StreamingServiceData } from "@/app/types/dataTypes";
-import { DataAPIURL } from "@/secrets/DataAPIUrl";
-import { auth, signOut } from "@/firebaseConfig";
+import { Alert } from "../../../app/components/alertMessageComponent";
+import { StreamingServiceData } from "../../../app/types/dataTypes";
+import { DataAPIURL } from "../../../secrets/DataAPIUrl";
+import { auth, signOut } from "../../../firebaseConfig";
 import { Router } from "expo-router";
 
 export const getStreamingServiceData = async (router: Router, token: string,

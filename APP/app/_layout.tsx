@@ -4,10 +4,10 @@ import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { Pressable, Button, View } from "react-native";
 import { Fontisto, Feather } from '@expo/vector-icons';
-import { Colors } from "@/constants/Colors";
+import { Colors } from "../constants/Colors";
 import { useEffect } from "react";
 import { useFonts, Raleway_800ExtraBold } from '@expo-google-fonts/raleway';
-import { appStyles } from "@/styles/appStyles";
+import { appStyles } from "../styles/appStyles";
 // import { Kurale_400Regular } from '@expo-google-fonts/kurale';
 
 // Prevent splash screen from hiding until fonts are loaded

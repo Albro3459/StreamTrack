@@ -15,13 +15,11 @@
       "backgroundColor": "#1c2237"
     },
     "ios": {
-        "supportsTablet": true,
-        "bundleIdentifier": "live.cloudlaunch.streamtrack",
-        "config": {
-            "googleSignIn": {
-                "reservedClientId": "com.googleusercontent.apps.179090561769-hlpq2r4b969vsjnrhr2uam1tbn2d2hmb"
-            }
-        }
+      "supportsTablet": true,
+      "bundleIdentifier": "live.cloudlaunch.streamtrack",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {

@@ -1,9 +1,9 @@
 "use client";
 
-import { DataAPIURL } from "@/secrets/DataAPIUrl";
+import { DataAPIURL } from "../../../secrets/DataAPIUrl";
 import { GenreData } from "../../types/dataTypes";
-import { Alert } from "@/app/components/alertMessageComponent";
-import { auth, signOut } from "@/firebaseConfig";
+import { Alert } from "../../../app/components/alertMessageComponent";
+import { auth, signOut } from "../../../firebaseConfig";
 import { Router } from "expo-router";
 
 export const getGenreData = async (router: Router, token: string,

@@ -4,10 +4,10 @@ import { Text, TextInput, View, StyleSheet, ScrollView, Pressable, ActivityIndic
 import React, { useEffect, useState } from 'react';
 import { PressableBubblesGroup,} from './components/formComponents';
 import { Stack, useLocalSearchParams, useRouter } from "expo-router"
-import { Colors } from "@/constants/Colors";
+import { Colors } from "../constants/Colors";
 import { LogOut } from "./helpers/authHelper";
-import { auth } from "@/firebaseConfig";
-import { appStyles } from "@/styles/appStyles";
+import { auth } from "../firebaseConfig";
+import { appStyles } from "../styles/appStyles";
 import { fetchUserData, setUserData, useUserDataStore } from "./stores/userDataStore";
 import { UserData, UserMinimalData } from "./types/dataTypes";
 import { updateUserProfile } from "./helpers/StreamTrack/userHelper";

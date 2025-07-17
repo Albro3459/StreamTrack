@@ -27,7 +27,7 @@ import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import Svg, { Path, Text as SvgText } from "react-native-svg";
 // import { Content } from "../types/contentType";
 import { Entypo } from "@expo/vector-icons";
-import { Colors } from "@/constants/Colors";
+import { Colors } from "../../constants/Colors";
 
 const { width } = Dimensions.get("window");
 const WHEEL_SIZE = width * 0.8;

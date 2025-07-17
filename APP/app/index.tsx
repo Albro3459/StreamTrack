@@ -4,13 +4,13 @@ import React, { useEffect, useState } from "react";
 import { View, Image, StyleSheet, Pressable, Text } from "react-native";
 import { useRouter } from "expo-router";
 
-import { Colors } from "@/constants/Colors";
-import { auth, onAuthStateChanged, User } from "@/firebaseConfig";
+import { Colors } from "../constants/Colors";
+import { auth, onAuthStateChanged, User } from "../firebaseConfig";
 import { checkIfUserExists } from "./helpers/StreamTrack/userHelper";
 import { FetchCache } from "./helpers/cacheHelper";
 import AlertMessage, { Alert } from "./components/alertMessageComponent";
 import { LogOut } from "./helpers/authHelper";
-import { appStyles } from "@/styles/appStyles";
+import { appStyles } from "../styles/appStyles";
 
 export default function Index() {
     const router = useRouter();

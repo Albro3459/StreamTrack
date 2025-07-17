@@ -7,7 +7,7 @@ import * as Google from 'expo-auth-session/providers/google';
 import * as AuthSession from 'expo-auth-session';
 
 
-import * as authKeys from "@/secrets/authKeys";
+import * as authKeys from "./secrets/authKeys";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const reactNativePersistence = (firebaseAuth as any).getReactNativePersistence;

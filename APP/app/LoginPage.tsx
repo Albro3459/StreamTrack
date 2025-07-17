@@ -3,11 +3,11 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, StyleSheet, ActivityIndicator, Pressable, TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, ScrollView, Platform } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { auth } from "@/firebaseConfig";
+import { auth } from "../firebaseConfig";
 import { Router, useLocalSearchParams, useRouter } from "expo-router";
-import { Colors } from "@/constants/Colors";
+import { Colors } from "../constants/Colors";
 import { GoogleSignIn, GoogleSignUp, LogOut, SignIn, SignUp } from "./helpers/authHelper";
-import { appStyles } from "@/styles/appStyles";
+import { appStyles } from "../styles/appStyles";
 import AlertMessage, { Alert } from "./components/alertMessageComponent";
 import GoogleSignInButton from "./components/auth/GoogleSignInButton";
 

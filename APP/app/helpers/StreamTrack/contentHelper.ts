@@ -1,9 +1,9 @@
 "use client";
 
-import { Alert } from "@/app/components/alertMessageComponent";
-import { ContentData, ContentInfoData, ContentPartialData, ContentRequestData, ContentSimpleData, PopularContentData } from "@/app/types/dataTypes";
-import { DataAPIURL } from "@/secrets/DataAPIUrl";
-import { auth, signOut } from "@/firebaseConfig";
+import { Alert } from "../../../app/components/alertMessageComponent";
+import { ContentData, ContentInfoData, ContentPartialData, ContentRequestData, ContentSimpleData, PopularContentData } from "../../../app/types/dataTypes";
+import { DataAPIURL } from "../../../secrets/DataAPIUrl";
+import { auth, signOut } from "../../../firebaseConfig";
 import { Router } from "expo-router";
 
 const missingVerticalPoster: number = require('@/assets/images/MissingVerticalPoster.png') || "";

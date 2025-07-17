@@ -1,7 +1,7 @@
-import { Alert } from "@/app/components/alertMessageComponent";
-import { ContentPartialData } from "@/app/types/dataTypes";
-import { auth, signOut } from "@/firebaseConfig";
-import { DataAPIURL } from "@/secrets/DataAPIUrl";
+import { Alert } from "../../../app/components/alertMessageComponent";
+import { ContentPartialData } from "../../../app/types/dataTypes";
+import { auth, signOut } from "../../../firebaseConfig";
+import { DataAPIURL } from "../../../secrets/DataAPIUrl";
 import { Router } from "expo-router";
 
 export const searchTMDB = async (router: Router, token: string, keyword: string,

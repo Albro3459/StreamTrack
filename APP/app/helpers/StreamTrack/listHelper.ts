@@ -1,10 +1,10 @@
 "use client";
 
-import { ContentPartialData, ListMinimalData, UserData } from "@/app/types/dataTypes";
-import { DataAPIURL } from "@/secrets/DataAPIUrl";
-import { auth, signOut, User } from "@/firebaseConfig";
-import { setUserData, useUserDataStore } from "@/app/stores/userDataStore";
-import { Alert } from "@/app/components/alertMessageComponent";
+import { ContentPartialData, ListMinimalData, UserData } from "../../../app/types/dataTypes";
+import { DataAPIURL } from "../../../secrets/DataAPIUrl";
+import { auth, signOut, User } from "../../../firebaseConfig";
+import { setUserData, useUserDataStore } from "../../../app/stores/userDataStore";
+import { Alert } from "../../../app/components/alertMessageComponent";
 import { Router } from "expo-router";
 
 export const FAVORITE_TAB = "Favorites";

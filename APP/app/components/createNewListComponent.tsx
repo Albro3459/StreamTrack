@@ -1,7 +1,7 @@
 "use client";
 
-import { Colors } from "@/constants/Colors";
-import { appStyles } from "@/styles/appStyles";
+import { Colors } from "../../constants/Colors";
+import { appStyles } from "../../styles/appStyles";
 import React, { useEffect } from "react";
 import { Modal, View, Text, TextInput, Pressable, StyleSheet } from "react-native";
 import { ContentPartialData, ListMinimalData } from "../types/dataTypes";

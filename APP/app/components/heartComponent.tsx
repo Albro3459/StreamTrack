@@ -3,8 +3,8 @@
 import { Pressable, StyleSheet, View } from "react-native";
 import Icon from 'react-native-vector-icons/FontAwesome';
 
-import { Colors } from "@/constants/Colors";
-import { appStyles } from "@/styles/appStyles";
+import { Colors } from "../../constants/Colors";
+import { appStyles } from "../../styles/appStyles";
 
 interface HeartTypes {
     isSelected?: () => boolean;
