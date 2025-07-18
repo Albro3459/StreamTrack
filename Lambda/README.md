@@ -14,9 +14,7 @@ To compile and upload the Zip to AWS Lambda (total Zip must be under 50 MB):
 ```sh
 cd StreamTrack/Lambda &&
 npm run build && rm -rf dist/secrets &&
-npm prune --omit=dev && # prune dev dependencies to make a smaller zip (< 50 MB)
-
-# only files inside dist and the node_modules
+npm prune --omit=dev &&
 rm -rf /var/tmp/lambda && mkdir -p /var/tmp/lambda &&
 cp -r dist/* /var/tmp/lambda/ && cp -r node_modules /var/tmp/lambda/
 cd /var/tmp/lambda/ && zip -rFS ~/Desktop/lambda.zip . && cd -

@@ -210,6 +210,27 @@ docker compose logs -f api
 
 ##### Extras :)
 
+Query PostgreSQL from inside server:
+Postgres container has to be running. 
+Find its name (typically docker-db-1):
+```sh
+cd ~/StreamTrack/API/Docker
+docker ps
+```
+
+Open a psql shell inside your running Postgres container:
+```sh
+docker exec -it docker-db-1 psql -U {POSTGRES_USER} -d {POSTGRES_DB}
+```
+
+Tips:
+**\q** to exit, **\dt** to list tables, **\l** to list db,
+**\d tablename** to describe a table
+Also, wrap name sin "...":
+```sql
+Select * from "Genre";
+
+
 Creating a swap file (just in case)
 
 First, check if swap is on:
