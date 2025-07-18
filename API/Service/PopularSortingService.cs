@@ -52,6 +52,7 @@ public class PopularSortingService {
                 case "Action":
                 case "Romance":
                 case "Comedy":
+                case "Documentary":
                 case "Drama":
                 case "Sci-Fi":
                 case "Horror":

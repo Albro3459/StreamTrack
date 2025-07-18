@@ -32,6 +32,7 @@ public class ContentController : ControllerBase {
         { "Action", "Action-Packed" },
         { "Romance", "Swoon-Worthy Romance" },
         { "Comedy", "Comedy Gold" },
+        { "Documentary", "True Stories" },
         { "Drama", "Pure Drama" },
         { "Sci-Fi", "Sci-Fi Wonders" },
         { "Horror", "Nightmare Fuel" },

@@ -12,12 +12,12 @@ import { AWSSecrets } from "./types/AWSSecretsType";
 // cron(59, 23, ? * SUN 2025)
 
 const RATING_CUTOFF: number = 70;
-const genres: GENRE[] = [GENRE.ACTION, GENRE.COMEDY, GENRE.DRAMA, GENRE.THRILLER, GENRE.SCIFI, GENRE.ROMANCE, GENRE.HORROR, GENRE.WESTERN];
+const genres: GENRE[] = [GENRE.ACTION, GENRE.COMEDY, GENRE.DOCUMENTARY, GENRE.DRAMA, GENRE.THRILLER, GENRE.SCIFI, GENRE.ROMANCE, GENRE.HORROR, GENRE.WESTERN];
 const services: SERVICE[] = [SERVICE.NETFLIX, SERVICE.HULU, SERVICE.HBO, SERVICE.PRIME, SERVICE.DISNEY, SERVICE.APPLE, SERVICE.PARAMOUNT, SERVICE.PEACOCK];
 const order_by: ORDER_BY = ORDER_BY.POPULARITY_1WEEK;
 const order_direction: ORDER_DIRECTION = ORDER_DIRECTION.ASC;
 
-// 8 genres x 8 services = 64 calls x 2 for movies and shows = 128 total calls
+// 9 genres x 8 services = 72 calls x 2 for movies and shows = 144 total calls
 
 // Maybe add pulls from shows/top https://docs.movieofthenight.com/resource/shows#get-top-shows
 
