@@ -168,35 +168,41 @@ namespace StreamTrack.Migrations
                         {
                             GenreID = "3",
                             IsDeleted = false,
-                            Name = "Drama"
+                            Name = "Documentary"
                         },
                         new
                         {
                             GenreID = "4",
                             IsDeleted = false,
-                            Name = "Horror"
+                            Name = "Drama"
                         },
                         new
                         {
                             GenreID = "5",
                             IsDeleted = false,
-                            Name = "Romance"
+                            Name = "Horror"
                         },
                         new
                         {
                             GenreID = "6",
                             IsDeleted = false,
-                            Name = "Science Fiction"
+                            Name = "Romance"
                         },
                         new
                         {
                             GenreID = "7",
                             IsDeleted = false,
-                            Name = "Thriller"
+                            Name = "Science Fiction"
                         },
                         new
                         {
                             GenreID = "8",
+                            IsDeleted = false,
+                            Name = "Thriller"
+                        },
+                        new
+                        {
+                            GenreID = "9",
                             IsDeleted = false,
                             Name = "Western"
                         });

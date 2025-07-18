@@ -26,7 +26,7 @@ npx expo start -c
 
 ### To connect to iPhone:
 
-Can't really do now.
+Can't really do now, need to change a few things and comment out the Sign In with Apple/Google buttons.
 
 In StreamTrack/APP/.env, change DATA_API_URL from localhost to the computer's or servers IP Address.
 
