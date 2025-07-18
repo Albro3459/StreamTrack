@@ -1,11 +1,11 @@
 "use client";
 
-import { Auth, createUserWithEmailAndPassword, Google, GoogleAuthProvider, signInWithCredential, signInWithEmailAndPassword, signOut, UserCredential } from "../../firebaseConfig"
+import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, User, UserCredential } from "../../firebaseConfig"
 import { checkIfUserExists, createUser } from "./StreamTrack/userHelper";
 import { CACHE, ClearCache, FetchCache } from "./cacheHelper";
 import { Alert } from "../components/alertMessageComponent";
 import { Router } from "expo-router";
-import { AppleUserCredential } from "../types/AppleUserCredential";
+import { AuthUserCredential } from "../types/AuthUserCredential";
 
 export const SignIn = async (auth: Auth, router: Router, email: string, password: string,
                                 setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
@@ -96,7 +96,7 @@ export const SignUp = async (auth: Auth, router: Router, email: string, password
     }
 };
 
-export const AppleSignIn = async (userCreds: AppleUserCredential, router: Router, email: string,
+export const AppleSignIn = async (userCreds: AuthUserCredential, router: Router, email: string,
                                 setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                 setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ) : Promise<boolean> => {
@@ -120,8 +120,8 @@ export const AppleSignIn = async (userCreds: AppleUserCredential, router: Router
         return false;
     }
 
-    const user = userCreds.user;
-    const token = user?.stsTokenManager.accessToken ?? null;
+    const user = userCreds?.user;
+    const token = user?.stsTokenManager?.accessToken ?? null;
     if (token) {
         if (!await checkIfUserExists(token)) { // intentionally NOT passing error funcs
             // doesnt exist in DB, but does in Firebase, so try to create the user
@@ -144,7 +144,7 @@ export const AppleSignIn = async (userCreds: AppleUserCredential, router: Router
     return false;
 };
 
-export const AppleSignUp = async (userCreds: AppleUserCredential, router: Router, email: string,
+export const AppleSignUp = async (userCreds: AuthUserCredential, router: Router, email: string,
                                 setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                 setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ) => {
@@ -167,14 +167,97 @@ export const AppleSignUp = async (userCreds: AppleUserCredential, router: Router
         return;
     }
 
-    const user = userCreds.user;
-    if (user) {
-        const token = user?.stsTokenManager.accessToken ?? null;
+    const user = userCreds?.user;
+    const token = user?.stsTokenManager?.accessToken ?? null;
+    if (token) {
         await createUser(router, token, setAlertMessageFunc, setAlertTypeFunc);
         token && FetchCache(router, token, setAlertMessageFunc, setAlertTypeFunc);
     } else {
         console.warn('Apple Sign Up user failed'); 
         if (setAlertMessageFunc) setAlertMessageFunc('Apple Sign Up user failed'); 
+        if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
+    }
+};
+
+export const GoogleSignIn = async (userCreds: AuthUserCredential, router: Router, email: string,
+                                setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
+                                setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+) : Promise<boolean> => {
+    ClearCache(CACHE.USER);
+    if (!userCreds) {
+        if (setAlertMessageFunc) setAlertMessageFunc(prev => {
+            console.warn('Google Sign In invalid credentials'); 
+            if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
+            return 'Google Sign In invalid credentials';
+        });
+        return false;
+    }
+
+    email = email?.trim();
+    if (!email.includes('@') || !email.includes('.')) {
+        if (setAlertMessageFunc) setAlertMessageFunc(prev => {
+            console.warn('Google Sign In invalid email: ' + email); 
+            if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
+            return 'Google Sign In invalid email';
+        });
+        return false;
+    }
+
+    const user = userCreds?.user;
+    const token = user?.stsTokenManager?.accessToken ?? null;
+    if (token) {
+        if (!await checkIfUserExists(token)) { // intentionally NOT passing error funcs
+            // doesnt exist in DB, but does in Firebase, so try to create the user
+            const success: boolean = await createUser(router, token); // intentionally NOT passing error funcs
+            if (success) {
+                FetchCache(router, token, setAlertMessageFunc, setAlertTypeFunc);
+                return true;
+            }
+        } else {
+            FetchCache(router, token, setAlertMessageFunc, setAlertTypeFunc);
+            return true;
+        }
+    } 
+
+    if (setAlertMessageFunc) setAlertMessageFunc(prev => {
+        console.warn('Google Sign In redirect to Sign Up user failed'); 
+        if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
+        return 'Google Sign In failed';
+    });
+    return false;
+};
+
+export const GoogleSignUp = async (userCreds: AuthUserCredential, router: Router, email: string,
+                                setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
+                                setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+) => {
+    ClearCache(CACHE.USER);
+    if (!userCreds) {
+        if (setAlertMessageFunc) setAlertMessageFunc(prev => {
+            console.warn('Google Sign Up invalid credentials'); 
+            if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
+            return 'Google Sign Up invalid credentials';
+        });
+        return;
+    }
+    email = email?.trim();
+    if (!email.includes('@') || !email.includes('.')) {
+        if (setAlertMessageFunc) setAlertMessageFunc(prev => {
+            console.warn('Google Sign Up invalid email: ' + email); 
+            if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
+            return 'Google Sign Up invalid email';
+        });
+        return;
+    }
+
+    const user = userCreds?.user;
+    const token = user?.stsTokenManager?.accessToken ?? null;
+    if (token) {
+        await createUser(router, token, setAlertMessageFunc, setAlertTypeFunc);
+        token && FetchCache(router, token, setAlertMessageFunc, setAlertTypeFunc);
+    } else {
+        console.warn('Google Sign Up user failed'); 
+        if (setAlertMessageFunc) setAlertMessageFunc('Google Sign Up user failed'); 
         if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
     }
 };

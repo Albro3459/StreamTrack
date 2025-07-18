@@ -8,4 +8,5 @@ export const storageBucket = Constants.expoConfig.extra.STORAGE_BUCKET;
 export const messagingSenderId = Constants.expoConfig.extra.MESSAGING_SENDER_ID;
 export const appId = Constants.expoConfig.extra.APP_ID;
 export const measurementId = Constants.expoConfig.extra.MEASUREMENT_ID;
-export const clientID = Constants.expoConfig.extra.CLIENT_ID;
+export const iosClientID = Constants.expoConfig.extra.CLIENT_ID;
+export const webClientID = Constants.expoConfig.extra.WEB_CLIENT_ID;

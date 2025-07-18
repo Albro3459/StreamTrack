@@ -6,7 +6,7 @@ import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { auth } from "../firebaseConfig";
 import { Router, useLocalSearchParams, useRouter } from "expo-router";
 import { Colors } from "../constants/Colors";
-import { AppleSignIn, AppleSignUp, LogOut, SignIn, SignUp } from "./helpers/authHelper";
+import { AppleSignIn, AppleSignUp, GoogleSignIn, GoogleSignUp, LogOut, SignIn, SignUp } from "./helpers/authHelper";
 import { appStyles } from "../styles/appStyles";
 import AlertMessage, { Alert } from "./components/alertMessageComponent";
 import { GoogleSignInButton } from "./components/auth/GoogleSignInButton";
@@ -198,18 +198,18 @@ export default function LoginPage() {
                                 </Text>
                             </Pressable>
 
-                            {/* <GoogleSignInButton
-                                router={router}
-                                onSignIn={GoogleSignIn}    
-                                onSignUp={GoogleSignUp}       
-                                setAlertMessageFunc={setAlertMessage}
-                                setAlertTypeFunc={setAlertType}         
-                            /> */}
-
                             <AppleSignInButton
                                 router={router}
                                 onSignIn={AppleSignIn}    
                                 onSignUp={AppleSignUp}       
+                                setAlertMessageFunc={setAlertMessage}
+                                setAlertTypeFunc={setAlertType}         
+                            />
+
+                            <GoogleSignInButton
+                                router={router}
+                                onSignIn={GoogleSignIn}    
+                                onSignUp={GoogleSignUp}       
                                 setAlertMessageFunc={setAlertMessage}
                                 setAlertTypeFunc={setAlertType}         
                             />

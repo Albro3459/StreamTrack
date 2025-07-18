@@ -127,13 +127,13 @@ export default function RootLayout() {
                     headerStyle: {
                         backgroundColor: Colors.selectedColor,
                     },
-                    headerRight: () => (
-                        <Pressable onPress={() => {
-                            router.push('/SpinnerPage');
-                        }}>
-                            <Fontisto name="spinner" size={24} color="white" />
-                        </Pressable>
-                    ),
+                    // headerRight: () => (
+                    //     <Pressable onPress={() => {
+                    //         router.push('/SpinnerPage');
+                    //     }}>
+                    //         <Fontisto name="spinner" size={24} color="white" />
+                    //     </Pressable>
+                    // ),
                 })}
             />
             

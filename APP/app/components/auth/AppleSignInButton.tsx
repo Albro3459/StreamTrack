@@ -6,18 +6,18 @@ import { Alert } from "../alertMessageComponent";
 import { Router } from "expo-router";
 import { appStyles } from "../../../styles/appStyles";
 import { Colors } from "../../../constants/Colors";
-import { AppleUserCredential } from '../../../app/types/AppleUserCredential';
+import { AuthUserCredential } from '../../types/AuthUserCredential';
 import { LogOut } from '../../../app/helpers/authHelper';
 
 interface AppleSignInButtonProps {
     router: Router, 
     onSignIn: (
-        userCreds: AppleUserCredential, router: Router, email: string,
+        userCreds: AuthUserCredential, router: Router, email: string,
         setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
         setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
     ) => Promise<boolean>;
     onSignUp: (
-        userCreds: AppleUserCredential, router: Router, email: string,
+        userCreds: AuthUserCredential, router: Router, email: string,
         setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
         setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
     ) => Promise<void>;
@@ -53,9 +53,9 @@ export const AppleSignInButton: React.FC<AppleSignInButtonProps> = ({
 
             signInWithCredential(auth, firebaseCredential)
                 .then(async (userCredential: UserCredential) => {
-                    const appleCredential = (userCredential as any) as AppleUserCredential;
-                    const isNewUser = appleCredential?._tokenResponse?.isNewUser;
-                    if (isNewUser) {
+                    const appleCredential = (userCredential as any) as AuthUserCredential;
+                    const isNewUser: boolean | undefined = appleCredential?._tokenResponse?.isNewUser;
+                    if (isNewUser === true) {
                         await onSignUp(appleCredential, router, appleCredential?.user?.email, setAlertMessageFunc, setAlertTypeFunc);
                         if (auth?.currentUser) {
                             router.replace({
@@ -91,18 +91,10 @@ export const AppleSignInButton: React.FC<AppleSignInButtonProps> = ({
     };
 
     return (
-        // <Pressable
-        //     onPress={handleAppleSignIn}
-        //     style={[appleStyles.button, loading && appleStyles.buttonDisabled]}
-        //     disabled={loading}
-        // >
-        //     <Image source={require("../../../assets/images/AppleLogo.png")} style={appleStyles.logo} />
-        //     <Text style={appleStyles.text}>Sign in with Apple</Text>
-        // </Pressable>
         <AppleAuthentication.AppleAuthenticationButton
             buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
             buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-            cornerRadius={5}
+            cornerRadius={8}
             style={[appleStyles.button, loading && appleStyles.buttonDisabled]}
             onPress={handleAppleSignIn}
         />
@@ -113,7 +105,7 @@ const appleStyles = StyleSheet.create({
     button: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 0,
+        marginBottom: 15,
         height: 45,
         width: 225,
         backgroundColor: Colors.selectedTextColor,

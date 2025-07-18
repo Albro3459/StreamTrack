@@ -3,9 +3,7 @@
 import { FirebaseApp, initializeApp } from "firebase/app";
 import { OAuthProvider, GoogleAuthProvider, signInWithCredential, Auth, User, UserCredential, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, getIdToken, initializeAuth } from "firebase/auth";
 import * as firebaseAuth from 'firebase/auth'; 
-import * as Google from 'expo-auth-session/providers/google';
-import * as AuthSession from 'expo-auth-session';
-
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 import * as secrets from "./secrets";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -33,9 +31,8 @@ try {
 } catch(e: any) {
     console.warn("Error initializing firebase: ", e);
 }
-
 export { 
     secrets,
-    OAuthProvider, AuthSession, Google, GoogleAuthProvider, signInWithCredential,
+    OAuthProvider, GoogleAuthProvider, GoogleSignin, signInWithCredential,
     auth, Auth, User, UserCredential, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, getIdToken 
 };

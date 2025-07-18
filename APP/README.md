@@ -55,3 +55,19 @@ Make sure you are in the Git branch you want to build from, then build:
 ```sh
 npx eas build -p ios --profile production
 ```
+
+Submit (to App Store Connect, not to the App Store and does NOT request a review)
+```sh
+npx eas submit --platform ios
+```
+
+#### Debugging stupid Cocoa Pods
+
+Clean up the bs
+```sh
+cd ios
+rm -rf Pods Podfile.lock
+rm -rf ~/Library/Developer/Xcode/DerivedData
+pod install --repo-update
+cd ..
+```

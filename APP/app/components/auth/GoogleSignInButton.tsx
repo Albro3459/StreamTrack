@@ -1,25 +1,25 @@
-import { Auth, auth, secrets, AuthSession, Google, GoogleAuthProvider, signInWithCredential, UserCredential } from "../../../firebaseConfig";
+import { auth, secrets, GoogleAuthProvider, signInWithCredential, UserCredential, GoogleSignin } from "../../../firebaseConfig";
 import { useEffect } from "react";
-import { Text, Image, Pressable, ActivityIndicator, StyleSheet } from "react-native";
+import { Text, Image, Pressable, StyleSheet } from "react-native";
 import { Alert } from "../alertMessageComponent";
 import { Router } from "expo-router";
-import { appStyles } from "@/styles/appStyles";
-import { Colors } from "@/constants/Colors";
-
-const redirectUri = (AuthSession.makeRedirectUri as any)({
-    useProxy: false
-});
+import { appStyles } from "../../../styles/appStyles";
+import { Colors } from "../../../constants/Colors";
+import { OAuthCredential } from "firebase/auth";
+import { SignInResponse } from "@react-native-google-signin/google-signin";
+import { AuthUserCredential } from "../../types/AuthUserCredential";
+import { LogOut } from "../../../app/helpers/authHelper";
 
 interface GoogleSignInButtonProps {
     router: Router, 
     
     onSignIn: (
-                userCreds: UserCredential, router: Router, email: string,
+                userCreds: AuthUserCredential, router: Router, email: string,
                 setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                 setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
             ) => Promise<boolean>;
     onSignUp: (
-                userCreds: UserCredential, router: Router, email: string,
+                userCreds: AuthUserCredential, router: Router, email: string,
                 setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                 setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
             ) => Promise<void>;
@@ -31,71 +31,80 @@ interface GoogleSignInButtonProps {
 export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ 
     router, onSignIn, onSignUp, setAlertMessageFunc, setAlertTypeFunc 
 }) => {
-    const [request, response, promptAsync] = Google?.useIdTokenAuthRequest({
-            clientId: secrets.clientID,
-            iosClientId: secrets.clientID,
-            scopes: ["profile", "email"], // default and required
-            redirectUri
-    });
 
+    // Configure GoogleSignin ONCE (do not put inside render!)
     useEffect(() => {
-        if (response?.type === "success") {
-            const { id_token } = response.params;
-            const credential = GoogleAuthProvider?.credential(id_token);
-            signInWithCredential(auth, credential)
-                .then((userCredential: UserCredential) => {
-                    const isNewUser = (userCredential as any).additionalUserInfo?.isNewUser; // Have to force it
-                    if (isNewUser) {
-                        onSignUp(userCredential, router, userCredential?.user?.email, setAlertMessageFunc, setAlertTypeFunc);
-                    } else {
-                        onSignIn(userCredential, router, userCredential?.user?.email, setAlertMessageFunc, setAlertTypeFunc);
-                    }
-                })
-                .catch((error: any) => {
-                    console.warn("Error on Google Sign In/Up", error);
-                    setAlertMessageFunc("Error on Google Sign In/Up");
-                    setAlertTypeFunc(Alert.Error);
-                });
+        GoogleSignin?.configure({
+            webClientId: secrets.webClientID,
+            iosClientId: secrets.iosClientID,
+            offlineAccess: true,
+            scopes: ["profile", "email"],
+        });
+    }, []);
+
+    const handleGoogleSignIn = async () => {
+        try {
+            await GoogleSignin?.hasPlayServices();
+            const userInfo: SignInResponse = await GoogleSignin?.signIn();
+            const idToken = userInfo?.data?.idToken;
+            const credential: OAuthCredential = GoogleAuthProvider?.credential(idToken);
+            const userCredential: UserCredential = await signInWithCredential(auth, credential);
+            
+            const googleCredential: AuthUserCredential = (userCredential as any) as AuthUserCredential;
+            
+            const isNewUser: boolean | undefined = googleCredential?._tokenResponse?.isNewUser;
+            const email = googleCredential?.user?.email || "";
+            if (isNewUser === true) {
+                await onSignUp(googleCredential, router, email, setAlertMessageFunc, setAlertTypeFunc);
+                if (auth?.currentUser) {
+                    router.replace({
+                        pathname: '/ProfilePage',
+                        params: { isSigningUp: 1 }, // Have to pass as number or string
+                    });
+                } else {
+                    await LogOut(auth);
+                }
+            } else {
+                const success: boolean = await onSignIn(googleCredential, router, email, setAlertMessageFunc, setAlertTypeFunc);
+                if (success === true) {
+                    router.replace("/LandingPage");
+                } else {
+                    await LogOut(auth);
+                }
+            }
+        } catch (error) {
+            console.warn("Error on Google Sign In/Up", error);
+            setAlertMessageFunc("Error on Google Sign In/Up");
+            setAlertTypeFunc(Alert.Error);
         }
-    }, [response]);
+    };
 
     return (
         <Pressable
-            disabled={!request}
-            onPress={() => promptAsync()}
-            style={[styles.button, (!request) && styles.buttonDisabled]}
-            // activeOpacity={0.8}
+            onPress={handleGoogleSignIn}
+            style={styles.button}
         >
-            <Image source={require("../../../assets/images/GoogleLogo.webp")} style={styles.logo} />
-            <Text style={styles.text}>Sign in with Google</Text>
+            <Image source={require("../../../assets/images/GoogleSignInButton.png")} style={styles.image}/>
         </Pressable>
     );
 };
 
 const styles = StyleSheet.create({
     button: {
-        flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 15,
+        marginBottom: 0,
         height: 45,
         width: 225,
-        backgroundColor: Colors.selectedTextColor,
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: Colors.grayCell,
-        paddingLeft: 15,
-        paddingRight: 10,
+        borderRadius: 8,
+        overflow:"hidden",
         ...appStyles.shadow
     },
     buttonDisabled: {
         opacity: 0.5,
     },
-    logo: {
-        width: 20,
-        height: 20,
-        marginRight: 12,
-        resizeMode: 'contain',
-        backgroundColor: 'transparent', 
+    image: {
+        height: 45,
+        width: 225,
     },
     text: {
         fontWeight: '600',

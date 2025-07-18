@@ -117,12 +117,13 @@ public class StreamTrackDbContext : DbContext {
         modelBuilder.Entity<Genre>().HasData(
             new Genre { GenreID = "1", Name = "Action", IsDeleted = false },
             new Genre { GenreID = "2", Name = "Comedy", IsDeleted = false },
-            new Genre { GenreID = "3", Name = "Drama", IsDeleted = false },
-            new Genre { GenreID = "4", Name = "Horror", IsDeleted = false },
-            new Genre { GenreID = "5", Name = "Romance", IsDeleted = false },
-            new Genre { GenreID = "6", Name = "Science Fiction", IsDeleted = false },
-            new Genre { GenreID = "7", Name = "Thriller", IsDeleted = false },
-            new Genre { GenreID = "8", Name = "Western", IsDeleted = false }
+            new Genre { GenreID = "3", Name = "Documentary", IsDeleted = false },
+            new Genre { GenreID = "4", Name = "Drama", IsDeleted = false },
+            new Genre { GenreID = "5", Name = "Horror", IsDeleted = false },
+            new Genre { GenreID = "6", Name = "Romance", IsDeleted = false },
+            new Genre { GenreID = "7", Name = "Science Fiction", IsDeleted = false },
+            new Genre { GenreID = "8", Name = "Thriller", IsDeleted = false },
+            new Genre { GenreID = "9", Name = "Western", IsDeleted = false }
         );
 
         modelBuilder.Entity<StreamingService>().HasData(
