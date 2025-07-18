@@ -22,8 +22,6 @@ export const getFirebaseToken = async (secrets: AWSSecrets): Promise<string | nu
         universe_domain: secrets.FirebaseUniverseDomain,
     };
 
-    console.log("PRIVATE KEY RAW: ", secrets.FirebasePrivateKey);
-
     if (!admin.apps.length) {
         admin.initializeApp({
             credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),

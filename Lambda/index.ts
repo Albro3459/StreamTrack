@@ -25,10 +25,7 @@ export const handler = async (event: APIGatewayEvent, context: Context) => {
 
     const secrets: AWSSecrets = await getAllSecrets();
 
-    console.log(JSON.stringify(secrets, null, 2));
-
     const token: string | null = await getFirebaseToken(secrets);
-    console.log(token);
 
     let requestCount = 0, itemCount = 0, totalRequests = genres.length * services.length * Object.values(SHOW_TYPE).length;
 
