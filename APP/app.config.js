@@ -2,9 +2,6 @@ import 'dotenv/config';
 
 const BackgroundColor = require("./constants/BackgroundColor");
 
-console.log('BRODSKY DEBUG GOOGLE_SERVICES_PLIST:', process.env.GOOGLE_SERVICES_PLIST);
-console.log('BRODSKY DEBUG EAS_BUILD_PROJECT_ROOT:', process.env.EAS_BUILD_PROJECT_ROOT);
-
 export default {
     expo: {
         name: "StreamTrack",
@@ -30,7 +27,7 @@ export default {
                 ITSAppUsesNonExemptEncryption: false
             },
             // Google
-            googleServicesFile: process.env.GOOGLE_SERVICES_PLIST ?? './ios/GoogleService-Info.plist',
+            googleServicesFile: process.env.GOOGLE_SERVICES_PLIST ?? './iosGoogleService-Info.plist',
         },
         android: {
             "package": "live.cloudlaunch.streamtrack",
