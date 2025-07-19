@@ -1,14 +1,14 @@
 # StreamTrack
 
 ## Overview
-**StreamTrack** is a **React Native & TypeScript** app built with **Expo Go**. It helps users discover movies & TV shows, create watchlists, find streaming options, and even use a fun spinner to pick something to watch. It uses a **C#**/**.NET API** hosted on **AWS EC2** using [Caddy](https://github.com/caddyserver/caddy) for the reverse proxy in the backend.
- * The original idea and design for this project was created with [@jslade4](https://github.com/jslade4) and [@truclamho](https://www.linkedin.com/in/truclamho?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app) for our **Interface Design and Technology** class in ~5 days in this original [GitHub](https://github.com/Albro3459/WhatWereWatching/tree/main). However, this project has been completely rewritten by [Alex Brodsky](https://www.linkedin.com/in/brodsky-alex22/), as well as building the API and Lambda functions from scratch.
+**StreamTrack** is an app for users to discover movies & TV shows, find streaming options, and create watchlists. It is built with **React Native**, **TypeScript**, **Expo Go**, and **Firebase** for authentication. It uses a **C#**/**.NET API** hosted on **AWS EC2** using **Docker** compose & containers, as well as [Caddy](https://github.com/caddyserver/caddy) for a Reverse Proxy. It also uses an **AWS Lambda** function to fetch the popular streaming content shown on the landing page.
+ * The original idea, design, and implementation of the frontend app for this project was created alongside [@jslade4](https://github.com/jslade4) and [@truclamho](https://www.linkedin.com/in/truclamho?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=ios_app) for our **Interface Design and Technology** class in ~5 days in this original [GitHub](https://github.com/Albro3459/WhatWereWatching/tree/main). However, it has since been completely rewritten by [Alex Brodsky](https://www.linkedin.com/in/brodsky-alex22/), as well as building the API and Lambda function from scratch.
 
 ## Screen Shots
 <div style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 60px;">
-   <img src="https://github.com/user-attachments/assets/3312ab7c-03c2-4072-b652-78143612bf43" alt="Library" height="400"/>
-   <img src="https://github.com/user-attachments/assets/7ae6c02c-2262-4343-8302-c5efb9d6fe77" alt="Search" height="400"/>
-   <img src="https://github.com/user-attachments/assets/15b8477c-9e0c-476e-a2b3-96c70d9f7399" alt="Spinner" height="400"/>
+    <img height="400" alt="Info Page" src="https://github.com/user-attachments/assets/c915f9e9-4d4f-4441-84e2-4cb1035edac8" />
+    <img height="400" alt="Library Page" src="https://github.com/user-attachments/assets/2c733334-2a3a-43ec-8c45-30bb28795fdf" />
+    <img height="400" alt="Landing Page" src="https://github.com/user-attachments/assets/e40721fe-2716-4fda-a3ca-c4c847fd6e3a" />
 </div>
 
 ## Installation
@@ -20,9 +20,9 @@ Also, the app's content will be empty unless you run the Lambda script to fetch 
 
 See API Setup below for how to get the API keys.
 
-See the READMEs in each folder for their specific setup.
+See the READMEs in each of the main folders for their specific setup.
 
-Follow these steps to set up and run Stream Track locally:
+Follow these (outdated) steps to set up and run Stream Track locally:
 
 ### 1. Clone the repository
 ```sh
@@ -54,8 +54,8 @@ npm start
 ## API Setup
 The app requires connecting to two APIs.
 
-- **[TMDB API](https://developer.themoviedb.org/reference/intro/getting-started)** – Get a **Bearer Token**.
-- **[RapidAPI](https://rapidapi.com/movie-of-the-night-movie-of-the-night-default/api/streaming-availability/playground/apiendpoint_14b2f4b9-8801-499a-bcb7-698e550f9253)** – Get an **API Key**.
+- **[TMDB API](https://developer.themoviedb.org/reference/intro/getting-started)** - Get a **Bearer Token**.
+- **[RapidAPI](https://rapidapi.com/movie-of-the-night-movie-of-the-night-default/api/streaming-availability/playground/apiendpoint_14b2f4b9-8801-499a-bcb7-698e550f9253)** - Get an **API Key**.
 
 
 <br></br>
