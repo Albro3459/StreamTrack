@@ -32,5 +32,6 @@ API/obj
 # Hide all the keys
 **/secrets/
 **/.env
+**/GoogleService-Info.plist
 
 **/.vscode/
