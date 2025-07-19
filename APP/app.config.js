@@ -27,7 +27,7 @@ export default {
                 ITSAppUsesNonExemptEncryption: false
             },
             // Google
-            googleServicesFile: './GoogleService-Info.plist',
+            googleServicesFile: "./ios/GoogleService-Info.plist",
         },
         android: {
             "package": "live.cloudlaunch.streamtrack",

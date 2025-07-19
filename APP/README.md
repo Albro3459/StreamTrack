@@ -3,6 +3,16 @@ You need your GoogleService-Info.plist from your iOS Client ID from Google Cloud
 It needs to be in BOTH your APP root: StreamTrack/APP/ and the iOS root:StreamTrack/APP/iOS
 ADD it to your Gitignore!!
 
+If you are using EAS Build, this is how you get it into the ENV:
+
+This copies the secret. Use "Secret" and both prod and dev if you want. Use spacebar to select:
+```sh
+eas env:create --name GOOGLE_SERVICES_PLIST --value "$(cat ./GoogleService-Info.plist)"
+
+```
+
+Do NOT put it in your .env.local! It won't work. You need the file in both locations locally and Expo EAS will set it up for you during the EAS Build.
+
 ### To run:
 ```sh
 cd StreamTrack/APP
@@ -33,7 +43,7 @@ npx expo start -c
 
 Can't really do now, need to change a few things and comment out the Sign In with Apple/Google buttons.
 
-In StreamTrack/APP/.env, change DATA_API_URL from localhost to the computer's or servers IP Address.
+In StreamTrack/APP/.env.local, change DATA_API_URL from localhost to the computer's or servers IP Address.
 
 In StreamTrack/API/Properties/launchSettings.json, change localhost to 0.0.0.0 to allow anyone on the same network. Mainly just in the HTTP section.
 
@@ -49,7 +59,7 @@ npx eas build:configure
 
 Choose iOS
 
-Secrets needed to be added to the EAS ENV:
+Secrets needed to be added to the EAS ENV (.env.local) (see the .env.example for what is needed):
 ```sh
 eas env:create --name SECRET_NAME --value "..."
 ```

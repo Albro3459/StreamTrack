@@ -81,7 +81,8 @@ export const AppleSignInButton: React.FC<AppleSignInButtonProps> = ({
                 })
                 .finally(() => {setLoading(false);});
         } catch (e: any) {
-            if (e.code !== "ERR_CANCELED") {
+            const cancelCodes = ["ERR_REQUEST_CANCELED", "ERR_CANCELED", "ERR_REQUEST_UNKNOWN"];
+            if (!cancelCodes.includes(e.code)) {
                 console.warn("Apple Sign In Error", e);
                 setAlertMessageFunc("Apple Sign In Error");
                 setAlertTypeFunc(Alert.Error);

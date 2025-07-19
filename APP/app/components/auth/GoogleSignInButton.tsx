@@ -6,7 +6,7 @@ import { Router } from "expo-router";
 import { appStyles } from "../../../styles/appStyles";
 import { Colors } from "../../../constants/Colors";
 import { OAuthCredential } from "firebase/auth";
-import { SignInResponse } from "@react-native-google-signin/google-signin";
+import { SignInResponse, statusCodes } from "@react-native-google-signin/google-signin";
 import { AuthUserCredential } from "../../types/AuthUserCredential";
 import { LogOut } from "../../../app/helpers/authHelper";
 
@@ -46,6 +46,10 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
         try {
             await GoogleSignin?.hasPlayServices();
             const userInfo: SignInResponse = await GoogleSignin?.signIn();
+            if (userInfo?.type === "cancelled") {
+                // No Error: User cancelled sign-in.
+                return;
+            }
             const idToken = userInfo?.data?.idToken;
             const credential: OAuthCredential = GoogleAuthProvider?.credential(idToken);
             const userCredential: UserCredential = await signInWithCredential(auth, credential);
