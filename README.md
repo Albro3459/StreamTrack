@@ -6,9 +6,9 @@
 
 ## Screen Shots
 <div style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 60px;">
+    <img height="400" alt="Landing Page" src="https://github.com/user-attachments/assets/e40721fe-2716-4fda-a3ca-c4c847fd6e3a" />
     <img height="400" alt="Info Page" src="https://github.com/user-attachments/assets/c915f9e9-4d4f-4441-84e2-4cb1035edac8" />
     <img height="400" alt="Library Page" src="https://github.com/user-attachments/assets/2c733334-2a3a-43ec-8c45-30bb28795fdf" />
-    <img height="400" alt="Landing Page" src="https://github.com/user-attachments/assets/e40721fe-2716-4fda-a3ca-c4c847fd6e3a" />
 </div>
 
 ## Installation
