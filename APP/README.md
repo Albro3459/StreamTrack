@@ -6,43 +6,17 @@ You need your GoogleService-Info.plist from your iOS Client ID from Google Cloud
         * ```awk '{printf "%s\\n", $0}' APP/ios/GoogleService-Info.plist```
         * Convert it back to a file with (USE SINGLE QUOTES):
             * ```echo '...' | sed 's/\\n/\n/g' > APP/ios/GoogleService-Info.plist```
-
-The steps are different if you are running the project locally vs for a cloud build. (I know it's stupid)
-
-* For LOCAL builds (npx expo run:ios):
-    * Make sure you have GoogleService-Info.plist under StreamTrack/APP/app/ios
-    * In APP/app.config.js:
-        * Uncomment: googleServicesFile: './ios/GoogleService-Info.plist', // LOCAL npx expo run:ios
-        * Comment out: googleServicesFile: process.env.GOOGLE_SERVICES_PLIST, // EAS Build
-        * Do NOT use a ternary operator or fallback or anything. This is an Expo EAS Build bug 
-    * Open ios/StreamTrack.xcworkspace in XCode
-        * Click the root StreamTrack folder on the left with the folders
-        * Then click the StreamTrack under targets in the inner left window
-        * Go to Build Phases > Copy Bundle Resources
-        * Click the **plus** > Add Other
-            * Find the plist in your ios folder
-            * Destination: Copy items if needed
-            * Added folders: Create folder references
-* For CLOUD EXPO EAS BUILDS (npx eas build -p ios --profile production):
-    * In APP/app.config.js:
-        * Uncomment: googleServicesFile: process.env.GOOGLE_SERVICES_PLIST, // EAS Build
-        * Comment out: googleServicesFile: './ios/GoogleService-Info.plist', // LOCAL npx expo run:ios
-        * Do NOT use a ternary operator or fallback or anything. This is an Expo EAS Build bug
-    * Open ios/StreamTrack.xcworkspace in XCode
-        * Click the root StreamTrack folder on the left with the folders
-        * Then click the StreamTrack under targets in the inner left window
-        * Go to Build Phases > Copy Bundle Resources
-        * REMOVE the line with GoogleService-Info.plist with the **minus**
-        * On the left with the folders, right click on GoogleService-Info.plist
-            * Delete > Remove Reference
-            * The project is configured for Expo EAS to copy this file there for you if you follow the rest of the steps
-    * How to get the plist into the ENV:
+* **SETUP**:
+    * If any of these steps are messed up you could have misterious crashes you won't be able to track down easily
+    * Do NOT commit the ios folder
+    * Place your GoogleService-Info.plist under StreamTrack/APP/
+    * For CLOUD EAS Expo Builds (npx eas build -p ios --profile production):
         * Go to the [Expo EAS website](https://expo.dev)
         * Go to your project
-        * Go to environmental variables under propject settings
+        * Go to environmental variables under project settings
         * Add variable GOOGLE_SERVICES_PLIST with the **file** upload button as a Secret in both dev and production
-
-If you have problems and you followed the steps correctly, see Debugging XCode project at the bottom
+    * Expo will run the ```npx expo prebuild``` when you run the cloud build and it will copy the GoogleService-Info.plist to the ios folder for you!
+        * This is why you can NOT commit the ios folder because it will skip that step
 
 ### To run:
 ```sh
@@ -50,12 +24,18 @@ cd StreamTrack/APP
 ```
 
 Things have changed so when developing try to just run it on the iOS 18.5 simulator.
-Make sure you are signed into iCloud on the simulator for sign in with Apple
+Make sure you are signed into iCloud on the simulator for sign in with Apple.
+Before you run, if you haven't already, run:
+```sh
+npx expo prebuild
+```
+
+Then run:
 ```sh
 npx expo run:ios
 ```
 
-Older way:
+Older way (may not work):
 ```sh
 npm start
 ```
@@ -96,8 +76,7 @@ eas env:create --name SECRET_NAME --value "..."
 ```
 You can only do one at a time. Use the spacebar to pick the options. I did Development & Production
 
-
-Make sure you are in the Git branch you want to build from, then build (by default it pulls from your default GitHub branch):
+Make sure you commit your code to the DEFAULT branch in your Git repo. That is where Expo cloud will pull from:
 ```sh
 npx eas build -p ios --profile production
 ```
@@ -105,16 +84,4 @@ npx eas build -p ios --profile production
 Submit (to App Store Connect, not to the App Store and does NOT request a review)
 ```sh
 npx eas submit --platform ios
-```
-
-#### Debugging XCode project
-
-Try opening the ios StreamTrack.xcworkspace in XCode and going to Product > Clean Build Folder
-
-Then clean up
-```sh
-cd ios
-rm -rf Pods Podfile.lock ~/Library/Developer/Xcode/DerivedData
-pod install --repo-update
-cd ..
 ```
