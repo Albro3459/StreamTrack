@@ -29,6 +29,8 @@ API/obj
 **/StreamTrack.db-wal
 **/StreamTrack.db-shm
 
+**/ios
+
 # Hide all the keys
 **/secrets/
 **/.env

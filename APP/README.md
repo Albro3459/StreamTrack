@@ -11,6 +11,10 @@ The steps are different if you are running the project locally vs for a cloud bu
 
 * For LOCAL builds (npx expo run:ios):
     * Make sure you have GoogleService-Info.plist under StreamTrack/APP/app/ios
+    * In APP/app.config.js:
+        * Uncomment: googleServicesFile: './ios/GoogleService-Info.plist', // LOCAL npx expo run:ios
+        * Comment out: googleServicesFile: process.env.GOOGLE_SERVICES_PLIST, // EAS Build
+        * Do NOT use a ternary operator or fallback or anything. This is an Expo EAS Build bug 
     * Open ios/StreamTrack.xcworkspace in XCode
         * Click the root StreamTrack folder on the left with the folders
         * Then click the StreamTrack under targets in the inner left window
@@ -20,6 +24,10 @@ The steps are different if you are running the project locally vs for a cloud bu
             * Destination: Copy items if needed
             * Added folders: Create folder references
 * For CLOUD EXPO EAS BUILDS (npx eas build -p ios --profile production):
+    * In APP/app.config.js:
+        * Uncomment: googleServicesFile: process.env.GOOGLE_SERVICES_PLIST, // EAS Build
+        * Comment out: googleServicesFile: './ios/GoogleService-Info.plist', // LOCAL npx expo run:ios
+        * Do NOT use a ternary operator or fallback or anything. This is an Expo EAS Build bug
     * Open ios/StreamTrack.xcworkspace in XCode
         * Click the root StreamTrack folder on the left with the folders
         * Then click the StreamTrack under targets in the inner left window
