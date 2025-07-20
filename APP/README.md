@@ -23,19 +23,19 @@ You need your GoogleService-Info.plist from your iOS Client ID from Google Cloud
 cd StreamTrack/APP
 ```
 
+New but much slower way to compile:
 Things have changed so when developing try to just run it on the iOS 18.5 simulator.
 Make sure you are signed into iCloud on the simulator for sign in with Apple.
 Before you run, if you haven't already, run:
 ```sh
 npx expo prebuild
 ```
-
 Then run:
 ```sh
 npx expo run:ios
 ```
 
-Older way (may not work):
+Faster way (don't click 's' to switch to for Expo Go):
 ```sh
 npm start
 ```
