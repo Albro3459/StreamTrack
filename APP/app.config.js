@@ -18,6 +18,7 @@ export default {
             resizeMode: "contain",
             backgroundColor: BackgroundColor.backgroundColor
         },
+        runtimeVersion: "1.0.0",
         ios: {
             supportsTablet: true,
             // Apple
@@ -27,7 +28,8 @@ export default {
                 ITSAppUsesNonExemptEncryption: false
             },
             // Google
-            googleServicesFile: process.env.GOOGLE_SERVICES_PLIST ?? './ios/GoogleService-Info.plist',
+            googleServicesFile: process.env.GOOGLE_SERVICES_PLIST, // EAS Build
+            // googleServicesFile: './ios/GoogleService-Info.plist', // LOCAL npx expo run:ios
         },
         android: {
             "package": "live.cloudlaunch.streamtrack",
@@ -86,10 +88,6 @@ export default {
             CLIENT_ID: process.env.CLIENT_ID,
             WEB_CLIENT_ID: process.env.WEB_CLIENT_ID,
         },
-        // runtimeVersion: { // EAS Build
-        //   policy: "appVersion"
-        // },
-        runtimeVersion: "1.0.0", // npx expo run:ios
         updates: {
             url: "https://u.expo.dev/8b6758e2-1727-486e-9570-b2fecd06aa1e"
         }
