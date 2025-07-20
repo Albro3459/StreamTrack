@@ -15,7 +15,7 @@ You need your GoogleService-Info.plist from your iOS Client ID from Google Cloud
         * Go to your project
         * Go to environmental variables under project settings
         * Add variable GOOGLE_SERVICES_PLIST with the **file** upload button as a Secret in both dev and production
-    * Expo will run the ```npx expo prebuild``` when you run the cloud build and it will copy the GoogleService-Info.plist to the ios folder for you!
+    * Expo will run the ```npx expo prebuild --platform ios``` when you run the cloud build and it will copy the GoogleService-Info.plist to the ios folder for you!
         * This is why you can NOT commit the ios folder because it will skip that step
 
 ### To run:
@@ -23,28 +23,25 @@ You need your GoogleService-Info.plist from your iOS Client ID from Google Cloud
 cd StreamTrack/APP
 ```
 
-New but much slower way to compile:
 Things have changed so when developing try to just run it on the iOS 18.5 simulator.
 Make sure you are signed into iCloud on the simulator for sign in with Apple.
 Before you run, if you haven't already, run:
 ```sh
-npx expo prebuild
+npx expo prebuild --platform ios
 ```
 Then run:
 ```sh
 npx expo run:ios
 ```
 
-Faster way (don't click 's' to switch to for Expo Go):
+Older, but faster ways (might not work) (don't click 's' to switch to for Expo Go):
 ```sh
 npm start
 ```
-
 or
 ```sh
 npx expo start
 ```
-
 To clear cache:
 ```sh
 npx expo start -c
