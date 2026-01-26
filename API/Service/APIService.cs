@@ -60,7 +60,7 @@ public class APIService {
         }
     }
 
-    // DOES NOT SAVE! It is up to the called to handle that.
+    // DOES NOT SAVE! It is up to the caller to handle that.
     public async Task<ContentDetail?> FetchContentDetailsByTMDBIDAsync(ContentRequestDTO contentDTO) {
         string url = $"{RapidAPI_Base_Url}{contentDTO.TMDB_ID}{RapidAPI_Ending}";
 
