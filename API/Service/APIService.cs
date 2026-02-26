@@ -7,6 +7,7 @@ using API.Models;
 using AutoMapper;
 using System.Net.Http.Headers;
 using API.Helpers;
+using System.Text.RegularExpressions;
 
 namespace API.Service;
 
@@ -31,6 +32,7 @@ public class APIService {
     private const string TMDB_Search_Ending = "&include_adult=false&language=en-US&page=1";
     private const string TMDB_Poster_Url = "https://api.themoviedb.org/3/";
     private const string TMDB_Poster_Ending = "?language=en-US";
+    private static readonly Regex ExpiresRegex = new Regex(@"(?:^|[?&])Expires=(\d+)(?:&|$)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     public APIService(StreamTrackDbContext _context, HttpClient _httpClient, IMapper _mapper) {
         context = _context;
@@ -136,6 +138,43 @@ public class APIService {
         return data.Results.Select(t => MapTMDBContentToContentPartialDTO(t)).ToList();
     }
 
+    // For signed poster URLs, refresh if Expires is within one day (or already passed).
+    // Updates both the ContentDetail and ContentPartial posters
+    public async Task<bool> RefreshExpiredPostersIfNeededAsync(ContentDetail detail) {
+        // todo this needs to be run on every piece of content pulled from the db because list pages need updated posters too
+        bool refreshVerticalPoster = IsExpiringSoon(detail.VerticalPoster);
+        bool refreshLargeVerticalPoster = IsExpiringSoon(detail.LargeVerticalPoster);
+        bool refreshHorizontalPoster = IsExpiringSoon(detail.HorizontalPoster);
+
+        if (!refreshVerticalPoster && !refreshLargeVerticalPoster && !refreshHorizontalPoster) {
+            return false;
+        }
+
+        Posters posters = await GetPosters(detail.TMDB_ID);
+
+        if (refreshVerticalPoster && !string.IsNullOrWhiteSpace(posters.VerticalPoster)) {
+            detail.VerticalPoster = posters.VerticalPoster;
+        }
+        if (refreshLargeVerticalPoster && !string.IsNullOrWhiteSpace(posters.LargeVerticalPoster)) {
+            detail.LargeVerticalPoster = posters.LargeVerticalPoster;
+        }
+        if (refreshHorizontalPoster && !string.IsNullOrWhiteSpace(posters.HorizontalPoster)) {
+            detail.HorizontalPoster = posters.HorizontalPoster;
+        }
+
+        ContentPartial? partial = await context.ContentPartial.FirstOrDefaultAsync(c => c.TMDB_ID == detail.TMDB_ID);
+        if (partial != null) {
+            if (refreshVerticalPoster) partial.VerticalPoster = detail.VerticalPoster;
+            if (refreshLargeVerticalPoster) partial.LargeVerticalPoster = detail.LargeVerticalPoster;
+            if (refreshHorizontalPoster) partial.HorizontalPoster = detail.HorizontalPoster;
+        }
+        
+        // todo create a posters table instead. TMDB_ID => posters so we only have to update one place
+
+        await context.SaveChangesAsync();
+        return true;
+    }
+
     private async Task<Posters> GetPosters(string tmdbID) {
         string url = TMDB_Poster_Url + tmdbID + TMDB_Poster_Ending;
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -180,6 +219,20 @@ public class APIService {
         var lowered = url.ToLowerInvariant();
         if (lowered.Contains("svg") || lowered.StartsWith("https://www.")) return true;
         return false;
+    }
+
+    private bool IsExpiringSoon(string? url) {
+        if (string.IsNullOrWhiteSpace(url)) return true;
+
+        Match match = ExpiresRegex.Match(url);
+        if (!match.Success) return false; // TMDB Poster URLs don't expire
+        
+        if (!long.TryParse(match.Groups[1].Value, out long epochSeconds)) {
+            return false;
+        }
+
+        DateTimeOffset expiresAt = DateTimeOffset.FromUnixTimeSeconds(epochSeconds);
+        return expiresAt <= DateTimeOffset.UtcNow.AddDays(1);
     }
 
     private ContentPartialDTO MapTMDBContentToContentPartialDTO(TMDBContent tmdb) {
