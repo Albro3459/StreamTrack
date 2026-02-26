@@ -28,6 +28,7 @@ API/obj
 # DB
 **/StreamTrack.db-wal
 **/StreamTrack.db-shm
+API/Docker/backups/
 
 **/ios
 
