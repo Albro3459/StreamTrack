@@ -4,9 +4,6 @@ CREATE TABLE "ContentPartial" (
     "Overview" text NOT NULL,
     "Rating" double precision NOT NULL,
     "ReleaseYear" integer NOT NULL,
-    "VerticalPoster" text NOT NULL,
-    "LargeVerticalPoster" text NOT NULL,
-    "HorizontalPoster" text NOT NULL,
     "IsDeleted" boolean NOT NULL,
     CONSTRAINT "PK_ContentPartial" PRIMARY KEY ("TMDB_ID")
 );
@@ -51,13 +48,19 @@ CREATE TABLE "ContentDetail" (
     "Runtime" integer,
     "SeasonCount" integer,
     "EpisodeCount" integer,
-    "VerticalPoster" text NOT NULL,
-    "LargeVerticalPoster" text NOT NULL,
-    "HorizontalPoster" text NOT NULL,
     "TTL_UTC" timestamp with time zone NOT NULL,
     "IsDeleted" boolean NOT NULL,
     CONSTRAINT "PK_ContentDetail" PRIMARY KEY ("TMDB_ID"),
     CONSTRAINT "FK_ContentDetail_ContentPartial_TMDB_ID" FOREIGN KEY ("TMDB_ID") REFERENCES "ContentPartial" ("TMDB_ID") ON DELETE CASCADE
+);
+
+CREATE TABLE "Poster" (
+    "TMDB_ID" text NOT NULL,
+    "VerticalPoster" text NOT NULL,
+    "LargeVerticalPoster" text NOT NULL,
+    "HorizontalPoster" text NOT NULL,
+    CONSTRAINT "PK_Poster" PRIMARY KEY ("TMDB_ID"),
+    CONSTRAINT "FK_Poster_ContentPartial_TMDB_ID" FOREIGN KEY ("TMDB_ID") REFERENCES "ContentPartial" ("TMDB_ID") ON DELETE CASCADE
 );
 
 CREATE TABLE "List" (

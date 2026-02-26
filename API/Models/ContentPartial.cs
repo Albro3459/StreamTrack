@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace API.Models;
 
@@ -25,13 +24,7 @@ public class ContentPartial : SoftDeletableEntity {
     public int ReleaseYear { get; set; }
 
     [Required]
-    public string VerticalPoster { get; set; } = string.Empty;
-
-    [Required]
-    public string LargeVerticalPoster { get; set; } = string.Empty;
-
-    [Required]
-    public string HorizontalPoster { get; set; } = string.Empty;
+    public Poster Poster { get; set; } = null!;
 
     public ICollection<List> Lists { get; set; } = new List<List>();
 }

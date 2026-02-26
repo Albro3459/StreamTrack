@@ -15,6 +15,7 @@ public class StreamTrackDbContext : DbContext {
     public DbSet<ListShares> ListShares { get; set; }
     public DbSet<ContentPartial> ContentPartial { get; set; }
     public DbSet<ContentDetail> ContentDetail { get; set; }
+    public DbSet<Poster> Poster { get; set; }
     public DbSet<Genre> Genre { get; set; }
     public DbSet<StreamingOption> StreamingOption { get; set; }
     public DbSet<StreamingService> StreamingService { get; set; }
@@ -53,6 +54,12 @@ public class StreamTrackDbContext : DbContext {
             .WithOne(d => d.Partial)
             .HasForeignKey<ContentDetail>(d => d.TMDB_ID)
             .OnDelete(DeleteBehavior.Cascade); // Deleting Partial deletes Detail
+
+        modelBuilder.Entity<ContentPartial>()
+            .HasOne(p => p.Poster)
+            .WithOne(po => po.Partial)
+            .HasForeignKey<Poster>(po => po.TMDB_ID)
+            .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<ContentDetail>()
             .HasMany(c => c.Genres)
