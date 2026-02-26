@@ -10,12 +10,14 @@ public class HelperService {
 
     private readonly StreamTrackDbContext context;
     private readonly IMapper mapper;
+    private readonly PosterService posterService;
 
     private static readonly Random rng = new Random();
 
-    public HelperService(StreamTrackDbContext _context, IMapper _mapper) {
+    public HelperService(StreamTrackDbContext _context, IMapper _mapper, PosterService _posterService) {
         context = _context;
         mapper = _mapper;
+        posterService = _posterService;
     }
 
     public async Task<List<ContentPartialDTO>> GetRecommendations(ContentDetail detail, int maxRecommended) {
@@ -23,6 +25,8 @@ public class HelperService {
         var streamingServiceNames = detail.StreamingOptions.Select(s => s.StreamingService.Name.ToLower()).ToList();
 
         List<ContentDetail> matches = await context.ContentDetail
+            .Include(c => c.Partial)
+                .ThenInclude(p => p.Poster)
             .Include(c => c.Genres)
             .Include(c => c.StreamingOptions)
                 .ThenInclude(s => s.StreamingService)
@@ -49,8 +53,14 @@ public class HelperService {
         return await context.User
             .Include(u => u.ListsOwned)
                 .ThenInclude(l => l.ContentPartials)
+                    .ThenInclude(p => p.Poster)
+            .Include(u => u.ListsOwned)
+                .ThenInclude(l => l.ContentPartials)
                     .ThenInclude(p => p.Detail)
                         .ThenInclude(d => d.Genres)
+            .Include(u => u.ListsOwned)
+                .ThenInclude(l => l.ContentPartials)
+                    .ThenInclude(p => p.Poster)
             .Include(u => u.ListsOwned)
                 .ThenInclude(l => l.ContentPartials)
                     .ThenInclude(p => p.Detail)
@@ -59,8 +69,16 @@ public class HelperService {
             .Include(u => u.ListShares)
                 .ThenInclude(ls => ls.List)
                     .ThenInclude(l => l.ContentPartials)
+                        .ThenInclude(p => p.Poster)
+            .Include(u => u.ListShares)
+                .ThenInclude(ls => ls.List)
+                    .ThenInclude(l => l.ContentPartials)
                         .ThenInclude(p => p.Detail)
                             .ThenInclude(d => d.Genres)
+            .Include(u => u.ListShares)
+                .ThenInclude(ls => ls.List)
+                    .ThenInclude(l => l.ContentPartials)
+                        .ThenInclude(p => p.Poster)
             .Include(u => u.ListShares)
                 .ThenInclude(ls => ls.List)
                     .ThenInclude(l => l.ContentPartials)
@@ -77,8 +95,12 @@ public class HelperService {
         return await context.List
                     .Include(l => l.Owner)
                     .Include(l => l.ContentPartials)
+                        .ThenInclude(p => p.Poster)
+                    .Include(l => l.ContentPartials)
                         .ThenInclude(p => p.Detail)
                             .ThenInclude(d => d.Genres)
+                    .Include(l => l.ContentPartials)
+                        .ThenInclude(p => p.Poster)
                     .Include(l => l.ContentPartials)
                         .ThenInclude(p => p.Detail)
                             .ThenInclude(p => p.StreamingOptions)
@@ -140,6 +162,7 @@ public class HelperService {
         List<List> lists = await context.ListShares
                             .Include(ls => ls.List)
                                 .ThenInclude(l => l.ContentPartials)
+                                    .ThenInclude(p => p.Poster)
                             .Where(ls => ls.UserID == userID)
                             .Select(ls => ls.List)
                             .Distinct()
@@ -162,6 +185,7 @@ public class HelperService {
         List<List> lists = await context.ListShares
                             .Include(ls => ls.List)
                                 .ThenInclude(l => l.ContentPartials)
+                                    .ThenInclude(p => p.Poster)
                             .Where(ls => ls.List.OwnerUserID == userID)
                             .Select(ls => ls.List)
                             .Distinct()
@@ -195,10 +219,7 @@ public class HelperService {
             Rating = dto.Rating,
             Runtime = dto.Runtime,
             SeasonCount = dto.SeasonCount,
-            EpisodeCount = dto.EpisodeCount,
-            VerticalPoster = dto.VerticalPoster,
-            LargeVerticalPoster = dto.LargeVerticalPoster,
-            HorizontalPoster = dto.HorizontalPoster
+            EpisodeCount = dto.EpisodeCount
         };
 
         // Can't do this with Postgres because of concurrency issues
@@ -233,6 +254,8 @@ public class HelperService {
             }
         }
         content.StreamingOptions = streamingOptions;
+
+        await posterService.UpsertPoster(dto.TMDB_ID, dto.VerticalPoster, dto.LargeVerticalPoster, dto.HorizontalPoster);
 
         return content;
     }

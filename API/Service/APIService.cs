@@ -21,6 +21,7 @@ public class APIService {
 
     private readonly StreamTrackDbContext context;
     private readonly HttpClient httpClient;
+    private readonly PosterService posterService;
     private readonly IMapper mapper;
     private const string RapidAPI_Base_Url = "https://streaming-availability.p.rapidapi.com/shows/";
     private const string RapidAPI_Ending = "?series_granularity=show&output_language=en&country=us";
@@ -34,9 +35,10 @@ public class APIService {
     private const string TMDB_Poster_Ending = "?language=en-US";
     private static readonly Regex ExpiresRegex = new Regex(@"(?:^|[?&])Expires=(\d+)(?:&|$)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-    public APIService(StreamTrackDbContext _context, HttpClient _httpClient, IMapper _mapper) {
+    public APIService(StreamTrackDbContext _context, HttpClient _httpClient, PosterService _posterService, IMapper _mapper) {
         context = _context;
         httpClient = _httpClient;
+        posterService = _posterService;
         mapper = _mapper;
     }
 
@@ -45,13 +47,16 @@ public class APIService {
         try {
             ContentPartial? partial = await context.ContentPartial
                                                 .Include(c => c.Detail)
+                                                .Include(c => c.Poster)
                                                 .Where(c => c.TMDB_ID == partialDTO.TMDB_ID &&
                                                             c.Detail == null
                                                 ).FirstOrDefaultAsync();
 
             if (partial != null) {
-                partial.Detail = await FetchContentDetailsByTMDBIDAsync(mapper.Map<ContentPartialDTO, ContentRequestDTO>(partialDTO));
+                var request = mapper.Map<ContentPartialDTO, ContentRequestDTO>(partialDTO);
+                partial.Detail = await FetchContentDetailsByTMDBIDAsync(request);
                 if (partial.Detail != null) {
+                    await posterService.UpsertPoster(partial.TMDB_ID, request.VerticalPoster, request.LargeVerticalPoster, request.HorizontalPoster);
                     context.ContentDetail.Add(partial.Detail);
                     await context.SaveChangesAsync();
                 }
@@ -92,7 +97,11 @@ public class APIService {
             posters.HorizontalPoster = badHorizontalPoster ? posters.HorizontalPoster : contentDTO.HorizontalPoster ?? "";
         }
 
-        return await MapRapidContentToContentDetail(apiContent, posters.VerticalPoster, posters.LargeVerticalPoster, posters.HorizontalPoster);
+        contentDTO.VerticalPoster = posters.VerticalPoster;
+        contentDTO.LargeVerticalPoster = posters.LargeVerticalPoster;
+        contentDTO.HorizontalPoster = posters.HorizontalPoster;
+
+        return await MapRapidContentToContentDetail(apiContent);
     }
 
     public async Task<List<ContentPartialDTO>> TMDBSearch(string keyword) {
@@ -139,12 +148,17 @@ public class APIService {
     }
 
     // For signed poster URLs, refresh if Expires is within one day (or already passed).
-    // Updates both the ContentDetail and ContentPartial posters
+    // Updates the shared Poster row only
     public async Task<bool> RefreshExpiredPostersIfNeededAsync(ContentDetail detail) {
         // todo this needs to be run on every piece of content pulled from the db because list pages need updated posters too
-        bool refreshVerticalPoster = IsExpiringSoon(detail.VerticalPoster);
-        bool refreshLargeVerticalPoster = IsExpiringSoon(detail.LargeVerticalPoster);
-        bool refreshHorizontalPoster = IsExpiringSoon(detail.HorizontalPoster);
+        var currentPoster = detail.Partial?.Poster ?? await context.Poster.FirstOrDefaultAsync(p => p.TMDB_ID == detail.TMDB_ID);
+        if (currentPoster == null) {
+            return false;
+        }
+
+        bool refreshVerticalPoster = IsExpiringSoon(currentPoster.VerticalPoster);
+        bool refreshLargeVerticalPoster = IsExpiringSoon(currentPoster.LargeVerticalPoster);
+        bool refreshHorizontalPoster = IsExpiringSoon(currentPoster.HorizontalPoster);
 
         if (!refreshVerticalPoster && !refreshLargeVerticalPoster && !refreshHorizontalPoster) {
             return false;
@@ -152,24 +166,12 @@ public class APIService {
 
         Posters posters = await GetPosters(detail.TMDB_ID);
 
-        if (refreshVerticalPoster && !string.IsNullOrWhiteSpace(posters.VerticalPoster)) {
-            detail.VerticalPoster = posters.VerticalPoster;
-        }
-        if (refreshLargeVerticalPoster && !string.IsNullOrWhiteSpace(posters.LargeVerticalPoster)) {
-            detail.LargeVerticalPoster = posters.LargeVerticalPoster;
-        }
-        if (refreshHorizontalPoster && !string.IsNullOrWhiteSpace(posters.HorizontalPoster)) {
-            detail.HorizontalPoster = posters.HorizontalPoster;
-        }
-
-        ContentPartial? partial = await context.ContentPartial.FirstOrDefaultAsync(c => c.TMDB_ID == detail.TMDB_ID);
-        if (partial != null) {
-            if (refreshVerticalPoster) partial.VerticalPoster = detail.VerticalPoster;
-            if (refreshLargeVerticalPoster) partial.LargeVerticalPoster = detail.LargeVerticalPoster;
-            if (refreshHorizontalPoster) partial.HorizontalPoster = detail.HorizontalPoster;
-        }
-        
-        // todo create a posters table instead. TMDB_ID => posters so we only have to update one place
+        await posterService.UpsertPoster(
+            detail.TMDB_ID,
+            refreshVerticalPoster && !string.IsNullOrWhiteSpace(posters.VerticalPoster) ? posters.VerticalPoster : null,
+            refreshLargeVerticalPoster && !string.IsNullOrWhiteSpace(posters.LargeVerticalPoster) ? posters.LargeVerticalPoster : null,
+            refreshHorizontalPoster && !string.IsNullOrWhiteSpace(posters.HorizontalPoster) ? posters.HorizontalPoster : null
+        );
 
         await context.SaveChangesAsync();
         return true;
@@ -256,7 +258,7 @@ public class APIService {
         };
     }
 
-    private async Task<ContentDetail> MapRapidContentToContentDetail(RapidContent content, string verticalPoster, string largeVerticalPoster, string horizontalPoster) {
+    private async Task<ContentDetail> MapRapidContentToContentDetail(RapidContent content) {
         var details = new ContentDetail {
             TMDB_ID = content.tmdbId,
             Title = content.title,
@@ -270,10 +272,7 @@ public class APIService {
             Rating = content.rating,
             Runtime = content.runtime,
             SeasonCount = content.seasonCount,
-            EpisodeCount = content.episodeCount,
-            VerticalPoster = !string.IsNullOrWhiteSpace(verticalPoster) ? verticalPoster : content.imageSet.verticalPoster.w240 ?? "",
-            LargeVerticalPoster = !string.IsNullOrWhiteSpace(largeVerticalPoster) ? largeVerticalPoster : content.imageSet.verticalPoster.w480 ?? "",
-            HorizontalPoster = !string.IsNullOrWhiteSpace(horizontalPoster) ? horizontalPoster : content.imageSet.horizontalPoster.w1080 ?? "",
+            EpisodeCount = content.episodeCount
         };
 
         // List<string> genreNames = content.genres.Select(g => g.name).ToList();

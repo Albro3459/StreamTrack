@@ -54,9 +54,11 @@ public class UserController : ControllerBase {
         User? user = await context.User
                 .Include(u => u.ListsOwned)
                     .ThenInclude(l => l.ContentPartials)
+                        .ThenInclude(p => p.Poster)
                 .Include(u => u.ListShares)
                     .ThenInclude(ls => ls.List)
                         .ThenInclude(l => l.ContentPartials)
+                            .ThenInclude(p => p.Poster)
                 .Include(u => u.Genres)
                 .Include(u => u.StreamingServices)
                 .FirstOrDefaultAsync(u => u.UserID.Equals(uid));
@@ -93,9 +95,11 @@ public class UserController : ControllerBase {
         User? user = await context.User
                 .Include(u => u.ListsOwned)
                     .ThenInclude(l => l.ContentPartials)
+                        .ThenInclude(p => p.Poster)
                 .Include(u => u.ListShares)
                     .ThenInclude(ls => ls.List)
                         .ThenInclude(l => l.ContentPartials)
+                            .ThenInclude(p => p.Poster)
                 .FirstOrDefaultAsync(u => u.UserID.Equals(uid));
 
         if (user == null) {

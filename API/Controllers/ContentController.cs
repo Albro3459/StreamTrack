@@ -19,6 +19,7 @@ public class ContentController : ControllerBase {
     private readonly HelperService service;
     private readonly PopularSortingService sortingService;
     private readonly APIService APIService;
+    private readonly PosterService posterService;
     private readonly IMapper mapper;
 
     private const int maxContents = 10; // max amount of contents to take per each section or carousel
@@ -70,11 +71,12 @@ public class ContentController : ControllerBase {
     };
 
 
-    public ContentController(StreamTrackDbContext _context, HelperService _service, PopularSortingService _sortingService, APIService _APIService, IMapper _mapper) {
+    public ContentController(StreamTrackDbContext _context, HelperService _service, PopularSortingService _sortingService, APIService _APIService, PosterService _posterService, IMapper _mapper) {
         context = _context;
         service = _service;
         sortingService = _sortingService;
         APIService = _APIService;
+        posterService = _posterService;
         mapper = _mapper;
     }
 
@@ -149,6 +151,8 @@ public class ContentController : ControllerBase {
         if (user == null) return Unauthorized();
 
         ContentDetail? detail = await context.ContentDetail
+                                                .Include(c => c.Partial)
+                                                    .ThenInclude(p => p.Poster)
                                                 .Include(c => c.Genres)
                                                 .Include(c => c.StreamingOptions)
                                                     .ThenInclude(s => s.StreamingService)
@@ -160,6 +164,20 @@ public class ContentController : ControllerBase {
                 if (detail == null) {
                     return NotFound();
                 }
+
+                detail.Partial = new ContentPartial {
+                    TMDB_ID = detail.TMDB_ID,
+                    Title = detail.Title,
+                    Overview = detail.Overview,
+                    Rating = detail.Rating,
+                    ReleaseYear = detail.ReleaseYear,
+                    Poster = new Poster {
+                        TMDB_ID = detail.TMDB_ID,
+                        VerticalPoster = requestDTO.VerticalPoster ?? string.Empty,
+                        LargeVerticalPoster = requestDTO.LargeVerticalPoster ?? string.Empty,
+                        HorizontalPoster = requestDTO.HorizontalPoster ?? string.Empty
+                    }
+                };
             }
             else if (detail.TTL_UTC < DateTime.UtcNow || shouldRefresh.GetValueOrDefault()) {
                 ContentDetail? updatedDetail = await APIService.FetchContentDetailsByTMDBIDAsync(requestDTO);
@@ -202,6 +220,13 @@ public class ContentController : ControllerBase {
                 partial.Detail = detail;
                 detail.Partial = partial;
 
+                await posterService.UpsertPoster(
+                    requestDTO.TMDB_ID,
+                    requestDTO.VerticalPoster,
+                    requestDTO.LargeVerticalPoster,
+                    requestDTO.HorizontalPoster
+                );
+
                 await context.SaveChangesAsync();
             }
             await APIService.RefreshExpiredPostersIfNeededAsync(detail);
@@ -231,6 +256,7 @@ public class ContentController : ControllerBase {
         if (user == null) return Unauthorized();
 
         List<ContentPartial> contents = await context.ContentPartial
+                                    .Include(c => c.Poster)
                                     .ToListAsync();
 
         return mapper.Map<List<ContentPartial>, List<ContentPartialDTO>>(contents);
@@ -253,6 +279,8 @@ public class ContentController : ControllerBase {
         if (user == null) return Unauthorized();
 
         List<ContentDetail> contents = await context.ContentDetail
+                .Include(c => c.Partial)
+                    .ThenInclude(p => p.Poster)
                 .Include(c => c.Genres)
                 .Include(c => c.StreamingOptions)
                     .ThenInclude(s => s.StreamingService)
@@ -347,6 +375,8 @@ public class ContentController : ControllerBase {
                     partial.Detail = details;
                     details.Partial = partial;
                 }
+
+                await posterService.UpsertPoster(dto.TMDB_ID, dto.VerticalPoster, dto.LargeVerticalPoster, dto.HorizontalPoster);
             }
         }
 
