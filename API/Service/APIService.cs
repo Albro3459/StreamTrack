@@ -193,50 +193,64 @@ public class APIService {
     // Refreshes and saves poster rows for supplied TMDB IDs when any URL is invalid or expiring.
     // Returns the number of rows updated/created.
     public async Task<int> RefreshPostersIfNeededAsync(IEnumerable<string> tmdbIds) {
-        HashSet<string> ids = tmdbIds
-            .Where(id => !string.IsNullOrWhiteSpace(id))
-            .ToHashSet();
+        try {
+            HashSet<string> ids = tmdbIds
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .ToHashSet();
 
-        if (ids.Count == 0) {
+            if (ids.Count == 0) {
+                return 0;
+            }
+
+            List<Poster> existingPosters = await context.Poster
+                .Where(p => ids.Contains(p.TMDB_ID))
+                .ToListAsync();
+
+            HashSet<string> existingIds = existingPosters.Select(p => p.TMDB_ID).ToHashSet();
+            HashSet<string> idsToRefresh = existingPosters
+                .Where(p =>
+                    posterService.ShouldRefreshPoster(p.VerticalPoster) ||
+                    posterService.ShouldRefreshPoster(p.LargeVerticalPoster) ||
+                    posterService.ShouldRefreshPoster(p.HorizontalPoster))
+                .Select(p => p.TMDB_ID)
+                .ToHashSet();
+
+            // IDs to refresh, yet they aren't saved to the DB yet
+            foreach (string missingId in ids.Except(existingIds)) {
+                idsToRefresh.Add(missingId);
+            }
+
+            if (idsToRefresh.Count == 0) {
+                return 0;
+            }
+
+            int refreshedCount = 0;
+            foreach (string id in idsToRefresh) {
+                try {
+                    Posters fetched = await GetPosters(id);
+                    await posterService.UpsertPoster(
+                        id,
+                        fetched.VerticalPoster,
+                        fetched.LargeVerticalPoster,
+                        fetched.HorizontalPoster
+                    );
+                    refreshedCount++;
+                }
+                catch (Exception ex) {
+                    ConsoleLogger.Error($"Skipping poster refresh for '{id}' after TMDB/API failure: {ex.Message}");
+                }
+            }
+
+            if (refreshedCount > 0) {
+                await context.SaveChangesAsync();
+            }
+
+            return refreshedCount;
+        }
+        catch (Exception ex) {
+            ConsoleLogger.Error($"Poster refresh batch failed safely: {ex.Message}");
             return 0;
         }
-
-        List<Poster> existingPosters = await context.Poster
-            .Where(p => ids.Contains(p.TMDB_ID))
-            .ToListAsync();
-
-        HashSet<string> existingIds = existingPosters.Select(p => p.TMDB_ID).ToHashSet();
-        HashSet<string> idsToRefresh = existingPosters
-            .Where(p =>
-                posterService.ShouldRefreshPoster(p.VerticalPoster) ||
-                posterService.ShouldRefreshPoster(p.LargeVerticalPoster) ||
-                posterService.ShouldRefreshPoster(p.HorizontalPoster))
-            .Select(p => p.TMDB_ID)
-            .ToHashSet();
-
-        // IDs to refresh, yet they aren't saved to the DB yet
-        foreach (string missingId in ids.Except(existingIds)) {
-            idsToRefresh.Add(missingId);
-        }
-
-        if (idsToRefresh.Count == 0) {
-            return 0;
-        }
-
-        int refreshedCount = 0;
-        foreach (string id in idsToRefresh) {
-            Posters fetched = await GetPosters(id);
-            await posterService.UpsertPoster(
-                id,
-                fetched.VerticalPoster,
-                fetched.LargeVerticalPoster,
-                fetched.HorizontalPoster
-            );
-            refreshedCount++;
-        }
-
-        await context.SaveChangesAsync();
-        return refreshedCount;
     }
 
     private ContentPartialDTO MapTMDBContentToContentPartialDTO(TMDBContent tmdb) {

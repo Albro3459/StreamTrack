@@ -159,7 +159,10 @@ public class ContentController : ControllerBase {
                                             .FirstOrDefaultAsync(c => c.TMDB_ID == requestDTO.TMDB_ID);
 
         try {
+            bool shouldRefreshPosters = true;
+
             if (detail == null) {
+                shouldRefreshPosters = false;
                 detail = await APIService.FetchContentDetailsByTMDBIDAsync(requestDTO);
                 if (detail == null) {
                     return NotFound();
@@ -229,7 +232,9 @@ public class ContentController : ControllerBase {
 
                 await context.SaveChangesAsync();
             }
-            await APIService.RefreshPostersIfNeededAsync(detail.TMDB_ID);
+            if (shouldRefreshPosters) {
+                await APIService.RefreshPostersIfNeededAsync(detail.TMDB_ID);
+            }
         }
         catch (Exception e) {
             ConsoleLogger.Error("Error in GetContentDetails: " + e);
