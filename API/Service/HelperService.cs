@@ -3,6 +3,7 @@ using API.Infrastructure;
 using API.Models;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Concurrent;
 
 namespace API.Service;
 
@@ -12,8 +13,10 @@ public class HelperService {
     private readonly IMapper mapper;
     private readonly PosterService posterService;
     private readonly BackgroundTaskQueue taskQueue;
-
     private static readonly Random rng = new Random();
+
+    // Keeps track of the TMDB_IDs that are queued for refresh to reduce duplicated work
+    private static readonly ConcurrentDictionary<string, byte> QueuedPosterRefreshIds = new();
 
     public HelperService(StreamTrackDbContext _context, IMapper _mapper, PosterService _posterService, BackgroundTaskQueue _taskQueue) {
         context = _context;
@@ -26,6 +29,7 @@ public class HelperService {
         List<string> refreshIds = tmdbIds
             .Where(id => !string.IsNullOrWhiteSpace(id))
             .Select(id => id!.Trim())
+            .Where(id => QueuedPosterRefreshIds.TryAdd(id, 0))
             .ToList();
 
         if (refreshIds.Count == 0) {
@@ -33,8 +37,15 @@ public class HelperService {
         }
 
         taskQueue.QueueBackgroundWorkItem(async (serviceProvider, token) => {
-            var APIService = serviceProvider.GetRequiredService<APIService>();
-            await APIService.RefreshPostersIfNeededAsync(refreshIds);
+            try {
+                var APIService = serviceProvider.GetRequiredService<APIService>();
+                await APIService.RefreshPostersIfNeededAsync(refreshIds);
+            }
+            finally {
+                foreach (string id in refreshIds) {
+                    QueuedPosterRefreshIds.TryRemove(id, out _);
+                }
+            }
         });
     }
 
