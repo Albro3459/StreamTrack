@@ -229,7 +229,7 @@ public class ContentController : ControllerBase {
 
                 await context.SaveChangesAsync();
             }
-            await APIService.RefreshExpiredPostersIfNeededAsync(detail);
+            await APIService.RefreshPostersIfNeededAsync(detail);
         }
         catch (Exception e) {
             ConsoleLogger.Error("Error in GetContentDetails: " + e);

@@ -85,16 +85,16 @@ public class APIService {
         // Set rating to 5 point scale
         apiContent.rating = Math.Round(apiContent.rating / 20.0, 2);
 
-        // Update any missing posters
+        // Update any missing/expired posters
         Posters posters = new Posters { VerticalPoster = contentDTO.VerticalPoster ?? "", LargeVerticalPoster = contentDTO.LargeVerticalPoster ?? "", HorizontalPoster = contentDTO.HorizontalPoster ?? "" };
-        bool badVerticalPoster = IsBadPoster(posters.VerticalPoster);
-        bool badLargeVerticalPoster = IsBadPoster(posters.LargeVerticalPoster);
-        bool badHorizontalPoster = IsBadPoster(posters.HorizontalPoster);
-        if (badVerticalPoster || badLargeVerticalPoster || badHorizontalPoster) {
+        bool refreshVerticalPoster = ShouldRefreshPoster(posters.VerticalPoster);
+        bool refreshLargeVerticalPoster = ShouldRefreshPoster(posters.LargeVerticalPoster);
+        bool refreshHorizontalPoster = ShouldRefreshPoster(posters.HorizontalPoster);
+        if (refreshVerticalPoster || refreshLargeVerticalPoster || refreshHorizontalPoster) {
             posters = await GetPosters(contentDTO.TMDB_ID);
-            posters.VerticalPoster = badVerticalPoster ? posters.VerticalPoster : contentDTO.VerticalPoster ?? "";
-            posters.LargeVerticalPoster = badLargeVerticalPoster ? posters.LargeVerticalPoster : contentDTO.LargeVerticalPoster ?? "";
-            posters.HorizontalPoster = badHorizontalPoster ? posters.HorizontalPoster : contentDTO.HorizontalPoster ?? "";
+            posters.VerticalPoster = refreshVerticalPoster ? posters.VerticalPoster : contentDTO.VerticalPoster ?? "";
+            posters.LargeVerticalPoster = refreshLargeVerticalPoster ? posters.LargeVerticalPoster : contentDTO.LargeVerticalPoster ?? "";
+            posters.HorizontalPoster = refreshHorizontalPoster ? posters.HorizontalPoster : contentDTO.HorizontalPoster ?? "";
         }
 
         contentDTO.VerticalPoster = posters.VerticalPoster;
@@ -147,18 +147,18 @@ public class APIService {
         return data.Results.Select(t => MapTMDBContentToContentPartialDTO(t)).ToList();
     }
 
-    // For signed poster URLs, refresh if Expires is within one day (or already passed).
-    // Updates the shared Poster row only
-    public async Task<bool> RefreshExpiredPostersIfNeededAsync(ContentDetail detail) {
+    // Refresh poster URLs when they're either invalid or expiring soon.
+    // Updates and saves the shared Poster row only.
+    public async Task<bool> RefreshPostersIfNeededAsync(ContentDetail detail) {
         // todo this needs to be run on every piece of content pulled from the db because list pages need updated posters too
         var currentPoster = detail.Partial?.Poster ?? await context.Poster.FirstOrDefaultAsync(p => p.TMDB_ID == detail.TMDB_ID);
         if (currentPoster == null) {
             return false;
         }
 
-        bool refreshVerticalPoster = IsExpiringSoon(currentPoster.VerticalPoster);
-        bool refreshLargeVerticalPoster = IsExpiringSoon(currentPoster.LargeVerticalPoster);
-        bool refreshHorizontalPoster = IsExpiringSoon(currentPoster.HorizontalPoster);
+        bool refreshVerticalPoster = ShouldRefreshPoster(currentPoster.VerticalPoster);
+        bool refreshLargeVerticalPoster = ShouldRefreshPoster(currentPoster.LargeVerticalPoster);
+        bool refreshHorizontalPoster = ShouldRefreshPoster(currentPoster.HorizontalPoster);
 
         if (!refreshVerticalPoster && !refreshLargeVerticalPoster && !refreshHorizontalPoster) {
             return false;
@@ -221,6 +221,10 @@ public class APIService {
         var lowered = url.ToLowerInvariant();
         if (lowered.Contains("svg") || lowered.StartsWith("https://www.")) return true;
         return false;
+    }
+
+    private bool ShouldRefreshPoster(string? url) {
+        return IsBadPoster(url ?? string.Empty) || IsExpiringSoon(url);
     }
 
     private bool IsExpiringSoon(string? url) {

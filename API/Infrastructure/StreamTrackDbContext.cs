@@ -59,7 +59,7 @@ public class StreamTrackDbContext : DbContext {
             .HasOne(p => p.Poster)
             .WithOne(po => po.Partial)
             .HasForeignKey<Poster>(po => po.TMDB_ID)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.Cascade); // Deleting Partial deletes Poster
 
         modelBuilder.Entity<ContentDetail>()
             .HasMany(c => c.Genres)
