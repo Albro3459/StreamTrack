@@ -1,4 +1,5 @@
 using API.DTOs;
+using API.Helpers;
 using API.Infrastructure;
 using API.Models;
 using AutoMapper;
@@ -36,7 +37,7 @@ public class HelperService {
             return;
         }
 
-        taskQueue.QueueBackgroundWorkItem(async (serviceProvider, token) => {
+        bool queued = taskQueue.QueueBackgroundWorkItem(async (serviceProvider, token) => {
             try {
                 var APIService = serviceProvider.GetRequiredService<APIService>();
                 await APIService.RefreshPostersIfNeededAsync(refreshIds);
@@ -47,6 +48,13 @@ public class HelperService {
                 }
             }
         });
+
+        if (!queued) {
+            ConsoleLogger.Error($"Failed to queue poster refresh for {refreshIds.Count} TMDB IDs.");
+            foreach (string id in refreshIds) {
+                QueuedPosterRefreshIds.TryRemove(id, out _);
+            }
+        }
     }
 
     public async Task<List<ContentPartialDTO>> GetRecommendations(ContentDetail detail, int maxRecommended) {
