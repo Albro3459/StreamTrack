@@ -269,15 +269,7 @@ public class ContentController : ControllerBase {
     //                                 .Include(c => c.Poster)
     //                                 .ToListAsync();
 
-    //     List<string> refreshIds = contents
-    //         .Select(c => c.TMDB_ID)
-    //         .ToList();
-    //     if (refreshIds.Count > 0) {
-    //         taskQueue.QueueBackgroundWorkItem(async (serviceProvider, token) => {
-    //             var rapidAPIService = serviceProvider.GetRequiredService<APIService>();
-    //             await rapidAPIService.RefreshPostersIfNeededAsync(refreshIds);
-    //         });
-    //     }
+    //     service.QueuePosterRefresh(contents.Select(c => c.TMDB_ID));
 
     //     return mapper.Map<List<ContentPartial>, List<ContentPartialDTO>>(contents);
     // }

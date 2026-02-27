@@ -23,10 +23,6 @@ public class HelperService {
     }
 
     public void QueuePosterRefresh(IEnumerable<string?> tmdbIds) {
-        QueuePosterRefreshForTmdbIds(tmdbIds);
-    }
-
-    private void QueuePosterRefreshForTmdbIds(IEnumerable<string?> tmdbIds) {
         List<string> refreshIds = tmdbIds
             .Where(id => !string.IsNullOrWhiteSpace(id))
             .Select(id => id!.Trim())
@@ -64,7 +60,7 @@ public class HelperService {
             .Take(maxRecommended * 2)
             .ToListAsync();
 
-        QueuePosterRefreshForTmdbIds(matches.Select(r => r.TMDB_ID));
+        QueuePosterRefresh(matches.Select(r => r.TMDB_ID));
 
         return matches
             .OrderBy(_ => rng.Next())
@@ -107,7 +103,7 @@ public class HelperService {
             .FirstOrDefaultAsync(u => u.UserID == userID);
 
         if (user != null) {
-            QueuePosterRefreshForTmdbIds(
+            QueuePosterRefresh(
                 user.ListsOwned.SelectMany(l => l.ContentPartials).Select(p => p.TMDB_ID)
                 .Concat(user.ListShares.SelectMany(ls => ls.List.ContentPartials).Select(p => p.TMDB_ID))
             );
@@ -133,7 +129,7 @@ public class HelperService {
                     .Where(l => l.OwnerUserID.Equals(userID))
                     .ToListAsync();
 
-        QueuePosterRefreshForTmdbIds(lists.SelectMany(l => l.ContentPartials).Select(p => p.TMDB_ID));
+        QueuePosterRefresh(lists.SelectMany(l => l.ContentPartials).Select(p => p.TMDB_ID));
 
         return lists;
     }
@@ -196,7 +192,7 @@ public class HelperService {
                             .Distinct()
                             .ToListAsync();
 
-        QueuePosterRefreshForTmdbIds(lists.SelectMany(l => l.ContentPartials).Select(p => p.TMDB_ID));
+        QueuePosterRefresh(lists.SelectMany(l => l.ContentPartials).Select(p => p.TMDB_ID));
 
         return lists;
 
@@ -221,7 +217,7 @@ public class HelperService {
                             .Distinct()
                             .ToListAsync();
 
-        QueuePosterRefreshForTmdbIds(lists.SelectMany(l => l.ContentPartials).Select(p => p.TMDB_ID));
+        QueuePosterRefresh(lists.SelectMany(l => l.ContentPartials).Select(p => p.TMDB_ID));
 
         return lists;
     }
