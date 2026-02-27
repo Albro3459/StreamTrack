@@ -1,3 +1,4 @@
+-- dotnet ef migrations script > out.txt
 CREATE TABLE "ContentPartial" (
     "TMDB_ID" text NOT NULL,
     "Title" text NOT NULL,
@@ -130,17 +131,19 @@ VALUES ('1', FALSE, 'Action');
 INSERT INTO "Genre" ("GenreID", "IsDeleted", "Name")
 VALUES ('2', FALSE, 'Comedy');
 INSERT INTO "Genre" ("GenreID", "IsDeleted", "Name")
-VALUES ('3', FALSE, 'Drama');
+VALUES ('3', FALSE, 'Documentary');
 INSERT INTO "Genre" ("GenreID", "IsDeleted", "Name")
-VALUES ('4', FALSE, 'Horror');
+VALUES ('4', FALSE, 'Drama');
 INSERT INTO "Genre" ("GenreID", "IsDeleted", "Name")
-VALUES ('5', FALSE, 'Romance');
+VALUES ('5', FALSE, 'Horror');
 INSERT INTO "Genre" ("GenreID", "IsDeleted", "Name")
-VALUES ('6', FALSE, 'Science Fiction');
+VALUES ('6', FALSE, 'Romance');
 INSERT INTO "Genre" ("GenreID", "IsDeleted", "Name")
-VALUES ('7', FALSE, 'Thriller');
+VALUES ('7', FALSE, 'Science Fiction');
 INSERT INTO "Genre" ("GenreID", "IsDeleted", "Name")
-VALUES ('8', FALSE, 'Western');
+VALUES ('8', FALSE, 'Thriller');
+INSERT INTO "Genre" ("GenreID", "IsDeleted", "Name")
+VALUES ('9', FALSE, 'Western');
 
 INSERT INTO "StreamingService" ("ServiceID", "DarkLogo", "IsDeleted", "LightLogo", "Name")
 VALUES ('1', 'https://media.movieofthenight.com/services/netflix/logo-dark-theme.svg', FALSE, 'https://media.movieofthenight.com/services/netflix/logo-light-theme.svg', 'Netflix');

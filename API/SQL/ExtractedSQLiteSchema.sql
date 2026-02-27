@@ -1,3 +1,5 @@
+-- OUTDATED, see the Postgres Schema file
+
 CREATE TABLE "ContentPartial" (
     "TMDB_ID" TEXT NOT NULL CONSTRAINT "PK_ContentPartial" PRIMARY KEY,
     "Title" TEXT NOT NULL,

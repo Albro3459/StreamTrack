@@ -12,6 +12,9 @@ public class ContentPartial : SoftDeletableEntity {
     public ContentDetail? Detail { get; set; }
 
     [Required]
+    public Poster Poster { get; set; } = null!;
+
+    [Required]
     public string Title { get; set; } = string.Empty;
 
     [Required]
@@ -22,9 +25,6 @@ public class ContentPartial : SoftDeletableEntity {
 
     [Required]
     public int ReleaseYear { get; set; }
-
-    [Required]
-    public Poster Poster { get; set; } = null!;
 
     public ICollection<List> Lists { get; set; } = new List<List>();
 }
