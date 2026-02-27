@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace StreamTrack.Migrations
 {
     [DbContext(typeof(StreamTrackDbContext))]
-    [Migration("20250718062723_Initial")]
-    partial class Initial
+    [Migration("20260227144325_NormalizePosters")]
+    partial class NormalizePosters
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -41,10 +41,6 @@ namespace StreamTrack.Migrations
                     b.Property<int?>("EpisodeCount")
                         .HasColumnType("integer");
 
-                    b.Property<string>("HorizontalPoster")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<string>("IMDB_ID")
                         .IsRequired()
                         .HasColumnType("text");
@@ -54,10 +50,6 @@ namespace StreamTrack.Migrations
 
                     b.Property<bool>("IsPopular")
                         .HasColumnType("boolean");
-
-                    b.Property<string>("LargeVerticalPoster")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<string>("Overview")
                         .IsRequired()
@@ -90,10 +82,6 @@ namespace StreamTrack.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("VerticalPoster")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.HasKey("TMDB_ID");
 
                     b.ToTable("ContentDetail");
@@ -104,16 +92,8 @@ namespace StreamTrack.Migrations
                     b.Property<string>("TMDB_ID")
                         .HasColumnType("text");
 
-                    b.Property<string>("HorizontalPoster")
-                        .IsRequired()
-                        .HasColumnType("text");
-
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("boolean");
-
-                    b.Property<string>("LargeVerticalPoster")
-                        .IsRequired()
-                        .HasColumnType("text");
 
                     b.Property<string>("Overview")
                         .IsRequired()
@@ -126,10 +106,6 @@ namespace StreamTrack.Migrations
                         .HasColumnType("integer");
 
                     b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("VerticalPoster")
                         .IsRequired()
                         .HasColumnType("text");
 
@@ -171,43 +147,43 @@ namespace StreamTrack.Migrations
                         {
                             GenreID = "3",
                             IsDeleted = false,
-                            Name = "Documentary"
+                            Name = "Drama"
                         },
                         new
                         {
                             GenreID = "4",
                             IsDeleted = false,
-                            Name = "Drama"
+                            Name = "Horror"
                         },
                         new
                         {
                             GenreID = "5",
                             IsDeleted = false,
-                            Name = "Horror"
+                            Name = "Romance"
                         },
                         new
                         {
                             GenreID = "6",
                             IsDeleted = false,
-                            Name = "Romance"
+                            Name = "Science Fiction"
                         },
                         new
                         {
                             GenreID = "7",
                             IsDeleted = false,
-                            Name = "Science Fiction"
+                            Name = "Thriller"
                         },
                         new
                         {
                             GenreID = "8",
                             IsDeleted = false,
-                            Name = "Thriller"
+                            Name = "Western"
                         },
                         new
                         {
                             GenreID = "9",
                             IsDeleted = false,
-                            Name = "Western"
+                            Name = "Documentary"
                         });
                 });
 
@@ -258,6 +234,28 @@ namespace StreamTrack.Migrations
                     b.HasIndex("UserID");
 
                     b.ToTable("ListShares");
+                });
+
+            modelBuilder.Entity("API.Models.Poster", b =>
+                {
+                    b.Property<string>("TMDB_ID")
+                        .HasColumnType("text");
+
+                    b.Property<string>("HorizontalPoster")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("LargeVerticalPoster")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("VerticalPoster")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("TMDB_ID");
+
+                    b.ToTable("Poster");
                 });
 
             modelBuilder.Entity("API.Models.StreamingOption", b =>
@@ -508,6 +506,17 @@ namespace StreamTrack.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("API.Models.Poster", b =>
+                {
+                    b.HasOne("API.Models.ContentPartial", "Partial")
+                        .WithOne("Poster")
+                        .HasForeignKey("API.Models.Poster", "TMDB_ID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Partial");
+                });
+
             modelBuilder.Entity("API.Models.StreamingOption", b =>
                 {
                     b.HasOne("API.Models.StreamingService", "StreamingService")
@@ -595,6 +604,9 @@ namespace StreamTrack.Migrations
             modelBuilder.Entity("API.Models.ContentPartial", b =>
                 {
                     b.Navigation("Detail");
+
+                    b.Navigation("Poster")
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("API.Models.List", b =>

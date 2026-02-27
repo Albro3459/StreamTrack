@@ -29,7 +29,7 @@ namespace StreamTrack.Migrations
                         principalColumn: "TMDB_ID",
                         onDelete: ReferentialAction.Cascade);
                 });
-
+            
             // Fill Poster table with posters from ContentDetails (primary) and ContentPartial
             migrationBuilder.Sql(
                 """
