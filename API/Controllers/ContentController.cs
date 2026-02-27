@@ -229,7 +229,7 @@ public class ContentController : ControllerBase {
 
                 await context.SaveChangesAsync();
             }
-            await APIService.RefreshPostersIfNeededAsync(detail);
+            await APIService.RefreshPostersIfNeededAsync(detail.TMDB_ID);
         }
         catch (Exception e) {
             ConsoleLogger.Error("Error in GetContentDetails: " + e);
@@ -258,6 +258,8 @@ public class ContentController : ControllerBase {
         List<ContentPartial> contents = await context.ContentPartial
                                     .Include(c => c.Poster)
                                     .ToListAsync();
+
+        await APIService.RefreshPostersIfNeededAsync(contents.Select(c => c.TMDB_ID));
 
         return mapper.Map<List<ContentPartial>, List<ContentPartialDTO>>(contents);
     }
@@ -290,6 +292,8 @@ public class ContentController : ControllerBase {
         if (contents.Count == 0) {
             return NotFound();
         }
+
+        await APIService.RefreshPostersIfNeededAsync(contents.Select(c => c.TMDB_ID));
 
         // Pick 10 random contents for the carousel
         List<ContentSimpleDTO> carousel = contents.OrderBy(_ => rng.Next())

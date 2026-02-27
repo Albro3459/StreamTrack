@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using API.Infrastructure;
 using API.Models;
 using Microsoft.EntityFrameworkCore;
@@ -6,6 +7,8 @@ namespace API.Service;
 
 public class PosterService {
     private readonly StreamTrackDbContext context;
+
+    private static readonly Regex ExpiresRegex = new Regex(@"(?:^|[?&])Expires=(\d+)(?:&|$)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     public PosterService(StreamTrackDbContext _context) {
         context = _context;
@@ -36,5 +39,30 @@ public class PosterService {
         if (!string.IsNullOrWhiteSpace(horizontal)) poster.HorizontalPoster = horizontal;
 
         return poster;
+    }
+
+    public bool ShouldRefreshPoster(string? url) {
+        return IsBadPoster(url ?? string.Empty) || IsExpiringSoon(url);
+    }
+
+    public bool IsBadPoster(string url) {
+        if (string.IsNullOrWhiteSpace(url)) return true;
+        var lowered = url.ToLowerInvariant();
+        if (lowered.Contains("svg") || lowered.StartsWith("https://www.")) return true;
+        return false;
+    }
+
+    public bool IsExpiringSoon(string? url) {
+        if (string.IsNullOrWhiteSpace(url)) return true;
+
+        Match match = ExpiresRegex.Match(url);
+        if (!match.Success) return false; // TMDB Poster URLs don't expire
+        
+        if (!long.TryParse(match.Groups[1].Value, out long epochSeconds)) {
+            return false;
+        }
+
+        DateTimeOffset expiresAt = DateTimeOffset.FromUnixTimeSeconds(epochSeconds);
+        return expiresAt <= DateTimeOffset.UtcNow.AddDays(1);
     }
 }

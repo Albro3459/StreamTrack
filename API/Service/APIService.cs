@@ -7,7 +7,6 @@ using API.Models;
 using AutoMapper;
 using System.Net.Http.Headers;
 using API.Helpers;
-using System.Text.RegularExpressions;
 
 namespace API.Service;
 
@@ -33,7 +32,6 @@ public class APIService {
     private const string TMDB_Search_Ending = "&include_adult=false&language=en-US&page=1";
     private const string TMDB_Poster_Url = "https://api.themoviedb.org/3/";
     private const string TMDB_Poster_Ending = "?language=en-US";
-    private static readonly Regex ExpiresRegex = new Regex(@"(?:^|[?&])Expires=(\d+)(?:&|$)", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
     public APIService(StreamTrackDbContext _context, HttpClient _httpClient, PosterService _posterService, IMapper _mapper) {
         context = _context;
@@ -87,9 +85,9 @@ public class APIService {
 
         // Update any missing/expired posters
         Posters posters = new Posters { VerticalPoster = contentDTO.VerticalPoster ?? "", LargeVerticalPoster = contentDTO.LargeVerticalPoster ?? "", HorizontalPoster = contentDTO.HorizontalPoster ?? "" };
-        bool refreshVerticalPoster = ShouldRefreshPoster(posters.VerticalPoster);
-        bool refreshLargeVerticalPoster = ShouldRefreshPoster(posters.LargeVerticalPoster);
-        bool refreshHorizontalPoster = ShouldRefreshPoster(posters.HorizontalPoster);
+        bool refreshVerticalPoster = posterService.ShouldRefreshPoster(posters.VerticalPoster);
+        bool refreshLargeVerticalPoster = posterService.ShouldRefreshPoster(posters.LargeVerticalPoster);
+        bool refreshHorizontalPoster = posterService.ShouldRefreshPoster(posters.HorizontalPoster);
         if (refreshVerticalPoster || refreshLargeVerticalPoster || refreshHorizontalPoster) {
             posters = await GetPosters(contentDTO.TMDB_ID);
             posters.VerticalPoster = refreshVerticalPoster ? posters.VerticalPoster : contentDTO.VerticalPoster ?? "";
@@ -147,36 +145,6 @@ public class APIService {
         return data.Results.Select(t => MapTMDBContentToContentPartialDTO(t)).ToList();
     }
 
-    // Refresh poster URLs when they're either invalid or expiring soon.
-    // Updates and saves the shared Poster row only.
-    public async Task<bool> RefreshPostersIfNeededAsync(ContentDetail detail) {
-        // todo this needs to be run on every piece of content pulled from the db because list pages need updated posters too
-        var currentPoster = detail.Partial?.Poster ?? await context.Poster.FirstOrDefaultAsync(p => p.TMDB_ID == detail.TMDB_ID);
-        if (currentPoster == null) {
-            return false;
-        }
-
-        bool refreshVerticalPoster = ShouldRefreshPoster(currentPoster.VerticalPoster);
-        bool refreshLargeVerticalPoster = ShouldRefreshPoster(currentPoster.LargeVerticalPoster);
-        bool refreshHorizontalPoster = ShouldRefreshPoster(currentPoster.HorizontalPoster);
-
-        if (!refreshVerticalPoster && !refreshLargeVerticalPoster && !refreshHorizontalPoster) {
-            return false;
-        }
-
-        Posters posters = await GetPosters(detail.TMDB_ID);
-
-        await posterService.UpsertPoster(
-            detail.TMDB_ID,
-            refreshVerticalPoster && !string.IsNullOrWhiteSpace(posters.VerticalPoster) ? posters.VerticalPoster : null,
-            refreshLargeVerticalPoster && !string.IsNullOrWhiteSpace(posters.LargeVerticalPoster) ? posters.LargeVerticalPoster : null,
-            refreshHorizontalPoster && !string.IsNullOrWhiteSpace(posters.HorizontalPoster) ? posters.HorizontalPoster : null
-        );
-
-        await context.SaveChangesAsync();
-        return true;
-    }
-
     private async Task<Posters> GetPosters(string tmdbID) {
         string url = TMDB_Poster_Url + tmdbID + TMDB_Poster_Ending;
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
@@ -216,29 +184,59 @@ public class APIService {
         return new Posters { VerticalPoster = verticalPoster, LargeVerticalPoster = largeVerticalPoster, HorizontalPoster = horizontalPoster };
     }
 
-    private bool IsBadPoster(string url) {
-        if (string.IsNullOrWhiteSpace(url)) return true;
-        var lowered = url.ToLowerInvariant();
-        if (lowered.Contains("svg") || lowered.StartsWith("https://www.")) return true;
-        return false;
+    // Refresh and save poster URLs when they're either invalid or expiring soon.
+    public async Task<bool> RefreshPostersIfNeededAsync(string tmdbId) {
+        int refreshed = await RefreshPostersIfNeededAsync(new[] { tmdbId });
+        return refreshed > 0;
     }
 
-    private bool ShouldRefreshPoster(string? url) {
-        return IsBadPoster(url ?? string.Empty) || IsExpiringSoon(url);
-    }
+    // Refreshes and saves poster rows for supplied TMDB IDs when any URL is invalid or expiring.
+    // Returns the number of rows updated/created.
+    public async Task<int> RefreshPostersIfNeededAsync(IEnumerable<string> tmdbIds) {
+        HashSet<string> ids = tmdbIds
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .ToHashSet();
 
-    private bool IsExpiringSoon(string? url) {
-        if (string.IsNullOrWhiteSpace(url)) return true;
-
-        Match match = ExpiresRegex.Match(url);
-        if (!match.Success) return false; // TMDB Poster URLs don't expire
-        
-        if (!long.TryParse(match.Groups[1].Value, out long epochSeconds)) {
-            return false;
+        if (ids.Count == 0) {
+            return 0;
         }
 
-        DateTimeOffset expiresAt = DateTimeOffset.FromUnixTimeSeconds(epochSeconds);
-        return expiresAt <= DateTimeOffset.UtcNow.AddDays(1);
+        List<Poster> existingPosters = await context.Poster
+            .Where(p => ids.Contains(p.TMDB_ID))
+            .ToListAsync();
+
+        HashSet<string> existingIds = existingPosters.Select(p => p.TMDB_ID).ToHashSet();
+        HashSet<string> idsToRefresh = existingPosters
+            .Where(p =>
+                posterService.ShouldRefreshPoster(p.VerticalPoster) ||
+                posterService.ShouldRefreshPoster(p.LargeVerticalPoster) ||
+                posterService.ShouldRefreshPoster(p.HorizontalPoster))
+            .Select(p => p.TMDB_ID)
+            .ToHashSet();
+
+        // IDs to refresh, yet they aren't saved to the DB yet
+        foreach (string missingId in ids.Except(existingIds)) {
+            idsToRefresh.Add(missingId);
+        }
+
+        if (idsToRefresh.Count == 0) {
+            return 0;
+        }
+
+        int refreshedCount = 0;
+        foreach (string id in idsToRefresh) {
+            Posters fetched = await GetPosters(id);
+            await posterService.UpsertPoster(
+                id,
+                fetched.VerticalPoster,
+                fetched.LargeVerticalPoster,
+                fetched.HorizontalPoster
+            );
+            refreshedCount++;
+        }
+
+        await context.SaveChangesAsync();
+        return refreshedCount;
     }
 
     private ContentPartialDTO MapTMDBContentToContentPartialDTO(TMDBContent tmdb) {
