@@ -11,15 +11,15 @@ public class HelperService {
     private readonly StreamTrackDbContext context;
     private readonly IMapper mapper;
     private readonly PosterService posterService;
-    private readonly APIService apiService;
+    private readonly BackgroundTaskQueue taskQueue;
 
     private static readonly Random rng = new Random();
 
-    public HelperService(StreamTrackDbContext _context, IMapper _mapper, PosterService _posterService, APIService _apiService) {
+    public HelperService(StreamTrackDbContext _context, IMapper _mapper, PosterService _posterService, BackgroundTaskQueue _taskQueue) {
         context = _context;
         mapper = _mapper;
         posterService = _posterService;
-        apiService = _apiService;
+        taskQueue = _taskQueue;
     }
 
     public async Task<List<ContentPartialDTO>> GetRecommendations(ContentDetail detail, int maxRecommended) {
@@ -44,7 +44,16 @@ public class HelperService {
             .Take(maxRecommended * 2)
             .ToListAsync();
 
-        await apiService.RefreshPostersIfNeededAsync(matches.Select(m => m.TMDB_ID));
+        List<string> ids = matches
+            .Select(r => r.TMDB_ID)
+            .ToList();
+
+        if (ids.Count > 0) {
+            taskQueue.QueueBackgroundWorkItem(async (serviceProvider, token) => {
+                var APIService = serviceProvider.GetRequiredService<APIService>();
+                await APIService.RefreshPostersIfNeededAsync(ids);
+            });
+        }
 
         return matches
             .OrderBy(_ => rng.Next())

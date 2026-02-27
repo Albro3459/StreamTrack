@@ -20,6 +20,7 @@ public class ContentController : ControllerBase {
     private readonly PopularSortingService sortingService;
     private readonly APIService APIService;
     private readonly PosterService posterService;
+    private readonly BackgroundTaskQueue taskQueue;
     private readonly IMapper mapper;
 
     private const int maxContents = 10; // max amount of contents to take per each section or carousel
@@ -71,12 +72,13 @@ public class ContentController : ControllerBase {
     };
 
 
-    public ContentController(StreamTrackDbContext _context, HelperService _service, PopularSortingService _sortingService, APIService _APIService, PosterService _posterService, IMapper _mapper) {
+    public ContentController(StreamTrackDbContext _context, HelperService _service, PopularSortingService _sortingService, APIService _APIService, PosterService _posterService, BackgroundTaskQueue _taskQueue, IMapper _mapper) {
         context = _context;
         service = _service;
         sortingService = _sortingService;
         APIService = _APIService;
         posterService = _posterService;
+        taskQueue = _taskQueue;
         mapper = _mapper;
     }
 
@@ -109,6 +111,8 @@ public class ContentController : ControllerBase {
         }
     }
 
+
+    // Use FetchContentInfo() instead
     // // GET: API/Content/GetDetails/{tmdbID}
     // [HttpGet("GetDetails/{tmdbID}")]
     // public async Task<ActionResult<ContentDTO>> GetContentDetailsByID(string tmdbID) {
@@ -159,10 +163,11 @@ public class ContentController : ControllerBase {
                                             .FirstOrDefaultAsync(c => c.TMDB_ID == requestDTO.TMDB_ID);
 
         try {
-            bool shouldRefreshPosters = true;
+            // Only for if the content detail should have its posters refreshed, not for the recommendations
+            bool shouldRefreshPoster = true;
 
             if (detail == null) {
-                shouldRefreshPosters = false;
+                shouldRefreshPoster = false;
                 detail = await APIService.FetchContentDetailsByTMDBIDAsync(requestDTO);
                 if (detail == null) {
                     return NotFound();
@@ -232,7 +237,8 @@ public class ContentController : ControllerBase {
 
                 await context.SaveChangesAsync();
             }
-            if (shouldRefreshPosters) {
+
+            if (shouldRefreshPoster) {
                 await APIService.RefreshPostersIfNeededAsync(detail.TMDB_ID);
             }
         }
@@ -248,26 +254,35 @@ public class ContentController : ControllerBase {
         return new ContentInfoDTO { Content = detailDTO, Recommendations = recommendations };
     }
 
-    // GET: API/Content/GetAll
-    [HttpGet("GetAll")]
-    public async Task<ActionResult<List<ContentPartialDTO>>> GetAllContent() {
+    // No longer needed. Simply for testing
+    // // GET: API/Content/GetAll
+    // [HttpGet("GetAll")]
+    // public async Task<ActionResult<List<ContentPartialDTO>>> GetAllContent() {
 
-        string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    //     string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (string.IsNullOrEmpty(uid))
-            return Unauthorized();
+    //     if (string.IsNullOrEmpty(uid))
+    //         return Unauthorized();
 
-        var user = await context.User.FirstOrDefaultAsync(u => u.UserID == uid);
-        if (user == null) return Unauthorized();
+    //     var user = await context.User.FirstOrDefaultAsync(u => u.UserID == uid);
+    //     if (user == null) return Unauthorized();
 
-        List<ContentPartial> contents = await context.ContentPartial
-                                    .Include(c => c.Poster)
-                                    .ToListAsync();
+    //     List<ContentPartial> contents = await context.ContentPartial
+    //                                 .Include(c => c.Poster)
+    //                                 .ToListAsync();
 
-        await APIService.RefreshPostersIfNeededAsync(contents.Select(c => c.TMDB_ID));
+    //     List<string> refreshIds = contents
+    //         .Select(c => c.TMDB_ID)
+    //         .ToList();
+    //     if (refreshIds.Count > 0) {
+    //         taskQueue.QueueBackgroundWorkItem(async (serviceProvider, token) => {
+    //             var rapidAPIService = serviceProvider.GetRequiredService<APIService>();
+    //             await rapidAPIService.RefreshPostersIfNeededAsync(refreshIds);
+    //         });
+    //     }
 
-        return mapper.Map<List<ContentPartial>, List<ContentPartialDTO>>(contents);
-    }
+    //     return mapper.Map<List<ContentPartial>, List<ContentPartialDTO>>(contents);
+    // }
 
 
     // POPULAR CONTENT:
@@ -298,7 +313,15 @@ public class ContentController : ControllerBase {
             return NotFound();
         }
 
-        await APIService.RefreshPostersIfNeededAsync(contents.Select(c => c.TMDB_ID));
+        List<string> refreshIds = contents
+            .Select(c => c.TMDB_ID)
+            .ToList();
+        if (refreshIds.Count > 0) {
+            taskQueue.QueueBackgroundWorkItem(async (serviceProvider, token) => {
+                var rapidAPIService = serviceProvider.GetRequiredService<APIService>();
+                await rapidAPIService.RefreshPostersIfNeededAsync(refreshIds);
+            });
+        }
 
         // Pick 10 random contents for the carousel
         List<ContentSimpleDTO> carousel = contents.OrderBy(_ => rng.Next())

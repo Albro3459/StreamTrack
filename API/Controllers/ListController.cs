@@ -17,23 +17,19 @@ public class ListController : ControllerBase {
 
     private readonly StreamTrackDbContext context;
     private readonly HelperService service;
-    private readonly APIService APIService;
     private readonly PosterService posterService;
     private readonly BackgroundTaskQueue taskQueue;
-    private readonly IServiceProvider serviceProvider;
     private readonly IMapper mapper;
     private const int MAX_USER_LIST_COUNT = 10;
     private const int MAX_USER_LIST_ITEM_COUNT = 1000;
     private const string USER_DEFAULT_LIST = "Favorites";
 
-    public ListController(StreamTrackDbContext _context, HelperService _service, APIService _APIService, PosterService _posterService, BackgroundTaskQueue _taskQueue, IServiceProvider _serviceProvider, IMapper _mapper) {
+    public ListController(StreamTrackDbContext _context, HelperService _service, PosterService _posterService, BackgroundTaskQueue _taskQueue, IMapper _mapper) {
         context = _context;
         service = _service;
-        APIService = _APIService;
         posterService = _posterService;
         taskQueue = _taskQueue;
         mapper = _mapper;
-        serviceProvider = _serviceProvider;
     }
 
     // Only used for testing with Swagger
@@ -189,8 +185,8 @@ public class ListController : ControllerBase {
 
         // send off background Task to fetch and save full content details
         taskQueue.QueueBackgroundWorkItem(async (serviceProvider, token) => {
-            var rapidAPIService = serviceProvider.GetRequiredService<APIService>();
-            await rapidAPIService.FetchAndSaveMissingContent(contentDTO);
+            var APIService = serviceProvider.GetRequiredService<APIService>();
+            await APIService.FetchAndSaveMissingContent(contentDTO);
         });
 
 
