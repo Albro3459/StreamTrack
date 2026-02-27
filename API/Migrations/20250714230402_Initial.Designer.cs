@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace StreamTrack.Migrations
 {
     [DbContext(typeof(StreamTrackDbContext))]
-    [Migration("20250718062723_Initial")]
+    [Migration("20250714230402_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -171,41 +171,35 @@ namespace StreamTrack.Migrations
                         {
                             GenreID = "3",
                             IsDeleted = false,
-                            Name = "Documentary"
+                            Name = "Drama"
                         },
                         new
                         {
                             GenreID = "4",
                             IsDeleted = false,
-                            Name = "Drama"
+                            Name = "Horror"
                         },
                         new
                         {
                             GenreID = "5",
                             IsDeleted = false,
-                            Name = "Horror"
+                            Name = "Romance"
                         },
                         new
                         {
                             GenreID = "6",
                             IsDeleted = false,
-                            Name = "Romance"
+                            Name = "Science Fiction"
                         },
                         new
                         {
                             GenreID = "7",
                             IsDeleted = false,
-                            Name = "Science Fiction"
-                        },
-                        new
-                        {
-                            GenreID = "8",
-                            IsDeleted = false,
                             Name = "Thriller"
                         },
                         new
                         {
-                            GenreID = "9",
+                            GenreID = "8",
                             IsDeleted = false,
                             Name = "Western"
                         });
