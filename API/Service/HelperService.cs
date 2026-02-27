@@ -22,6 +22,26 @@ public class HelperService {
         taskQueue = _taskQueue;
     }
 
+    public void QueuePosterRefresh(IEnumerable<string?> tmdbIds) {
+        QueuePosterRefreshForTmdbIds(tmdbIds);
+    }
+
+    private void QueuePosterRefreshForTmdbIds(IEnumerable<string?> tmdbIds) {
+        List<string> refreshIds = tmdbIds
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Select(id => id!.Trim())
+            .ToList();
+
+        if (refreshIds.Count == 0) {
+            return;
+        }
+
+        taskQueue.QueueBackgroundWorkItem(async (serviceProvider, token) => {
+            var APIService = serviceProvider.GetRequiredService<APIService>();
+            await APIService.RefreshPostersIfNeededAsync(refreshIds);
+        });
+    }
+
     public async Task<List<ContentPartialDTO>> GetRecommendations(ContentDetail detail, int maxRecommended) {
         var genreNames = detail.Genres.Select(g => g.Name.ToLower()).ToList();
         var streamingServiceNames = detail.StreamingOptions.Select(s => s.StreamingService.Name.ToLower()).ToList();
@@ -44,16 +64,7 @@ public class HelperService {
             .Take(maxRecommended * 2)
             .ToListAsync();
 
-        List<string> ids = matches
-            .Select(r => r.TMDB_ID)
-            .ToList();
-
-        if (ids.Count > 0) {
-            taskQueue.QueueBackgroundWorkItem(async (serviceProvider, token) => {
-                var APIService = serviceProvider.GetRequiredService<APIService>();
-                await APIService.RefreshPostersIfNeededAsync(ids);
-            });
-        }
+        QueuePosterRefreshForTmdbIds(matches.Select(r => r.TMDB_ID));
 
         return matches
             .OrderBy(_ => rng.Next())
@@ -63,7 +74,7 @@ public class HelperService {
     }
 
     public async Task<User?> GetFullUserByID(string userID) {
-        return await context.User
+        User? user = await context.User
             .Include(u => u.ListsOwned)
                 .ThenInclude(l => l.ContentPartials)
                     .ThenInclude(p => p.Poster)
@@ -94,11 +105,20 @@ public class HelperService {
             .Include(u => u.Genres)
             .Include(u => u.StreamingServices)
             .FirstOrDefaultAsync(u => u.UserID == userID);
+
+        if (user != null) {
+            QueuePosterRefreshForTmdbIds(
+                user.ListsOwned.SelectMany(l => l.ContentPartials).Select(p => p.TMDB_ID)
+                .Concat(user.ListShares.SelectMany(ls => ls.List.ContentPartials).Select(p => p.TMDB_ID))
+            );
+        }
+
+        return user;
     }
 
 
     public async Task<List<List>> GetFullListsOwnedByUserID(string userID) {
-        return await context.List
+        List<List> lists = await context.List
                     .Include(l => l.Owner)
                     .Include(l => l.ContentPartials)
                         .ThenInclude(p => p.Poster)
@@ -112,6 +132,10 @@ public class HelperService {
                     .Include(l => l.ListShares)
                     .Where(l => l.OwnerUserID.Equals(userID))
                     .ToListAsync();
+
+        QueuePosterRefreshForTmdbIds(lists.SelectMany(l => l.ContentPartials).Select(p => p.TMDB_ID));
+
+        return lists;
     }
 
     // Only used by GetUserLists which is only used for Swagger checking
@@ -172,6 +196,8 @@ public class HelperService {
                             .Distinct()
                             .ToListAsync();
 
+        QueuePosterRefreshForTmdbIds(lists.SelectMany(l => l.ContentPartials).Select(p => p.TMDB_ID));
+
         return lists;
 
     }
@@ -194,6 +220,8 @@ public class HelperService {
                             .Select(ls => ls.List)
                             .Distinct()
                             .ToListAsync();
+
+        QueuePosterRefreshForTmdbIds(lists.SelectMany(l => l.ContentPartials).Select(p => p.TMDB_ID));
 
         return lists;
     }
