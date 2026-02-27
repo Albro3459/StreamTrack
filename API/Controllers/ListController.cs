@@ -18,6 +18,7 @@ public class ListController : ControllerBase {
     private readonly StreamTrackDbContext context;
     private readonly HelperService service;
     private readonly APIService APIService;
+    private readonly PosterService posterService;
     private readonly BackgroundTaskQueue taskQueue;
     private readonly IServiceProvider serviceProvider;
     private readonly IMapper mapper;
@@ -25,10 +26,11 @@ public class ListController : ControllerBase {
     private const int MAX_USER_LIST_ITEM_COUNT = 1000;
     private const string USER_DEFAULT_LIST = "Favorites";
 
-    public ListController(StreamTrackDbContext _context, HelperService _service, APIService _APIService, BackgroundTaskQueue _taskQueue, IServiceProvider _serviceProvider, IMapper _mapper) {
+    public ListController(StreamTrackDbContext _context, HelperService _service, APIService _APIService, PosterService _posterService, BackgroundTaskQueue _taskQueue, IServiceProvider _serviceProvider, IMapper _mapper) {
         context = _context;
         service = _service;
         APIService = _APIService;
+        posterService = _posterService;
         taskQueue = _taskQueue;
         mapper = _mapper;
         serviceProvider = _serviceProvider;
@@ -158,6 +160,7 @@ public class ListController : ControllerBase {
 
         ContentPartial? partial = await context.ContentPartial
                                         .Include(c => c.Detail)
+                                        .Include(c => c.Poster)
                                         .FirstOrDefaultAsync(c => c.TMDB_ID == contentDTO.TMDB_ID);
 
         if (partial == null) {
@@ -166,13 +169,17 @@ public class ListController : ControllerBase {
                 Title = contentDTO.Title,
                 Overview = contentDTO.Overview,
                 Rating = contentDTO.Rating,
-                ReleaseYear = contentDTO.ReleaseYear,
-                VerticalPoster = contentDTO.VerticalPoster ?? "",
-                LargeVerticalPoster = contentDTO.LargeVerticalPoster ?? "",
-                HorizontalPoster = contentDTO.HorizontalPoster ?? ""
+                ReleaseYear = contentDTO.ReleaseYear
             };
             context.ContentPartial.Add(partial);
         }
+
+        await posterService.UpsertPoster(
+            contentDTO.TMDB_ID,
+            contentDTO.VerticalPoster,
+            contentDTO.LargeVerticalPoster,
+            contentDTO.HorizontalPoster
+        );
 
         if (!list.ContentPartials.Any(c => c.TMDB_ID == contentDTO.TMDB_ID)) {
             list.ContentPartials.Add(partial);

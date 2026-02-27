@@ -86,6 +86,7 @@ builder.Services.AddAutoMapper(typeof(Program)); // All profiles in this project
 
 // Services
 builder.Services.AddScoped<HelperService>();
+builder.Services.AddScoped<PosterService>();
 builder.Services.AddScoped<PopularSortingService>();
 builder.Services.AddHttpClient<APIService>();
 builder.Services.AddSingleton<BackgroundTaskQueue>();

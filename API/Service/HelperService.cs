@@ -10,12 +10,16 @@ public class HelperService {
 
     private readonly StreamTrackDbContext context;
     private readonly IMapper mapper;
+    private readonly PosterService posterService;
+    private readonly APIService apiService;
 
     private static readonly Random rng = new Random();
 
-    public HelperService(StreamTrackDbContext _context, IMapper _mapper) {
+    public HelperService(StreamTrackDbContext _context, IMapper _mapper, PosterService _posterService, APIService _apiService) {
         context = _context;
         mapper = _mapper;
+        posterService = _posterService;
+        apiService = _apiService;
     }
 
     public async Task<List<ContentPartialDTO>> GetRecommendations(ContentDetail detail, int maxRecommended) {
@@ -23,6 +27,8 @@ public class HelperService {
         var streamingServiceNames = detail.StreamingOptions.Select(s => s.StreamingService.Name.ToLower()).ToList();
 
         List<ContentDetail> matches = await context.ContentDetail
+            .Include(c => c.Partial)
+                .ThenInclude(p => p.Poster)
             .Include(c => c.Genres)
             .Include(c => c.StreamingOptions)
                 .ThenInclude(s => s.StreamingService)
@@ -38,6 +44,8 @@ public class HelperService {
             .Take(maxRecommended * 2)
             .ToListAsync();
 
+        await apiService.RefreshPostersIfNeededAsync(matches.Select(m => m.TMDB_ID));
+
         return matches
             .OrderBy(_ => rng.Next())
             .Take(maxRecommended)
@@ -49,6 +57,9 @@ public class HelperService {
         return await context.User
             .Include(u => u.ListsOwned)
                 .ThenInclude(l => l.ContentPartials)
+                    .ThenInclude(p => p.Poster)
+            .Include(u => u.ListsOwned)
+                .ThenInclude(l => l.ContentPartials)
                     .ThenInclude(p => p.Detail)
                         .ThenInclude(d => d.Genres)
             .Include(u => u.ListsOwned)
@@ -56,6 +67,10 @@ public class HelperService {
                     .ThenInclude(p => p.Detail)
                         .ThenInclude(d => d.StreamingOptions)
                             .ThenInclude(s => s.StreamingService)
+            .Include(u => u.ListShares)
+                .ThenInclude(ls => ls.List)
+                    .ThenInclude(l => l.ContentPartials)
+                        .ThenInclude(p => p.Poster)
             .Include(u => u.ListShares)
                 .ThenInclude(ls => ls.List)
                     .ThenInclude(l => l.ContentPartials)
@@ -76,6 +91,8 @@ public class HelperService {
     public async Task<List<List>> GetFullListsOwnedByUserID(string userID) {
         return await context.List
                     .Include(l => l.Owner)
+                    .Include(l => l.ContentPartials)
+                        .ThenInclude(p => p.Poster)
                     .Include(l => l.ContentPartials)
                         .ThenInclude(p => p.Detail)
                             .ThenInclude(d => d.Genres)
@@ -140,6 +157,7 @@ public class HelperService {
         List<List> lists = await context.ListShares
                             .Include(ls => ls.List)
                                 .ThenInclude(l => l.ContentPartials)
+                                    .ThenInclude(p => p.Poster)
                             .Where(ls => ls.UserID == userID)
                             .Select(ls => ls.List)
                             .Distinct()
@@ -162,6 +180,7 @@ public class HelperService {
         List<List> lists = await context.ListShares
                             .Include(ls => ls.List)
                                 .ThenInclude(l => l.ContentPartials)
+                                    .ThenInclude(p => p.Poster)
                             .Where(ls => ls.List.OwnerUserID == userID)
                             .Select(ls => ls.List)
                             .Distinct()
@@ -195,10 +214,7 @@ public class HelperService {
             Rating = dto.Rating,
             Runtime = dto.Runtime,
             SeasonCount = dto.SeasonCount,
-            EpisodeCount = dto.EpisodeCount,
-            VerticalPoster = dto.VerticalPoster,
-            LargeVerticalPoster = dto.LargeVerticalPoster,
-            HorizontalPoster = dto.HorizontalPoster
+            EpisodeCount = dto.EpisodeCount
         };
 
         // Can't do this with Postgres because of concurrency issues
@@ -233,6 +249,8 @@ public class HelperService {
             }
         }
         content.StreamingOptions = streamingOptions;
+
+        await posterService.UpsertPoster(dto.TMDB_ID, dto.VerticalPoster, dto.LargeVerticalPoster, dto.HorizontalPoster);
 
         return content;
     }
