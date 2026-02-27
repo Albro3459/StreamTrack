@@ -15,6 +15,7 @@ public class StreamTrackDbContext : DbContext {
     public DbSet<ListShares> ListShares { get; set; }
     public DbSet<ContentPartial> ContentPartial { get; set; }
     public DbSet<ContentDetail> ContentDetail { get; set; }
+    public DbSet<Poster> Poster { get; set; }
     public DbSet<Genre> Genre { get; set; }
     public DbSet<StreamingOption> StreamingOption { get; set; }
     public DbSet<StreamingService> StreamingService { get; set; }
@@ -53,6 +54,12 @@ public class StreamTrackDbContext : DbContext {
             .WithOne(d => d.Partial)
             .HasForeignKey<ContentDetail>(d => d.TMDB_ID)
             .OnDelete(DeleteBehavior.Cascade); // Deleting Partial deletes Detail
+
+        modelBuilder.Entity<ContentPartial>()
+            .HasOne(p => p.Poster)
+            .WithOne(po => po.Partial)
+            .HasForeignKey<Poster>(po => po.TMDB_ID)
+            .OnDelete(DeleteBehavior.Cascade); // Deleting Partial deletes Poster
 
         modelBuilder.Entity<ContentDetail>()
             .HasMany(c => c.Genres)
@@ -104,6 +111,7 @@ public class StreamTrackDbContext : DbContext {
         modelBuilder.Entity<List>().HasQueryFilter(l => !l.IsDeleted);
         modelBuilder.Entity<ContentPartial>().HasQueryFilter(c => !c.IsDeleted);
         modelBuilder.Entity<ContentDetail>().HasQueryFilter(c => !c.IsDeleted);
+        modelBuilder.Entity<Poster>().HasQueryFilter(p => !p.Partial.IsDeleted);
         modelBuilder.Entity<Genre>().HasQueryFilter(g => !g.IsDeleted);
         modelBuilder.Entity<StreamingService>().HasQueryFilter(s => !s.IsDeleted);
 
@@ -122,7 +130,8 @@ public class StreamTrackDbContext : DbContext {
             new Genre { GenreID = "5", Name = "Romance", IsDeleted = false },
             new Genre { GenreID = "6", Name = "Science Fiction", IsDeleted = false },
             new Genre { GenreID = "7", Name = "Thriller", IsDeleted = false },
-            new Genre { GenreID = "8", Name = "Western", IsDeleted = false }
+            new Genre { GenreID = "8", Name = "Western", IsDeleted = false },
+            new Genre { GenreID = "9", Name = "Documentary", IsDeleted = false }
         );
 
         modelBuilder.Entity<StreamingService>().HasData(
