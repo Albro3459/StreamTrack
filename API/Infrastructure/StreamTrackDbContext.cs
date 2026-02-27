@@ -111,6 +111,7 @@ public class StreamTrackDbContext : DbContext {
         modelBuilder.Entity<List>().HasQueryFilter(l => !l.IsDeleted);
         modelBuilder.Entity<ContentPartial>().HasQueryFilter(c => !c.IsDeleted);
         modelBuilder.Entity<ContentDetail>().HasQueryFilter(c => !c.IsDeleted);
+        modelBuilder.Entity<Poster>().HasQueryFilter(p => !p.Partial.IsDeleted);
         modelBuilder.Entity<Genre>().HasQueryFilter(g => !g.IsDeleted);
         modelBuilder.Entity<StreamingService>().HasQueryFilter(s => !s.IsDeleted);
 
