@@ -65,7 +65,14 @@ public class UserController : ControllerBase {
             }
         }
 
-        return await service.MapUserToMinimalDTO(user);
+        UserMinimalDataDTO minimalDTO = service.MapUserToMinimalDTO(user);
+
+        service.QueuePosterRefresh(
+            user.ListsOwned.SelectMany(l => l.ContentPartials).Select(p => p.TMDB_ID)
+            .Concat(user.ListShares.SelectMany(ls => ls.List.ContentPartials).Select(p => p.TMDB_ID))
+        );
+
+        return minimalDTO;
     }
 
     // GET: API/User/GetContents
@@ -96,6 +103,7 @@ public class UserController : ControllerBase {
         }
 
         List<ContentPartialDTO> contents = service.GetUsersContentMinimalDTOs(user);
+        service.QueuePosterRefresh(contents.Select(c => c.TMDB_ID));
 
         return contents;
     }
@@ -191,6 +199,13 @@ public class UserController : ControllerBase {
 
         await context.SaveChangesAsync();
 
-        return await service.MapUserToMinimalDTO(user);
+        UserMinimalDataDTO minimalDTO = service.MapUserToMinimalDTO(user);
+
+        service.QueuePosterRefresh(
+            user.ListsOwned.SelectMany(l => l.ContentPartials).Select(p => p.TMDB_ID)
+            .Concat(user.ListShares.SelectMany(ls => ls.List.ContentPartials).Select(p => p.TMDB_ID))
+        );
+
+        return minimalDTO;
     }
 }

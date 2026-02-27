@@ -49,7 +49,12 @@ public class ListController : ControllerBase {
             return Unauthorized();
         }
 
-        UserDataDTO userDTO = await service.MapUserToFullUserDTO(user);
+        UserDataDTO userDTO = service.MapUserToFullUserDTO(user);
+
+        service.QueuePosterRefresh(
+            user.ListsOwned.SelectMany(l => l.ContentPartials).Select(p => p.TMDB_ID)
+            .Concat(user.ListShares.SelectMany(ls => ls.List.ContentPartials).Select(p => p.TMDB_ID))
+        );
 
         ListsAllDTO allLists = new ListsAllDTO {
             ListsOwned = userDTO.ListsOwned,
