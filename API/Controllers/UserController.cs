@@ -7,7 +7,6 @@ using API.DTOs;
 using API.Infrastructure;
 using API.Models;
 using API.Service;
-using System.Net.NetworkInformation;
 
 namespace API.Controllers;
 
@@ -17,14 +16,12 @@ public class UserController : ControllerBase {
 
     private readonly StreamTrackDbContext context;
     private readonly HelperService service;
-    private readonly APIService APIService;
     private readonly IMapper mapper;
     private const string USER_DEFAULT_LIST = "Favorites";
 
-    public UserController(StreamTrackDbContext _context, HelperService _service, APIService _APIService, IMapper _mapper) {
+    public UserController(StreamTrackDbContext _context, HelperService _service, IMapper _mapper) {
         context = _context;
         service = _service;
-        APIService = _APIService;
         mapper = _mapper;
     }
 
@@ -52,18 +49,7 @@ public class UserController : ControllerBase {
         if (string.IsNullOrEmpty(uid))
             return Unauthorized();
 
-        // User? user = await service.GetFullUserByID(uid);
-        User? user = await context.User
-                .Include(u => u.ListsOwned)
-                    .ThenInclude(l => l.ContentPartials)
-                        .ThenInclude(p => p.Poster)
-                .Include(u => u.ListShares)
-                    .ThenInclude(ls => ls.List)
-                        .ThenInclude(l => l.ContentPartials)
-                            .ThenInclude(p => p.Poster)
-                .Include(u => u.Genres)
-                .Include(u => u.StreamingServices)
-                .FirstOrDefaultAsync(u => u.UserID.Equals(uid));
+        User? user = await service.GetFullUserByID(uid);
 
         if (user == null) {
             return Unauthorized();
@@ -78,11 +64,6 @@ public class UserController : ControllerBase {
                 await context.SaveChangesAsync();
             }
         }
-
-        await APIService.RefreshPostersIfNeededAsync(
-            user.ListsOwned.SelectMany(l => l.ContentPartials).Select(p => p.TMDB_ID)
-                .Concat(user.ListShares.SelectMany(ls => ls.List.ContentPartials).Select(p => p.TMDB_ID))
-        );
 
         return await service.MapUserToMinimalDTO(user);
     }
@@ -98,16 +79,7 @@ public class UserController : ControllerBase {
         if (string.IsNullOrEmpty(uid))
             return Unauthorized();
 
-        // User? user = await service.GetFullUserByID(uid); // I dont need the streaming options for contents
-        User? user = await context.User
-                .Include(u => u.ListsOwned)
-                    .ThenInclude(l => l.ContentPartials)
-                        .ThenInclude(p => p.Poster)
-                .Include(u => u.ListShares)
-                    .ThenInclude(ls => ls.List)
-                        .ThenInclude(l => l.ContentPartials)
-                            .ThenInclude(p => p.Poster)
-                .FirstOrDefaultAsync(u => u.UserID.Equals(uid));
+        User? user = await service.GetFullUserByID(uid);
 
         if (user == null) {
             return Unauthorized();
@@ -122,11 +94,6 @@ public class UserController : ControllerBase {
                 await context.SaveChangesAsync();
             }
         }
-
-        await APIService.RefreshPostersIfNeededAsync(
-            user.ListsOwned.SelectMany(l => l.ContentPartials).Select(p => p.TMDB_ID)
-                .Concat(user.ListShares.SelectMany(ls => ls.List.ContentPartials).Select(p => p.TMDB_ID))
-        );
 
         List<ContentPartialDTO> contents = service.GetUsersContentMinimalDTOs(user);
 

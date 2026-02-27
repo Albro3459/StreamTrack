@@ -20,7 +20,6 @@ public class ContentController : ControllerBase {
     private readonly PopularSortingService sortingService;
     private readonly APIService APIService;
     private readonly PosterService posterService;
-    private readonly BackgroundTaskQueue taskQueue;
     private readonly IMapper mapper;
 
     private const int maxContents = 10; // max amount of contents to take per each section or carousel
@@ -72,13 +71,12 @@ public class ContentController : ControllerBase {
     };
 
 
-    public ContentController(StreamTrackDbContext _context, HelperService _service, PopularSortingService _sortingService, APIService _APIService, PosterService _posterService, BackgroundTaskQueue _taskQueue, IMapper _mapper) {
+    public ContentController(StreamTrackDbContext _context, HelperService _service, PopularSortingService _sortingService, APIService _APIService, PosterService _posterService, IMapper _mapper) {
         context = _context;
         service = _service;
         sortingService = _sortingService;
         APIService = _APIService;
         posterService = _posterService;
-        taskQueue = _taskQueue;
         mapper = _mapper;
     }
 
@@ -313,15 +311,7 @@ public class ContentController : ControllerBase {
             return NotFound();
         }
 
-        List<string> refreshIds = contents
-            .Select(c => c.TMDB_ID)
-            .ToList();
-        if (refreshIds.Count > 0) {
-            taskQueue.QueueBackgroundWorkItem(async (serviceProvider, token) => {
-                var rapidAPIService = serviceProvider.GetRequiredService<APIService>();
-                await rapidAPIService.RefreshPostersIfNeededAsync(refreshIds);
-            });
-        }
+        service.QueuePosterRefresh(contents.Select(c => c.TMDB_ID));
 
         // Pick 10 random contents for the carousel
         List<ContentSimpleDTO> carousel = contents.OrderBy(_ => rng.Next())
