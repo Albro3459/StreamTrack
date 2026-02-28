@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
+using System.Collections.Concurrent;
 
 using API.DTOs;
 using API.Infrastructure;
@@ -32,6 +33,9 @@ public class APIService {
     private const string TMDB_Search_Ending = "&include_adult=false&language=en-US&page=1";
     private const string TMDB_Poster_Url = "https://api.themoviedb.org/3/";
     private const string TMDB_Poster_Ending = "?language=en-US";
+
+    // Safe across concurrent requests, lock on TMDB_IDs while they are being refreshed.
+    private static readonly ConcurrentDictionary<string, byte> InFlightPosterRefreshIds = new();
 
     public APIService(StreamTrackDbContext _context, HttpClient _httpClient, PosterService _posterService, IMapper _mapper) {
         context = _context;
@@ -185,14 +189,17 @@ public class APIService {
     }
 
     // Refresh and save poster URLs when they're either invalid or expiring soon.
-    public async Task<bool> RefreshPostersIfNeededAsync(string tmdbId) {
+    public async Task<bool> RefreshPostersIfNeededAsync(string? tmdbId) {
+        if (string.IsNullOrWhiteSpace(tmdbId)) return false;
+
         int refreshed = await RefreshPostersIfNeededAsync(new[] { tmdbId });
         return refreshed > 0;
     }
 
     // Refreshes and saves poster rows for supplied TMDB IDs when any URL is invalid or expiring.
-    // Returns the number of rows updated/created.
+    // Returns the number refreshed, plus IDs already in-flight on another request.
     public async Task<int> RefreshPostersIfNeededAsync(IEnumerable<string> tmdbIds) {
+        List<string> lockedIds = new();
         try {
             HashSet<string> ids = tmdbIds
                 .Where(id => !string.IsNullOrWhiteSpace(id))
@@ -202,8 +209,17 @@ public class APIService {
                 return 0;
             }
 
+            // Lock on TMDB_IDs
+            lockedIds = ids
+                .Where(id => InFlightPosterRefreshIds.TryAdd(id, 0))
+                .ToList();
+            int alreadyInFlightCount = ids.Count - lockedIds.Count;
+            if (lockedIds.Count == 0) {
+                return alreadyInFlightCount;
+            }
+
             List<Poster> existingPosters = await context.Poster
-                .Where(p => ids.Contains(p.TMDB_ID))
+                .Where(p => lockedIds.Contains(p.TMDB_ID))
                 .ToListAsync();
 
             HashSet<string> existingIds = existingPosters.Select(p => p.TMDB_ID).ToHashSet();
@@ -216,12 +232,12 @@ public class APIService {
                 .ToHashSet();
 
             // IDs to refresh, yet they aren't saved to the DB yet
-            foreach (string missingId in ids.Except(existingIds)) {
+            foreach (string missingId in lockedIds.Except(existingIds)) {
                 idsToRefresh.Add(missingId);
             }
 
             if (idsToRefresh.Count == 0) {
-                return 0;
+                return alreadyInFlightCount;
             }
 
             int refreshedCount = 0;
@@ -245,11 +261,17 @@ public class APIService {
                 await context.SaveChangesAsync();
             }
 
-            return refreshedCount;
+            return refreshedCount + alreadyInFlightCount;
         }
         catch (Exception ex) {
             ConsoleLogger.Error($"Poster refresh batch failed safely: {ex.Message}");
             return 0;
+        }
+        finally {
+            // Free locks on TMDB_IDs
+            foreach (string id in lockedIds) {
+                InFlightPosterRefreshIds.TryRemove(id, out _);
+            }
         }
     }
 

@@ -1,8 +1,10 @@
 using API.DTOs;
+using API.Helpers;
 using API.Infrastructure;
 using API.Models;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using System.Collections.Concurrent;
 
 namespace API.Service;
 
@@ -11,15 +13,48 @@ public class HelperService {
     private readonly StreamTrackDbContext context;
     private readonly IMapper mapper;
     private readonly PosterService posterService;
-    private readonly APIService apiService;
-
+    private readonly BackgroundTaskQueue taskQueue;
     private static readonly Random rng = new Random();
 
-    public HelperService(StreamTrackDbContext _context, IMapper _mapper, PosterService _posterService, APIService _apiService) {
+    // Keeps track of the TMDB_IDs that are queued for refresh to reduce duplicated work
+    private static readonly ConcurrentDictionary<string, byte> QueuedPosterRefreshIds = new();
+
+    public HelperService(StreamTrackDbContext _context, IMapper _mapper, PosterService _posterService, BackgroundTaskQueue _taskQueue) {
         context = _context;
         mapper = _mapper;
         posterService = _posterService;
-        apiService = _apiService;
+        taskQueue = _taskQueue;
+    }
+
+    public void QueuePosterRefresh(IEnumerable<string?> tmdbIds) {
+        List<string> refreshIds = tmdbIds
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Select(id => id!.Trim())
+            .Where(id => QueuedPosterRefreshIds.TryAdd(id, 0))
+            .ToList();
+
+        if (refreshIds.Count == 0) {
+            return;
+        }
+
+        bool queued = taskQueue.QueuePosterRefreshWorkItem(async (serviceProvider, token) => {
+            try {
+                var APIService = serviceProvider.GetRequiredService<APIService>();
+                await APIService.RefreshPostersIfNeededAsync(refreshIds);
+            }
+            finally {
+                foreach (string id in refreshIds) {
+                    QueuedPosterRefreshIds.TryRemove(id, out _);
+                }
+            }
+        });
+
+        if (!queued) {
+            ConsoleLogger.Error($"Failed to queue poster refresh for {refreshIds.Count} TMDB IDs.");
+            foreach (string id in refreshIds) {
+                QueuedPosterRefreshIds.TryRemove(id, out _);
+            }
+        }
     }
 
     public async Task<List<ContentPartialDTO>> GetRecommendations(ContentDetail detail, int maxRecommended) {
@@ -44,7 +79,7 @@ public class HelperService {
             .Take(maxRecommended * 2)
             .ToListAsync();
 
-        await apiService.RefreshPostersIfNeededAsync(matches.Select(m => m.TMDB_ID));
+        QueuePosterRefresh(matches.Select(r => r.TMDB_ID));
 
         return matches
             .OrderBy(_ => rng.Next())
@@ -54,7 +89,9 @@ public class HelperService {
     }
 
     public async Task<User?> GetFullUserByID(string userID) {
-        return await context.User
+        User? user = await context.User
+            .Include(u => u.ListsOwned)
+                .ThenInclude(l => l.ListShares)
             .Include(u => u.ListsOwned)
                 .ThenInclude(l => l.ContentPartials)
                     .ThenInclude(p => p.Poster)
@@ -85,11 +122,13 @@ public class HelperService {
             .Include(u => u.Genres)
             .Include(u => u.StreamingServices)
             .FirstOrDefaultAsync(u => u.UserID == userID);
+
+        return user;
     }
 
 
     public async Task<List<List>> GetFullListsOwnedByUserID(string userID) {
-        return await context.List
+        List<List> lists = await context.List
                     .Include(l => l.Owner)
                     .Include(l => l.ContentPartials)
                         .ThenInclude(p => p.Poster)
@@ -103,35 +142,39 @@ public class HelperService {
                     .Include(l => l.ListShares)
                     .Where(l => l.OwnerUserID.Equals(userID))
                     .ToListAsync();
+
+        QueuePosterRefresh(lists.SelectMany(l => l.ContentPartials).Select(p => p.TMDB_ID));
+
+        return lists;
     }
 
     // Only used by GetUserLists which is only used for Swagger checking
-    public async Task<UserDataDTO> MapUserToFullUserDTO(User user) {
+    public UserDataDTO MapUserToFullUserDTO(User user) {
         UserDataDTO userDataDTO = mapper.Map<User, UserDataDTO>(user);
 
         userDataDTO.ListsOwned.ForEach(l => l.IsOwner = true);
 
-        List<List> listsSharedWithMe = await GetListsSharedToUser(user.UserID);
+        List<List> listsSharedWithMe = GetListsSharedToUser(user);
         userDataDTO.ListsSharedWithMe = mapper.Map<List<List>, List<ListDTO>>(listsSharedWithMe);
         userDataDTO.ListsSharedWithMe.ForEach(l => l.IsOwner = false);
 
-        List<List> listSharedWithOthers = await GetListsSharedByAndOwnedByUser(user.UserID);
-        userDataDTO.ListsSharedWithOthers = mapper.Map<List<List>, List<ListDTO>>(listSharedWithOthers);
+        List<List> listsSharedWithOthers = GetOwnedListsSharedWithOthers(user);
+        userDataDTO.ListsSharedWithOthers = mapper.Map<List<List>, List<ListDTO>>(listsSharedWithOthers);
         userDataDTO.ListsSharedWithOthers.ForEach(l => l.IsOwner = true);
 
         return userDataDTO;
     }
 
-    public async Task<UserMinimalDataDTO> MapUserToMinimalDTO(User user) {
+    public UserMinimalDataDTO MapUserToMinimalDTO(User user) {
         UserMinimalDataDTO minimalDTO = mapper.Map<User, UserMinimalDataDTO>(user);
 
         minimalDTO.ListsOwned.ForEach(l => l.IsOwner = true);
 
-        var listsSharedWithMe = await GetListsSharedToUser(user.UserID);
+        var listsSharedWithMe = GetListsSharedToUser(user);
         minimalDTO.ListsSharedWithMe = mapper.Map<List<List>, List<ListMinimalDTO>>(listsSharedWithMe);
         minimalDTO.ListsSharedWithMe.ForEach(l => l.IsOwner = false);
 
-        var listsSharedWithOthers = await GetListsSharedByAndOwnedByUser(user.UserID);
+        var listsSharedWithOthers = GetOwnedListsSharedWithOthers(user);
         minimalDTO.ListsSharedWithOthers = mapper.Map<List<List>, List<ListMinimalDTO>>(listsSharedWithOthers);
         minimalDTO.ListsSharedWithOthers.ForEach(l => l.IsOwner = true);
 
@@ -147,9 +190,6 @@ public class HelperService {
         var listsSharedWithMe = GetListsSharedToUser(user);
         listsSharedWithMe.ForEach(l => mapper.Map<ICollection<ContentPartial>, List<ContentPartialDTO>>(l.ContentPartials).ForEach(c => set.Add(c)));
 
-        var listsSharedWithOthers = GetListsSharedByAndOwnedByUser(user);
-        listsSharedWithOthers.ForEach(l => mapper.Map<ICollection<ContentPartial>, List<ContentPartialDTO>>(l.ContentPartials).ForEach(c => set.Add(c)));
-
         return set.ToList();
     }
 
@@ -162,6 +202,8 @@ public class HelperService {
                             .Select(ls => ls.List)
                             .Distinct()
                             .ToListAsync();
+
+        QueuePosterRefresh(lists.SelectMany(l => l.ContentPartials).Select(p => p.TMDB_ID));
 
         return lists;
 
@@ -176,7 +218,7 @@ public class HelperService {
 
     }
 
-    public async Task<List<List>> GetListsSharedByAndOwnedByUser(string userID) {
+    public async Task<List<List>> GetOwnedListsSharedWithOthers(string userID) {
         List<List> lists = await context.ListShares
                             .Include(ls => ls.List)
                                 .ThenInclude(l => l.ContentPartials)
@@ -186,11 +228,13 @@ public class HelperService {
                             .Distinct()
                             .ToListAsync();
 
+        QueuePosterRefresh(lists.SelectMany(l => l.ContentPartials).Select(p => p.TMDB_ID));
+
         return lists;
     }
-    public List<List> GetListsSharedByAndOwnedByUser(User user) {
-        List<List> lists = user.ListShares
-                            .Select(ls => ls.List)
+    public List<List> GetOwnedListsSharedWithOthers(User user) {
+        List<List> lists = user.ListsOwned
+                            .Where(l => l.ListShares.Any())
                             .Distinct()
                             .ToList();
 

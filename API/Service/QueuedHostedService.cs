@@ -13,13 +13,27 @@ public class QueuedHostedService : BackgroundService {
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
         while (!stoppingToken.IsCancellationRequested) {
-            var workItem = await taskQueue.DequeueAsync(stoppingToken);
+            // Try to grab a Content Details fetch request, if none, try to grab a Poster Refresh request
+            if (
+                !taskQueue.TryDequeueContentDetails(out var workItem) &&
+                !taskQueue.TryDequeuePosterRefresh(out workItem)
+            ) {
+                try {
+                    // if there are no request, wait
+                    await taskQueue.WaitForWorkAsync(stoppingToken);
+                }
+                catch (OperationCanceledException) {
+                    break;
+                }
+                continue;
+            }
+
             try {
+                // Execute request
                 using var scope = serviceProvider.CreateScope();
-                await workItem(scope.ServiceProvider, stoppingToken);
+                await workItem!(scope.ServiceProvider, stoppingToken);
             }
             catch (Exception ex) {
-                // Log error
                 ConsoleLogger.Error("Error executing async background task: " + ex);
             }
         }
