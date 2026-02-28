@@ -7,24 +7,61 @@ Swagger URL: http://localhost:5000/swagger/index.html
 cd StreamTrack/API
 ```
 
-#### Use the Reset DB script
+* For Docker commands, you have to be in the Docker directory and you should only run these commands from the docker directory anyway.
+
+#### Make a DB backup!
+* Please make a backup before any database changes
 ```sh
+cd Docker
+mkdir -p backups
+docker compose exec -T db pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" > backups/streamtrack_$(date +%F_%H-%M-%S).sql
+```
+
+#### To build the server or apply updated or a new migration:
+* See [DockerScript](./Docker/DockerScript.sh)
+    * May need to uncomment certain commands to run migrations or API/Caddy updates
+* NOTE: Make a backup first: [Backup!](#make-a-db-backup)
+```sh
+cd Docker
+./DockerScript.sh
+```
+
+#### Use the Reset DB script ()
+* NOTE: Make a backup first: [Backup!](#make-a-db-backup)
+```sh
+cd Docker
 ./resetPostgreSQLDB.sh
 ```
 
-#### Add new migration
+#### Create new migration (does not apply it)
+* NOTE: Make a backup first: [Backup!](#make-a-db-backup)
 ```sh
+cd Docker
 dotnet ef migrations add MIGRATION_NAME -o Migrations
 ```
 
-#### If NOT updated database yet
+#### Apply new migration
+* NOTE: Make a backup first: [Backup!](#make-a-db-backup)
+* NOTE: Please make sure the migration does not delete data unintentionally or irreversibly. 
+    * You can add sql scripts to Up and Down for this. See the [NormalizePosters Migration](./Migrations/20260227144325_NormalizePosters.cs)
+* Uncomment the lines about building the migrate service and running the migrate service
 ```sh
+cd Docker
+./DockerScript.sh
+```
+
+#### If NOT updated database yet or want to undo a migration
+* NOTE: Make a backup first: [Backup!](#make-a-db-backup)
+```sh
+cd Docker
 dotnet ef migration remove
 ```
 
-#### How to print the migrations schema
+#### How to extract the migrations schema!
+* NOTE: Make a backup first: [Backup!](#make-a-db-backup)
 ```sh
-dotnet ef migrations script
+cd Docker
+dotnet ef migrations script > out.txt
 ```
 
 ## PostgreSQL
@@ -188,6 +225,7 @@ docker compose start db api caddy
 ```
 
 To fully cleanup and stop containers (requires full rebuild):
+* NOTE: NEVER run `docker compose down -v`, this will literally delete the database!!!
 ```sh
 docker compose down
 ```
@@ -210,6 +248,9 @@ docker compose logs -f api
 
 ##### Extras :)
 
+###### DB Connection:
+You can connect to the DB through SSH with Data Grip (and probably other DB tools) after setting up the Host in `~/.ssh/config`
+Or
 Query PostgreSQL from inside server:
 Postgres container has to be running. 
 Find its name (typically docker-db-1):
