@@ -224,12 +224,12 @@ docker exec -it docker-db-1 psql -U {POSTGRES_USER} -d {POSTGRES_DB}
 ```
 
 Tips:
-**\q** to exit, **\dt** to list tables, **\l** to list db,
+**\q** to exit, **\d** to list tables, **\l** to list db,
 **\d tablename** to describe a table
-Also, wrap name sin "...":
+Also, wrap names in "...":
 ```sql
 Select * from "Genre";
-
+```
 
 Creating a swap file (just in case)
 

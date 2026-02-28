@@ -7,16 +7,16 @@ You need your GoogleService-Info.plist from your iOS Client ID from Google Cloud
         * Convert it back to a file with (USE SINGLE QUOTES):
             * ```echo '...' | sed 's/\\n/\n/g' > APP/ios/GoogleService-Info.plist```
 * **SETUP**:
-    * If any of these steps are messed up you could have misterious crashes you won't be able to track down easily
-    * Do NOT commit the ios folder
-    * Place your GoogleService-Info.plist under StreamTrack/APP/
-    * For CLOUD EAS Expo Builds (npx eas build -p ios --profile production):
+    * If any of these steps are messed up you could have, mysterious crashes you won't be able to track down easily
+    * Do NOT commit the `ios` folder
+    * Place your `GoogleService-Info.plist` under `StreamTrack/APP/`
+    * For CLOUD EAS Expo Builds (`npx eas build -p io` --profile production`):
         * Go to the [Expo EAS website](https://expo.dev)
         * Go to your project
         * Go to environmental variables under project settings
-        * Add variable GOOGLE_SERVICES_PLIST with the **file** upload button as a Secret in both dev and production
-    * Expo will run the ```npx expo prebuild --platform ios``` when you run the cloud build and it will copy the GoogleService-Info.plist to the ios folder for you!
-        * This is why you can NOT commit the ios folder because it will skip that step
+        * Add variable `GOOGLE_SERVICES_PLIST` with the **file** upload button as a Secret in both dev and production
+    * Expo will run the ```npx expo prebuild --platform ios``` when you run the cloud build and it will copy the GoogleService-Info.plist to the `ios` folder for you!
+        * This is why you can NOT commit the `ios` folder because it will skip that step
 
 ### To run:
 ```sh
@@ -51,27 +51,27 @@ npx expo start -c
 
 Can't really do now, need to change a few things and comment out the Sign In with Apple/Google buttons.
 
-In StreamTrack/APP/.env.local, change DATA_API_URL from localhost to the computer's or servers IP Address.
+In `StreamTrack/APP/.env.local`, change `DATA_API_URL` from localhost to the computer's or server's IP Address.
 
-In StreamTrack/API/Properties/launchSettings.json, change localhost to 0.0.0.0 to allow anyone on the same network. Mainly just in the HTTP section.
+In `StreamTrack/API/Properties/launchSettings.json`, change localhost to 0.0.0.0 to allow anyone on the same network. Mainly just in the HTTP section.
 
 Scan the QR code on your phone
 
 
 ### EAS Build (Need an Apple Developer account and to register an Identifier for your app):
 
-Be fully commited to GitHub
+Be fully committed to GitHub
 ```sh
 npx eas build:configure
 ```
 
-Choose iOS
+Choose `iOS`
 
 Secrets needed to be added to the EAS ENV (.env.local) (see the .env.example for what is needed):
 ```sh
 eas env:create --name SECRET_NAME --value "..."
 ```
-You can only do one at a time. Use the spacebar to pick the options. I did Development & Production
+You can only do one at a time. Use the space bar to pick the options. I did Development & Production
 
 Make sure you commit your code to the DEFAULT branch in your Git repo. That is where Expo cloud will pull from:
 ```sh

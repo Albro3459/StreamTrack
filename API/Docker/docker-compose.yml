@@ -24,6 +24,7 @@ services:
             - AWS_REGION=us-west-1
 
     api:
+        restart: unless-stopped
         build:
             context: ../ # StreamTrack/API/
             dockerfile: Docker/Dockerfile

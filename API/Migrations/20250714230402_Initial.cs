@@ -286,13 +286,12 @@ namespace StreamTrack.Migrations
                 {
                     { "1", false, "Action" },
                     { "2", false, "Comedy" },
-                    { "3", false, "Documentary" },
-                    { "4", false, "Drama" },
-                    { "5", false, "Horror" },
-                    { "6", false, "Romance" },
-                    { "7", false, "Science Fiction" },
-                    { "8", false, "Thriller" },
-                    { "9", false, "Western" }
+                    { "3", false, "Drama" },
+                    { "4", false, "Horror" },
+                    { "5", false, "Romance" },
+                    { "6", false, "Science Fiction" },
+                    { "7", false, "Thriller" },
+                    { "8", false, "Western" }
                 });
 
             migrationBuilder.InsertData(

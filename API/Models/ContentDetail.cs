@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace API.Models;
 
@@ -8,7 +7,8 @@ public class ContentDetail : SoftDeletableEntity {
     [Required]
     public string TMDB_ID { get; set; } = string.Empty;
 
-    public ContentPartial? Partial { get; set; }
+    [Required]
+    public ContentPartial Partial { get; set; } = null!;
 
     [Required]
     public bool IsPopular { get; set; } = false; // For Landing Page content
@@ -49,15 +49,6 @@ public class ContentDetail : SoftDeletableEntity {
     public int? EpisodeCount { get; set; }
 
     public ICollection<StreamingOption> StreamingOptions { get; set; } = new List<StreamingOption>();
-
-    [Required]
-    public string VerticalPoster { get; set; } = string.Empty;
-
-    [Required]
-    public string LargeVerticalPoster { get; set; } = string.Empty;
-
-    [Required]
-    public string HorizontalPoster { get; set; } = string.Empty;
 
     [Required]
     public DateTime TTL_UTC { get; set; } = DateTime.UtcNow.AddDays(1);
