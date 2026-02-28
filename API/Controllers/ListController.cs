@@ -189,7 +189,7 @@ public class ListController : ControllerBase {
         await context.SaveChangesAsync();
 
         // send off background Task to fetch and save full content details
-        taskQueue.QueueBackgroundWorkItem(async (serviceProvider, token) => {
+        taskQueue.QueueContentDetailsWorkItem(async (serviceProvider, token) => {
             var APIService = serviceProvider.GetRequiredService<APIService>();
             await APIService.FetchAndSaveMissingContent(contentDTO);
         });

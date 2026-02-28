@@ -37,7 +37,7 @@ public class HelperService {
             return;
         }
 
-        bool queued = taskQueue.QueueBackgroundWorkItem(async (serviceProvider, token) => {
+        bool queued = taskQueue.QueuePosterRefreshWorkItem(async (serviceProvider, token) => {
             try {
                 var APIService = serviceProvider.GetRequiredService<APIService>();
                 await APIService.RefreshPostersIfNeededAsync(refreshIds);
