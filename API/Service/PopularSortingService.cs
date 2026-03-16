@@ -123,7 +123,7 @@ public class PopularSortingService {
     }
 
     public List<ContentSimpleDTO> filterStreamingServices(List<ContentDetail> contents, int maxContents, string streamingService, bool only = false) {
-        if (streamingService.IsNullOrEmpty()) return new();
+        if (string.IsNullOrEmpty(streamingService)) return new();
 
         string lowerStreamingService = streamingService.ToLower();
         if (only) {

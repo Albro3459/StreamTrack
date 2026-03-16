@@ -83,58 +83,50 @@ GRANT ALL PRIVILEGES ON DATABASE "StreamTrack" TO username;
 \q
 ```
 
-## AWS EC2 Server with Docker
-* Ubuntu Server 24.04 LTS (HVM), SSD Volume Type
-* 64-bit ARM!
-* EC2 t4g.micro (~6-7$ a month) or small (2x the cost)
-* Key pair
+## OCI VM Server with Docker
+* Ubuntu Server 24.04 LTS
+* Ampere A1 (VM.Standard.A1.Flex | 64-bit ARM | 1 OCPU | 6 GB RAM)
+* 16 GB (we need it)
+* SSH Key pair
     * stream_track_key.pem
     * Download and move it to ~/.ssh
     * chmod 400 stream_track_key.pem (read only)
-* Security Group:
-    * HTTP (Caddy needs for cert management) port 80 open 0.0.0.0/0
-    * HTTPS port 443 open 0.0.0.0/0
-    * SSH port 22 (either restrict to ur PUBLIC ipv4/32 or allow 0.0.0.0/0, but thats probably a bad idea)
-* 16 GB (we need it)
-* IAM Role/Instance Profile
-    * Need permissions for SecretsManager and EC2
+* OCI VCN / Security Rules:
+    * TCP `80` open to `0.0.0.0/0` for HTTP (Caddy needs for cert management)
+    * TCP `443` open to `0.0.0.0/0` for HTTPS
+    * TCP `22` restricted to your own public IP/32 whenever possible for SSH
+* OCI IAM / Dynamic Group / Policy:
+    * Allow the VM's instance principal to read the required Vault secrets
+* DNS:
+    * Point `streamtrack.gocloudlaunch.com` at the VM public IP before bringing up Caddy
 
-
-SSH into the EC2 instance (need to setup ur ~/.ssh/config for this short version)
+SSH into the OCI instance
 ```sh
 ssh StreamTrack
 ```
-or add this to ~/.ssh/config on LOCAL
-```
+or add this to `~/.ssh/config` on local
+```sh
 Host StreamTrack
-  HostName {EC2_IP_Address}
+  HostName {OCI_VM_PUBLIC_IP}
   User ubuntu
   IdentityFile ~/.ssh/stream_track_key.pem
   PubkeyAuthentication yes
 ```
 
-Update
+Update packages
 ```sh
 sudo apt-get update
 ```
 
-Get JQ (like sed but for json)
+Install OCI CLI
 ```sh
-sudo apt-get install -y jq unzip
-jq --version
+bash -c "$(curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh)"
+oci --version
 ```
 
-Get AWS CLI
+Verify instance principal access
 ```sh
-curl "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip" -o "/tmp/awscliv2.zip"
-unzip /tmp/awscliv2.zip -d /tmp
-sudo /tmp/aws/install
-aws --version
-```
-
-Check AWS permissions (instance should already have been given a role with the correct permissions for SecretsManager and EC2)
-```sh
-aws sts get-caller-identity
+oci iam region-subscription list --auth instance_principal --tenancy-id <your_tenancy_ocid>
 ```
 
 Docker
@@ -210,7 +202,22 @@ Ready to run!
 cd StreamTrack/API/Docker
 ```
 
-DockerScript.sh is the main script, which when called in the EC2 instance will run everything else.
+Set `OCI_REGION` and `SECRET_OCID` in `API/Docker/docker-compose.yml`.
+
+`SECRET_OCID` is the OCI identifier for the Vault secret object, not the secret payload itself. It should point to one OCI Vault secret containing:
+```json
+{
+  "PostgresUsername": "...",
+  "PostgresPassword": "...",
+  "LambdaUID": "...",
+  "RapidAPIKey_Main": "...",
+  "TMDBBearerToken": "..."
+}
+```
+
+`DockerScript.sh` is the main script. It pulls the StreamTrack JSON secret from OCI Vault with the VM instance principal, reads the Postgres credentials from that JSON, then starts Docker Compose.
+
+The Caddy container is now built from `Caddy.Dockerfile` so it includes the rate limiting module used by `Caddyfile`.
 
 ##### RUN FROM INSIDE THE Docker/ DIRECTORY!
 Make sure Database Update command is uncommented!

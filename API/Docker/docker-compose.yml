@@ -21,7 +21,8 @@ services:
         environment:
             - ASPNETCORE_ENVIRONMENT=Production
             - DOTNET_RUNNING_IN_CONTAINER=true
-            - AWS_REGION=us-west-1
+            - OCI_REGION=${OCI_REGION}
+            - SECRET_OCID=${SECRET_OCID}
 
     api:
         restart: unless-stopped
@@ -33,13 +34,16 @@ services:
         environment:
             - ASPNETCORE_ENVIRONMENT=Production
             - DOTNET_RUNNING_IN_CONTAINER=true
-            - AWS_REGION=us-west-1
             - ASPNETCORE_URLS=http://+:5000
+            - OCI_REGION=us-sanjose-1
+            - SECRET_OCID=TODO
         ports:
             - "5000:5000"
 
     caddy:
-        image: caddy:latest
+        build:
+            context: .
+            dockerfile: Caddy.Dockerfile
         restart: always
         ports:
             - "80:80"

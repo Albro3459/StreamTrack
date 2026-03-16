@@ -9,14 +9,14 @@ using API.Helpers;
 var builder = WebApplication.CreateBuilder(args);
 
 // DB Connection
-var usernameTask = AWSSecretHelper.GetSecretKey(AWS_Secrets.PostgresUsername);
-var passwordTask = AWSSecretHelper.GetSecretKey(AWS_Secrets.PostgresPassword);
+var usernameTask = SecretsHelper.GetSecretKey(Secrets.PostgresUsername);
+var passwordTask = SecretsHelper.GetSecretKey(Secrets.PostgresPassword);
 await Task.WhenAll(usernameTask, passwordTask);
 
 var baseConnectionString = builder.Configuration.GetConnectionString("Default") ?? "";
 var connectionString = baseConnectionString
     .Replace("Username=;", $"Username={usernameTask.Result};")
-    .Replace("Password=;", $"Password={passwordTask.Result}");
+    .Replace("Password=;", $"Password={passwordTask.Result};");
 
 builder.Services.AddDbContext<StreamTrackDbContext>(
     options => options.UseNpgsql(connectionString)
@@ -82,7 +82,7 @@ builder.Services.AddAuthorization(options => {
 });
 
 
-builder.Services.AddAutoMapper(typeof(Program)); // All profiles in this project
+builder.Services.AddAutoMapper(cfg => { }, typeof(Program).Assembly); // All profiles in this project
 
 // Services
 builder.Services.AddScoped<HelperService>();

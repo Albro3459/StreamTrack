@@ -8,4 +8,4 @@ export type RapidAPI_Headers = {
 export const RapidAPI_Base_Url: string = 'https://streaming-availability.p.rapidapi.com/shows/';
 export const x_rapidapi_host: string = 'streaming-availability.p.rapidapi.com';
 
-export const DataAPIURL: string = "https://streamtrack.cloudlaunch.live/";
+export const DataAPIURL: string = "https://streamtrack.gocloudlaunch.com/";

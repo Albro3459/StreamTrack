@@ -4,21 +4,26 @@
 
 # Run from the Docker directory!
 
-echo "Fetching DB credentials from AWS Secrets Manager..."
+set -euo pipefail
 
-# Replace with your actual secret name
-SECRET_NAME="StreamTrack"
-AWS_REGION="us-west-1"
+echo "Fetching DB credentials from OCI Vault..."
 
-# Fetch and parse the secret
-SECRET_JSON=$(aws secretsmanager get-secret-value \
-  --region $AWS_REGION \
-  --secret-id $SECRET_NAME \
-  --query SecretString \
-  --output text)
+export OCI_REGION="us-sanjose-1"
+export SECRET_OCID="TODO"
 
-export POSTGRES_USER=$(echo $SECRET_JSON | jq -r .PostgresUsername)
-export POSTGRES_PASSWORD=$(echo $SECRET_JSON | jq -r .PostgresPassword)
+get_streamtrack_secret_json() {
+  oci secrets secret-bundle get \
+    --auth instance_principal \
+    --region "$OCI_REGION" \
+    --secret-id "$SECRET_OCID" \
+    --query 'data."secret-bundle-content".content' \
+    --raw-output | base64 --decode
+}
+
+SECRET_JSON=$(get_streamtrack_secret_json)
+
+export POSTGRES_USER=$(echo "$SECRET_JSON" | jq -r .PostgresUsername)
+export POSTGRES_PASSWORD=$(echo "$SECRET_JSON" | jq -r .PostgresPassword)
 export POSTGRES_DB="StreamTrack"
 export POSTGRES_HOST="db"
 export POSTGRES_PORT="5432"

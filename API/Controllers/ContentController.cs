@@ -347,7 +347,7 @@ public class ContentController : ControllerBase {
 
         string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-        if (string.IsNullOrEmpty(uid) || uid != await AWSSecretHelper.GetSecretKey(AWS_Secrets.LambdaUID)) {
+        if (string.IsNullOrEmpty(uid) || uid != await SecretsHelper.GetSecretKey(Secrets.LambdaUID)) {
             return Unauthorized();
         }
 
