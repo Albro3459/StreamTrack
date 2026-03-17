@@ -35,8 +35,8 @@ services:
             - ASPNETCORE_ENVIRONMENT=Production
             - DOTNET_RUNNING_IN_CONTAINER=true
             - ASPNETCORE_URLS=http://+:5000
-            - OCI_REGION=us-sanjose-1
-            - SECRET_OCID=TODO
+            - OCI_REGION=${OCI_REGION}
+            - SECRET_OCID=${SECRET_OCID}
         ports:
             - "5000:5000"
 

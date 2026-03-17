@@ -9,7 +9,7 @@ set -euo pipefail
 echo "Fetching DB credentials from OCI Vault..."
 
 export OCI_REGION="us-sanjose-1"
-export SECRET_OCID="TODO"
+export SECRET_OCID="$(rg '^SECRET_OCID=(.*)$' .env --replace '$1')"
 
 get_streamtrack_secret_json() {
   oci secrets secret-bundle get \

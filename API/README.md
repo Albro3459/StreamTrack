@@ -118,6 +118,11 @@ Update packages
 sudo apt-get update
 ```
 
+Install ripgrep
+```sh
+sudo apt-get install -y ripgrep
+```
+
 Install OCI CLI
 ```sh
 bash -c "$(curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh)"
@@ -202,7 +207,7 @@ Ready to run!
 cd StreamTrack/API/Docker
 ```
 
-Set `OCI_REGION` and `SECRET_OCID` in `API/Docker/docker-compose.yml`.
+Set `SECRET_OCID` in `API/Docker/.env`.
 
 `SECRET_OCID` is the OCI identifier for the Vault secret object, not the secret payload itself. It should point to one OCI Vault secret containing:
 ```json
@@ -216,6 +221,7 @@ Set `OCI_REGION` and `SECRET_OCID` in `API/Docker/docker-compose.yml`.
 ```
 
 `DockerScript.sh` is the main script. It pulls the StreamTrack JSON secret from OCI Vault with the VM instance principal, reads the Postgres credentials from that JSON, then starts Docker Compose.
+`OCI_REGION` is committed in the Docker config as `us-sanjose-1`.
 
 The Caddy container is now built from `Caddy.Dockerfile` so it includes the rate limiting module used by `Caddyfile`.
 
