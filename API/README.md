@@ -124,8 +124,15 @@ sudo apt-get install -y ripgrep
 ```
 
 Install OCI CLI
+* Choose the default for all the paths (press Enter)
+* YES to adding `oci` to the $PATH in `~/.bashrc`
 ```sh
 bash -c "$(curl -L https://raw.githubusercontent.com/oracle/oci-cli/master/scripts/install/install.sh)"
+```
+
+Source and verify
+```sh
+source ~/.bashrc
 oci --version
 ```
 
@@ -196,7 +203,7 @@ git config --global user.email "brodsky.alex22@gmail.com"
 Then u are good, but make sure u clone with the SSH version not the https version like:
 ```sh
 cd ~
-git clone -b dev git@github.com:Albro3459/StreamTrack.git # -b dev for dev branch
+git clone -b oracle git@github.com:Albro3459/StreamTrack.git # -b oracle for oracle branch
 # Optional for space saving: rm -rf StreamTrack/API StreamTrack/Lambda
 ```
 
