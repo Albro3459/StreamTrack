@@ -39,3 +39,4 @@ API/Docker/backups/
 **/GoogleService-Info.plist
 
 **/.vscode/
+**/*.tfvars

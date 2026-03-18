@@ -1,0 +1,8 @@
+# OCI requires ssh-rsa!
+ssh_authorized_keys = [
+  "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQExampleKeyMaterialReplaceMe user@example",
+  "ssh-rsa AAAAC3NzaC1lZDI1NTE5AAAAIExampleSecondKeyReplaceMe laptop@example"
+]
+
+# Create your password with 'openssl passwd -6'
+hashed_password = "$6$replace_with_real_salt$replace_with_real_hash_value"
