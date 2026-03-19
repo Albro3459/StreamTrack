@@ -32,6 +32,11 @@ export POSTGRES_PORT="5432"
 echo "Starting only the database service..."
 docker compose up -d db # DB first (background)
 
+# RESTORE ONLY ********************************************************************************************************
+# docker compose exec -T db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" < ./backups/streamtrack_2026-....sql
+# Then keep the backup command commented, but uncomment the build migrate and run migrate commands 
+# ****************************************************************************************************************
+
 # Only need to run on a fresh db or when running new migrations! *************************************************
 # MAKE A BACKUP FIRST WITH PGDUMP!!! AND MAKE SURE MIGRATIONS PRESERVE USER DATA
 # echo "Backing up the DB before applying migrations..."

@@ -146,13 +146,17 @@ Docker
 sudo apt-get install -y docker.io
 sudo systemctl enable docker
 sudo systemctl start docker
-sudo usermod -aG docker $USER  # So you can run docker without sudo (logout/login required)
+sudo usermod -aG docker $USER  # So you can run docker without sudo
+newgrp docker
 ```
 
 Check Docker
 ```sh
+docker ps
 docker --version
 ```
+
+May need to logout and log back in for docker to have sudo access
 
 Docker Compose
 ```sh
@@ -236,7 +240,9 @@ echo "SECRET_OCID=ocid1.vaultsecret.oc1.us-sanjose-1.amaaaaaa2dnnktiai776n2nf2ge
 The Caddy container is now built from `Caddy.Dockerfile` so it includes the rate limiting module used by `Caddyfile`.
 
 ##### RUN FROM INSIDE THE Docker/ DIRECTORY!
-Make sure Database Update command is uncommented!
+
+Read the actual script first to see what to comment or uncomment
+For initial migration, make sure Database Update command is uncommented!
 ```sh
 ./DockerScript.sh
 ```
