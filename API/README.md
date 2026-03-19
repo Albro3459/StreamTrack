@@ -259,6 +259,74 @@ To fully cleanup and stop containers (requires full rebuild):
 docker compose down
 ```
 
+#### Security Upgrades
+
+Disable ssh with password and root login over ssh:
+
+Backup `sshd_config`
+```sh
+sudo cp /etc/ssh/sshd_config /etc/ssh/sshd_config.bak.$(date +%F_%H-%M-%S)
+```
+
+Check current settings
+```sh
+sudo sed -n '1,220p' /etc/ssh/sshd_config | rg -n "PasswordAuthentication|PermitRootLogin"
+```
+
+Turn them off
+```sh
+echo 'PasswordAuthentication no' | sudo tee -a /etc/ssh/sshd_config &&
+echo 'PermitRootLogin no' | sudo tee -a /etc/ssh/sshd_config
+```
+
+Reload ssh and verify
+```sh
+sudo sshd -t &&
+sudo systemctl reload ssh &&
+sudo sshd -T | rg 'passwordauthentication|permitrootlogin'
+```
+
+Expected result:
+```sh
+permitrootlogin no
+passwordauthentication no
+```
+
+Add `fail2ban`:
+
+Update and install
+```sh
+sudo apt-get update &&
+sudo apt-get install -y fail2ban
+```
+
+Create local jail config
+```sh
+sudo tee /etc/fail2ban/jail.d/sshd.local > /dev/null << 'EOF'
+[sshd]
+enabled = true
+port = ssh
+logpath = %(sshd_log)s
+backend = systemd
+maxretry = 5
+findtime = 10m
+bantime = 1h
+EOF
+```
+
+Start + enable
+```sh
+sudo systemctl enable fail2ban &&
+sudo systemctl restart fail2ban &&
+sudo systemctl status fail2ban --no-pager
+```
+
+Verify jail is active
+```sh
+sudo fail2ban-client status &&
+sudo fail2ban-client status sshd
+```
+
 #### Debugging
 Check if API is running
 ```sh

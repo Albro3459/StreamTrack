@@ -11,7 +11,7 @@
     <img height="400" alt="Library Page" src="https://github.com/user-attachments/assets/2c733334-2a3a-43ec-8c45-30bb28795fdf" />
 </div>
 
-## Installation (See the [README](/APP/README.md) in the APP folder for up-to-date instructions)
+## Installation
 
 #### Note:
 Only the UI part of the app will work, the API needs to either be ran on your computer (some code needs to be modified, since it is made to run on a server) or on a server. 
@@ -22,9 +22,14 @@ See API Setup below for how to get the API keys.
 
 See the READMEs in each of the main folders for their specific setup.
 
-Follow these (outdated) steps to set up and run Stream Track locally:
+## READMEs
+* [API](./API/README.md) 
+* [Frontend](./APP/README.md) 
+* [Lambda](./Lambda/README.md) 
 
-### 1. Clone the repository
+<!-- Follow these (outdated) steps to set up and run Stream Track locally: -->
+
+<!-- ### 1. Clone the repository
 ```sh
 git clone https://github.com/Albro3459/StreamTrack.git
 ```
@@ -49,7 +54,7 @@ npm start
 
 ### 6. Run the app on your device
 - **On iPhone:** Scan the QR code with the iPhone Camera app.
-- **On Android:** Open the Expo Go app and scan the QR code using the camera in the app.
+- **On Android:** Open the Expo Go app and scan the QR code using the camera in the app. -->
 
 ## API Setup
 The app requires connecting to two APIs.
