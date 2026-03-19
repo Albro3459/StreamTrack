@@ -215,6 +215,9 @@ cd StreamTrack/API/Docker
 ```
 
 Set `SECRET_OCID` in `API/Docker/.env`.
+```sh
+echo "SECRET_OCID=ocid1.vaultsecret.oc1.us-sanjose-1.amaaaaaa2dnnktiai776n2nf2ge6lxim2kslh5mpi7yddnwzbw75pc2gqtta" >> .env
+```
 
 `SECRET_OCID` is the OCI identifier for the Vault secret object, not the secret payload itself. It should point to one OCI Vault secret containing:
 ```json
@@ -265,6 +268,23 @@ or to stream
 ```sh
 docker compose logs -f api
 ```
+
+If you get a 404 for secrets in the VM, you probably don't have the permissions:
+* Create Dynamic Group:
+    * Identity & Security -> Domains -> Default
+    * Dynamic Groups tab
+    * Create dynamic group
+    * Name: `StreamTrack`
+    * Match any rules
+    * Rule: ALL {instance.id = `<your_instance_ocid>`}
+* Add a Policy:
+    * Identity & Security -> Policies (the one under Identity, not Network)
+    * Create Policy
+    * Name: `StreamTrack`
+    * **Capitals Matter**:
+        * `Allow dynamic-group StreamTrack to read secret-family in tenancy`
+        * `StreamTrack` needs to **exactly** match your Dynamic Group
+
 
 ##### Extras :)
 
