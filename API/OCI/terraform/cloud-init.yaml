@@ -20,4 +20,4 @@ users:
 # Blocks ssh for this user. Can only be used with the Cloud Shell login
 runcmd:
   - echo "DenyUsers backdoor" >> /etc/ssh/sshd_config
-  - systemctl restart sshd
+  - systemctl restart ssh || systemctl restart sshd
