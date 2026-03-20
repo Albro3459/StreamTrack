@@ -1,11 +1,15 @@
 "use client";
 
-import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, User, UserCredential } from "../../firebaseConfig"
+import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, UserCredential } from "../../firebaseConfig";
 import { checkIfUserExists, createUser } from "./StreamTrack/userHelper";
 import { CACHE, ClearCache, FetchCache } from "./cacheHelper";
 import { Alert } from "../components/alertMessageComponent";
 import { Router } from "expo-router";
 import { AuthUserCredential } from "../types/AuthUserCredential";
+
+const getUserIdToken = async (userCreds: AuthUserCredential): Promise<string | null> => {
+    return await userCreds?.user?.getIdToken() ?? null;
+};
 
 export const SignIn = async (auth: Auth, router: Router, email: string, password: string,
                                 setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
@@ -120,8 +124,7 @@ export const AppleSignIn = async (userCreds: AuthUserCredential, router: Router,
         return false;
     }
 
-    const user = userCreds?.user;
-    const token = user?.stsTokenManager?.accessToken ?? null;
+    const token = await getUserIdToken(userCreds);
     if (token) {
         if (!await checkIfUserExists(token)) { // intentionally NOT passing error funcs
             // doesnt exist in DB, but does in Firebase, so try to create the user
@@ -167,8 +170,7 @@ export const AppleSignUp = async (userCreds: AuthUserCredential, router: Router,
         return;
     }
 
-    const user = userCreds?.user;
-    const token = user?.stsTokenManager?.accessToken ?? null;
+    const token = await getUserIdToken(userCreds);
     if (token) {
         await createUser(router, token, setAlertMessageFunc, setAlertTypeFunc);
         token && FetchCache(router, token, setAlertMessageFunc, setAlertTypeFunc);
@@ -203,8 +205,7 @@ export const GoogleSignIn = async (userCreds: AuthUserCredential, router: Router
         return false;
     }
 
-    const user = userCreds?.user;
-    const token = user?.stsTokenManager?.accessToken ?? null;
+    const token = await getUserIdToken(userCreds);
     if (token) {
         if (!await checkIfUserExists(token)) { // intentionally NOT passing error funcs
             // doesnt exist in DB, but does in Firebase, so try to create the user
@@ -250,8 +251,7 @@ export const GoogleSignUp = async (userCreds: AuthUserCredential, router: Router
         return;
     }
 
-    const user = userCreds?.user;
-    const token = user?.stsTokenManager?.accessToken ?? null;
+    const token = await getUserIdToken(userCreds);
     if (token) {
         await createUser(router, token, setAlertMessageFunc, setAlertTypeFunc);
         token && FetchCache(router, token, setAlertMessageFunc, setAlertTypeFunc);

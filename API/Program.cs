@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authentication.JwtBearer; // Needed to use firebase tokens
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.OpenApi.Models;
 
 using API.Infrastructure;
@@ -61,18 +61,8 @@ builder.Services.AddSwaggerGen(options => {
 });
 
 // Auth
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options => {
-        var firebase = builder.Configuration.GetSection("Firebase");
-        options.Authority = firebase["Issuer"];
-        options.TokenValidationParameters = new Microsoft.IdentityModel.Tokens.TokenValidationParameters {
-            ValidateIssuer = true,
-            ValidIssuer = firebase["Issuer"],
-            ValidateAudience = true,
-            ValidAudience = firebase["Audience"],
-            ValidateLifetime = true
-        };
-    });
+builder.Services.AddAuthentication("Bearer")
+    .AddScheme<AuthenticationSchemeOptions, FirebaseAuthenticationHandler>("Bearer", _ => { });
 
 // Require authentication globally for all controllers
 builder.Services.AddAuthorization(options => {

@@ -22,6 +22,7 @@ export type AuthUserCredential = {
     lastLoginAt: string;
     apiKey: string;
     appName: string;
+    getIdToken: () => Promise<string>;
   };
   providerId: string;
   _tokenResponse: {

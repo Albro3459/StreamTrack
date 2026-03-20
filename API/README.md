@@ -83,6 +83,11 @@ GRANT ALL PRIVILEGES ON DATABASE "StreamTrack" TO username;
 \q
 ```
 
+# Check OCI locally
+```sh
+oci iam region list --config-file /Users/alexbrodsky/.oci/config --profile DEFAULT --auth security_token
+```
+
 ## OCI VM Server with Docker
 * Ubuntu Server 24.04 LTS
 * Ampere A1 (VM.Standard.A1.Flex | 64-bit ARM | 1 OCPU | 6 GB RAM)
