@@ -1,14 +1,29 @@
 {
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
-    "strict": false,
+    "strict": true,
+    "strictNullChecks": false,
+    "useUnknownInCatchVariables": false,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "rootDir": ".",
+    "incremental": true,
+    "declaration": false,
+    "importHelpers": true,
+
+    "types": ["node"],
+    "esModuleInterop": true,
+
     "paths": {
       "@/*": [
         "./*"
       ],
       "@firebase/auth": ["./node_modules/@firebase/auth/dist/index.rn.d.ts"],
-    },
-    "esModuleInterop": true
+    }
   },
   "include": [
     "**/*.ts",

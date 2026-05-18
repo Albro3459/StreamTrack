@@ -9,7 +9,6 @@ export default {
         owner: "albro3459",
         version: "1.0.0",
         orientation: "portrait",
-        newArchEnabled: true,
         icon: "./assets/images/AppIconDark.png",
         scheme: "streamtrack",
         userInterfaceStyle: "automatic",
@@ -22,7 +21,7 @@ export default {
         ios: {
             supportsTablet: true,
             // Apple
-            bundleIdentifier: "live.cloudlaunch.streamtrack",
+            bundleIdentifier: "com.gocloudlaunch.streamtrack",
             usesAppleSignIn: true,
             infoPlist: {
                 ITSAppUsesNonExemptEncryption: false
@@ -31,7 +30,7 @@ export default {
             googleServicesFile: process.env.GOOGLE_SERVICES_PLIST || './GoogleService-Info.plist',
         },
         android: {
-            "package": "live.cloudlaunch.streamtrack",
+            "package": "com.gocloudlaunch.streamtrack",
             adaptiveIcon: {
                 foregroundImage: "./assets/images/AppLogoClear.png",
                 backgroundColor: BackgroundColor.backgroundColor
