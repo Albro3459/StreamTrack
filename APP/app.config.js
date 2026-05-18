@@ -58,7 +58,8 @@ export default {
             [
                 "expo-build-properties", {
                     ios: { 
-                        useFrameworks: "static" 
+                        useFrameworks: "static",
+                        forceStaticLinking: ["RNFBApp", "RNFBAuth"]
                     } 
                 }
             ],

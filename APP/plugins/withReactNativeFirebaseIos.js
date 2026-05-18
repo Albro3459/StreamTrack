@@ -2,8 +2,6 @@ const { withDangerousMod } = require("@expo/config-plugins");
 const fs = require("fs");
 const path = require("path");
 
-const firebaseStaticFrameworkFlag = "$RNFirebaseAsStaticFramework = true";
-
 const firebasePodBuildSettings = `
 def configure_react_native_firebase_pods(installer)
   installer.pods_project.targets.each do |target|
@@ -15,17 +13,6 @@ def configure_react_native_firebase_pods(installer)
   end
 end
 `;
-
-function addFirebaseStaticFrameworkFlag(podfile) {
-    if (podfile.includes(firebaseStaticFrameworkFlag)) {
-        return podfile;
-    }
-
-    return podfile.replace(
-        /podfile_properties = JSON\.parse\(File\.read\(File\.join\(__dir__, 'Podfile\.properties\.json'\)\)\) rescue {}\n/,
-        (match) => `${match}${firebaseStaticFrameworkFlag}\n`
-    );
-}
 
 function addFirebasePodBuildSettings(podfile) {
     if (!podfile.includes("def configure_react_native_firebase_pods(installer)")) {
@@ -46,7 +33,7 @@ function addFirebasePodBuildSettings(podfile) {
 }
 
 function patchPodfile(podfile) {
-    return addFirebasePodBuildSettings(addFirebaseStaticFrameworkFlag(podfile));
+    return addFirebasePodBuildSettings(podfile);
 }
 
 module.exports = function withReactNativeFirebaseIos(config) {
