@@ -79,6 +79,7 @@ builder.Services.AddAutoMapper(cfg => { }, typeof(Program).Assembly); // All pro
 builder.Services.AddScoped<HelperService>();
 builder.Services.AddScoped<PosterService>();
 builder.Services.AddScoped<PopularSortingService>();
+builder.Services.AddSingleton<FirebaseAdminService>();
 builder.Services.AddHttpClient<APIService>();
 builder.Services.AddSingleton<BackgroundTaskQueue>();
 builder.Services.AddHostedService<QueuedHostedService>();

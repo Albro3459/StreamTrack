@@ -21,6 +21,24 @@ public static class SecretsHelper {
     private const string SECRET_OCID = "SECRET_OCID";
 
     public static async Task<string> GetSecretKey(Secrets secret) {
+        using var doc = await GetSecretJsonDocument();
+        if (doc.RootElement.TryGetProperty(secret.ToString(), out var value)) {
+            return value.GetString() ?? "";
+        }
+
+        return "";
+    }
+
+    public static async Task<string> GetSecretObjectJson(string propertyName) {
+        using var doc = await GetSecretJsonDocument();
+        if (doc.RootElement.TryGetProperty(propertyName, out var value) && value.ValueKind == JsonValueKind.Object) {
+            return value.GetRawText();
+        }
+
+        return "";
+    }
+
+    private static async Task<JsonDocument> GetSecretJsonDocument() {
         string region = Environment.GetEnvironmentVariable(OCI_REGION)
             ?? throw new InvalidOperationException($"Missing required environment variable {OCI_REGION}.");
         string secretOcid = Environment.GetEnvironmentVariable(SECRET_OCID)
@@ -35,12 +53,9 @@ public static class SecretsHelper {
 
         if (response.SecretBundle?.SecretBundleContent is Base64SecretBundleContentDetails bundleContent) {
             string secretJson = System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(bundleContent.Content));
-            using var doc = JsonDocument.Parse(secretJson);
-            if (doc.RootElement.TryGetProperty(secret.ToString(), out var value)) {
-                return value.GetString() ?? "";
-            }
+            return JsonDocument.Parse(secretJson);
         }
 
-        return "";
+        return JsonDocument.Parse("{}");
     }
 }

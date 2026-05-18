@@ -6,7 +6,7 @@ It needs to be compiled to JS:
 ```sh
 cd StreamTrack/Lambda
 npm install
-npm run build && cp secrets/FirebaseServiceAccount.json dist/secrets/FirebaseServiceAccount.json &&
+npm run build
 node dist/main.js # run the function
 ```
 

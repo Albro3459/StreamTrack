@@ -16,12 +16,14 @@ public class UserController : ControllerBase {
 
     private readonly StreamTrackDbContext context;
     private readonly HelperService service;
+    private readonly FirebaseAdminService firebaseAdminService;
     private readonly IMapper mapper;
     private const string USER_DEFAULT_LIST = "Favorites";
 
-    public UserController(StreamTrackDbContext _context, HelperService _service, IMapper _mapper) {
+    public UserController(StreamTrackDbContext _context, HelperService _service, FirebaseAdminService _firebaseAdminService, IMapper _mapper) {
         context = _context;
         service = _service;
+        firebaseAdminService = _firebaseAdminService;
         mapper = _mapper;
     }
 
@@ -207,5 +209,55 @@ public class UserController : ControllerBase {
         );
 
         return minimalDTO;
+    }
+
+    // FULL HARD DELETE AS REQUIRED BY APPLE
+    // DELETE: API/User/Delete
+    [HttpDelete("Delete")]
+    public async Task<ActionResult> DeleteUser() {
+
+        string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        if (string.IsNullOrEmpty(uid)) {
+            return Unauthorized();
+        }
+
+        User? user = await context.User
+            .Include(u => u.ListsOwned)
+            .Include(u => u.Genres)
+            .Include(u => u.StreamingServices)
+            .FirstOrDefaultAsync(u => u.UserID == uid);
+
+        if (user == null) {
+            return Unauthorized();
+        }
+
+        List<string> ownedListIds = user.ListsOwned.Select(l => l.ListID).ToList();
+
+        List<ListShares> shares = await context.ListShares
+            .Where(ls => ls.UserID == uid || ownedListIds.Contains(ls.ListID))
+            .ToListAsync();
+
+        // FULL HARD DELETE AS REQUIRED BY APPLE
+        await using var transaction = await context.Database.BeginTransactionAsync();
+        try {
+            context.ListShares.RemoveRange(shares);
+            context.List.RemoveRange(user.ListsOwned);
+            user.Genres.Clear();
+            user.StreamingServices.Clear();
+            context.User.Remove(user);
+
+            await context.SaveChangesAsync();
+
+            // If delete save succeeds, only then delete from Firebase
+            await firebaseAdminService.DeleteUserAsync(uid);
+            await transaction.CommitAsync();
+        }
+        catch {
+            await transaction.RollbackAsync();
+            throw;
+        }
+
+        return Ok();
     }
 }

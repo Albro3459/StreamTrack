@@ -9,17 +9,17 @@ import { AWSSecrets } from '../types/AWSSecretsType';
 
 export const getFirebaseToken = async (secrets: AWSSecrets): Promise<string | null> => {
     const serviceAccount = {
-        type: secrets.FirebaseType,
-        project_id: secrets.FirebaseProjectID,
-        private_key_id: secrets.FirebasePrivateKeyID,
-        private_key: secrets.FirebasePrivateKey?.replace(/\\n/g, "\n"), // Important for correct formatting!
-        client_email: secrets.FirebaseClientEmail,
-        client_id: secrets.FirebaseClientID,
-        auth_uri: secrets.FirebaseAuthURI,
-        token_uri: secrets.FirebaseTokenURI,
-        auth_provider_x509_cert_url: secrets.FirebaseAuthProviderx509CertUrl,
-        client_x509_cert_url: secrets.FirebaseClientProviderx509CertUrl,
-        universe_domain: secrets.FirebaseUniverseDomain,
+        type: secrets.Firebase.type,
+        project_id: secrets.Firebase.project_id,
+        private_key_id: secrets.Firebase.private_key_id,
+        private_key: secrets.Firebase.private_key?.replace(/\\n/g, "\n"), // Important for correct formatting!
+        client_email: secrets.Firebase.client_email,
+        client_id: secrets.Firebase.client_id,
+        auth_uri: secrets.Firebase.auth_uri,
+        token_uri: secrets.Firebase.token_uri,
+        auth_provider_x509_cert_url: secrets.Firebase.auth_provider_x509_cert_url,
+        client_x509_cert_url: secrets.Firebase.client_x509_cert_url,
+        universe_domain: secrets.Firebase.universe_domain,
     };
 
     if (!admin.apps.length) {
@@ -31,7 +31,7 @@ export const getFirebaseToken = async (secrets: AWSSecrets): Promise<string | nu
     const customToken = await admin.auth().createCustomToken(secrets.LambdaUID);
     
     const response = await axios.post(
-      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${secrets.FirebaseWebAPIKey}`,
+      `https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${secrets.Firebase.web_api_key}`,
       {
         token: customToken,
         returnSecureToken: true
