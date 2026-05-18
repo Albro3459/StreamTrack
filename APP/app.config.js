@@ -58,10 +58,11 @@ export default {
             [
                 "expo-build-properties", {
                     ios: { 
-                        useFrameworks: "dynamic" 
+                        useFrameworks: "static" 
                     } 
                 }
-            ]
+            ],
+            "./plugins/withReactNativeFirebaseIos"
         ],
         experiments: {
             typedRoutes: true

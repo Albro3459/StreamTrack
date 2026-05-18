@@ -25,18 +25,46 @@ You need your GoogleService-Info.plist from your iOS Client ID from Google Cloud
 cd StreamTrack/APP
 ```
 
-Use an iOS 26 simulator from Xcode 26 or later for App Store-compatible iOS builds.
-Make sure you are signed into iCloud on the simulator for sign in with Apple.
-Before you run, if you haven't already, run:
+#### PRE-BUILD
 ```sh
 npx expo prebuild --platform ios
 ```
+
+Use an iOS 26 simulator from Xcode 26 or later for App Store-compatible iOS builds.
+Make sure you are signed into iCloud on the simulator for sign in with Apple.
+Before you run, if you haven't already, run:
 Then run:
 ```sh
 npx expo run:ios
 ```
 
-Older, but faster ways (might not work) (don't click 's' to switch to for Expo Go):
+**OR** If you can't use an Apple iCloud account, build with:
+```sh
+cd ios
+xcodebuild \
+  -workspace StreamTrack.xcworkspace \
+  -scheme StreamTrack \
+  -configuration Debug \
+  -sdk iphonesimulator \
+  -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.1' \
+  CODE_SIGNING_ALLOWED=NO \
+  build
+cd -
+```
+Then run:
+```sh
+npx expo start
+```
+Then open `ios/StreamTrack.xcworkspace` in XCode and click the Green run arrow.
+Now it should be running!
+
+To clear cache (ex: get updated env vars):
+```sh
+npx expo start -c
+```
+Then swipe the app up to quit and then reopen it
+
+**OR** Older, but faster ways (might not work) (don't click 's' to switch to for Expo Go):
 ```sh
 npm start
 ```
@@ -44,10 +72,11 @@ or
 ```sh
 npx expo start
 ```
-To clear cache:
+To clear cache (ex: get updated env vars):
 ```sh
 npx expo start -c
 ```
+Then swipe the app up to quit and then reopen it
 
 ### To connect to iPhone:
 
