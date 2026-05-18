@@ -1,17 +1,17 @@
 export type AWSSecrets = {
     PostgresUsername?: string;
     PostgresPassword?: string;
-    LambdaUID?: string;
     RapidAPIKey_Main?: string;
-    TMDBBearerToken?: string;
     RapidAPIKey_Lambda?: string;
+    TMDBBearerToken?: string;
+    LambdaUID?: string;
     FirebaseWebAPIKey?: string;
     FirebaseType?: string;
     FirebaseProjectID?: string;
     FirebasePrivateKeyID?: string;
     FirebasePrivateKey?: string;
-    FirebaseClientID?: string;
     FirebaseClientEmail?: string;
+    FirebaseClientID?: string;
     FirebaseAuthURI?: string;
     FirebaseTokenURI?: string;
     FirebaseAuthProviderx509CertUrl?: string;

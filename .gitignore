@@ -33,11 +33,20 @@ API/Docker/backups/
 **/ios
 
 # Hide all the keys
-**/secrets/
-**/.env
-**/.env.local
-**/GoogleService-Info.plist
+**/secrets/*
+!**/secrets/example.*
+!**/secrets/*.example
 
-**/.vscode/
-**/.vs/
+**/.env
+**/.env.*
+!**/example.env.*
+!**/.env.example
+
+**/GoogleService-Info.plist
+!**/example.GoogleService-Info.plist
+!**/GoogleService-Info.plist.example
+
 **/*.tfvars
+**/*.tfvars.*
+!**/*.tfvars.example
+!**/example.*.tfvars
