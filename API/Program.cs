@@ -5,6 +5,7 @@ using Microsoft.OpenApi.Models;
 using API.Infrastructure;
 using API.Service;
 using API.Helpers;
+using API.Pages;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -97,6 +98,10 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+app.MapGet("/privacy-policy", (IWebHostEnvironment environment) =>
+        Results.Content(PrivacyPolicyPage.ReadHtml(environment), "text/html; charset=utf-8"))
+    .AllowAnonymous();
 
 app.MapControllers();
 

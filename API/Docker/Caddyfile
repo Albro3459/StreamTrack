@@ -12,7 +12,7 @@ streamtrack.gocloudlaunch.com {
     }
 
     # Add any future anonymous/public routes here if they need stricter limits.
-    @public_routes path /API/Public/* /API/Auth/*
+    @public_routes path /API/Public/* /API/Auth/* /privacy-policy
     rate_limit @public_routes {
         zone api_public {
             key {remote_host}
