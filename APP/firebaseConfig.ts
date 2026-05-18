@@ -1,8 +1,8 @@
 "use client";
 
 import { FirebaseApp, initializeApp } from "firebase/app";
-import { OAuthProvider, GoogleAuthProvider, signInWithCredential, Auth, User, UserCredential, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, getIdToken, initializeAuth } from "firebase/auth";
-import * as firebaseAuth from 'firebase/auth'; 
+import { OAuthProvider, GoogleAuthProvider, signInWithCredential, reauthenticateWithCredential, revokeAccessToken, Auth, User, UserCredential, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, getIdToken, initializeAuth } from "firebase/auth";
+import * as firebaseAuth from 'firebase/auth';
 import { GoogleSignin } from '@react-native-google-signin/google-signin';
 
 import * as secrets from "./secrets";
@@ -19,10 +19,10 @@ const firebaseConfig = {
   appId: secrets.appId
 };
 
-let app = {} as FirebaseApp, auth = {} as Auth;
+let auth = {} as Auth;
 try {
     // Initialize Firebase
-    app = initializeApp(firebaseConfig);
+    const app: FirebaseApp = initializeApp(firebaseConfig);
 
     // Initialize Auth with React Native persistence
     auth = initializeAuth(app, {
@@ -33,6 +33,6 @@ try {
 }
 export { 
     secrets,
-    OAuthProvider, GoogleAuthProvider, GoogleSignin, signInWithCredential,
+    OAuthProvider, GoogleAuthProvider, GoogleSignin, signInWithCredential, reauthenticateWithCredential, revokeAccessToken,
     auth, Auth, User, UserCredential, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, getIdToken 
 };

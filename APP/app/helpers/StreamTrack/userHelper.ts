@@ -237,4 +237,50 @@ export const updateUserProfile = async (router: Router, token: string | null, fi
     }
 };
 
+export const deleteUserAccount = async (router: Router, token: string | null,
+                                        setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
+                                        setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+): Promise<boolean> => {
+    try {
+        if (!token) return false;
+
+        const url = secrets.dataAPIURL + "API/User/Delete";
+
+        const options = {
+            method: 'DELETE',
+            headers: {
+                accept: 'application/json',
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`
+            }
+        };
+
+        const result = await fetch(url, options);
+
+        if (!result.ok) {
+            if (result.status === 401) {
+                console.warn("Unauthorized");
+                await signOut(auth);
+                router.replace({
+                    pathname: '/LoginPage',
+                    params: { unauthorized: 1 },
+                });
+                return false;
+            }
+            const text = await result.text();
+            console.warn(`Error deleting user ${result.status}: ${text}`);
+            if (setAlertMessageFunc) setAlertMessageFunc('Error deleting account'); 
+            if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
+            return false;
+        }
+
+        return true;
+    } catch (err) {
+        console.warn('Deleting user failed:', err);
+        if (setAlertMessageFunc) setAlertMessageFunc('Deleting account failed'); 
+        if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
+        return false;
+    }
+};
+
 export default {};

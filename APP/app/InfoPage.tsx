@@ -19,6 +19,8 @@ import AlertMessage, { Alert } from './components/alertMessageComponent';
 import CreateNewListModal from './components/createNewListComponent';
 
 const screenWidth = Dimensions.get("window").width;
+const STREAMING_LOGO_WIDTH = 110;
+const STREAMING_LOGO_HEIGHT = 50;
 
 enum TABS {
     ABOUT = 'About',
@@ -174,7 +176,7 @@ export default function InfoPage() {
                 <Text style={styles.text}>{info && info?.content?.overview}</Text>
 
                 <Text style={[styles.sectionTitle, {marginBottom: 0} ]}>Where to Stream</Text>
-                <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'flex-start', columnGap: 10, paddingBottom: 10}}>
+                <View style={styles.streamingLogoContainer}>
                     {info && info?.content?.streamingOptions.filter(s => !s.price).map((streamingOption, index) => (
                         <Pressable
                             key={index+streamingOption.deepLink}
@@ -195,8 +197,9 @@ export default function InfoPage() {
                         >
                             <SvgUri
                                 uri={streamingOption.streamingService.darkLogo}
-                                width={screenWidth / 5}
-                                height={screenWidth / 5}
+                                width={STREAMING_LOGO_WIDTH}
+                                height={STREAMING_LOGO_HEIGHT}
+                                preserveAspectRatio="xMidYMid meet"
                             />
                         </Pressable>
                     ))}
@@ -220,8 +223,9 @@ export default function InfoPage() {
                         >
                             <SvgUri
                                 uri={streamingOption.streamingService.darkLogo}
-                                width={screenWidth / 5}
-                                height={screenWidth / 5}
+                                width={STREAMING_LOGO_WIDTH}
+                                height={STREAMING_LOGO_HEIGHT}
+                                preserveAspectRatio="xMidYMid meet"
                             />
                             <Text style={{color: Colors.reviewTextColor, fontSize: 12, marginTop: -10, paddingBottom: 10}}>{getServicePrice(streamingOption)}</Text>
                         </Pressable>
@@ -516,12 +520,20 @@ const styles = StyleSheet.create({
       color: '#FFFFFF',
     },
     streamingLogo: {
-        maxWidth: screenWidth / 5,
-        maxHeight: 50,
+        width: STREAMING_LOGO_WIDTH,
+        minHeight: STREAMING_LOGO_HEIGHT + 18,
         margin: 5,
-        paddingTop: 10,
         alignItems: 'center',
         justifyContent: 'center',
+    },
+    streamingLogoContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        justifyContent: 'flex-start',
+        columnGap: 14,
+        rowGap: 18,
+        paddingTop: 8,
+        paddingBottom: 16,
     },
     content: {
       padding: 16,

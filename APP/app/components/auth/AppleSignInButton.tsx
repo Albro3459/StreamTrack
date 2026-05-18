@@ -1,6 +1,6 @@
 import * as AppleAuthentication from 'expo-apple-authentication';
-import { useEffect, useState } from "react";
-import { Text, Image, Pressable, ActivityIndicator, StyleSheet } from "react-native";
+import { useState } from "react";
+import { StyleSheet } from "react-native";
 import { auth, OAuthProvider, signInWithCredential, UserCredential } from "../../../firebaseConfig";
 import { Alert } from "../alertMessageComponent";
 import { Router } from "expo-router";
@@ -18,6 +18,8 @@ interface AppleSignInButtonProps {
     ) => Promise<boolean>;
     onSignUp: (
         userCreds: AuthUserCredential, router: Router, email: string,
+        firstName?: string | null,
+        lastName?: string | null,
         setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
         setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
     ) => Promise<void>;
@@ -56,11 +58,17 @@ export const AppleSignInButton: React.FC<AppleSignInButtonProps> = ({
                     const appleCredential = (userCredential as any) as AuthUserCredential;
                     const isNewUser: boolean | undefined = appleCredential?._tokenResponse?.isNewUser;
                     if (isNewUser === true) {
-                        await onSignUp(appleCredential, router, appleCredential?.user?.email, setAlertMessageFunc, setAlertTypeFunc);
+                        const firstName = credential?.fullName?.givenName ?? null;
+                        const lastName = credential?.fullName?.familyName ?? null;
+                        await onSignUp(appleCredential, router, appleCredential?.user?.email, firstName, lastName, setAlertMessageFunc, setAlertTypeFunc);
                         if (auth?.currentUser) {
                             router.replace({
                                 pathname: '/ProfilePage',
-                                params: { isSigningUp: 1 }, // Have to pass as number or string
+                                params: { 
+                                    isSigningUp: 1,
+                                    ...(firstName && { firstName }),
+                                    ...(lastName && { lastName }),
+                                },
                             });
                         } else {
                             await LogOut(auth);

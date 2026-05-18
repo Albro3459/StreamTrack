@@ -1,11 +1,11 @@
 "use client";
 
-import { Text, TextInput, View, StyleSheet, ScrollView, Pressable, ActivityIndicator, Dimensions, RefreshControl, Keyboard } from "react-native";
+import { Text, TextInput, View, StyleSheet, ScrollView, Pressable, ActivityIndicator, RefreshControl, Keyboard, Modal } from "react-native";
 import React, { useEffect, useState } from 'react';
 import { PressableBubblesGroup,} from './components/formComponents';
 import { Stack, useLocalSearchParams, useRouter } from "expo-router"
 import { Colors } from "../constants/Colors";
-import { LogOut } from "./helpers/authHelper";
+import { DeleteAccount, LogOut } from "./helpers/authHelper";
 import { auth } from "../firebaseConfig";
 import { appStyles } from "../styles/appStyles";
 import { fetchUserData, setUserData, useUserDataStore } from "./stores/userDataStore";
@@ -17,25 +17,29 @@ import AlertMessage, { Alert } from "./components/alertMessageComponent";
 
 interface ProfilePageParams {
     isSigningUp?: number;
+    firstName?: string;
+    lastName?: string;
 }
 
 export default function ProfilePage() {
     const router = useRouter();
 
-    const { isSigningUp } = useLocalSearchParams() as ProfilePageParams;
+    const { isSigningUp, firstName, lastName } = useLocalSearchParams() as ProfilePageParams;
     const [isEditing, setIsEditing] = useState<boolean>(!isSigningUp ? false : Number(isSigningUp) === 1 ? true : false);
     const [saving, setSaving] = useState<boolean>(false);
+    const [deleting, setDeleting] = useState<boolean>(false);
+    const [deleteModalVisible, setDeleteModalVisible] = useState<boolean>(false);
 
     const { userData } = useUserDataStore();
-    const { streamingServiceData } = useStreamingServiceDataStore();
-    const { genreData } = useGenreDataStore();
+    const { streamingServiceData, loading: streamingServiceLoading, error: streamingServiceError } = useStreamingServiceDataStore();
+    const { genreData, loading: genreLoading, error: genreError } = useGenreDataStore();
 
     const [alertMessage, setAlertMessage] = useState<string>("");
     const [alertType, setAlertType] = useState<Alert>(Alert.Error);
 
     // State for text inputs
-    const [firstNameText, setFirstNameText] = useState<string>(userData?.user?.firstName ?? "");
-    const [lastNameText, setLastNameText] = useState<string>(userData?.user?.lastName ?? "");
+    const [firstNameText, setFirstNameText] = useState<string>(firstName ?? userData?.user?.firstName ?? "");
+    const [lastNameText, setLastNameText] = useState<string>(lastName ?? userData?.user?.lastName ?? "");
     
     const [selectedGenres, setSelectedGenres] = useState<Set<string>>(
         userData?.user?.genreNames ? new Set(userData.user.genreNames) // Objects work weird in sets. Use the strings
@@ -95,7 +99,40 @@ export default function ProfilePage() {
         }
     };
 
+    const handleDeleteAccount = async () => {
+        try {
+            setDeleting(true);
+            setAlertMessage("");
+            setAlertType(Alert.Error);
+
+            const success = await DeleteAccount(auth, router, setAlertMessage, setAlertType);
+            if (!success) {
+                setDeleting(false);
+                return;
+            }
+        } finally {
+            setDeleteModalVisible(false);
+            setDeleting(false);
+        }
+    };
+
+    const renderOptionsState = (loading: boolean, error: string | null, hasData: boolean) => {
+        if (hasData) return null;
+
+        return (
+            <Text style={styles.optionsStateText}>
+                {loading ? "Loading..." : error ? "Unable to load options" : "No options available"}
+            </Text>
+        );
+    };
+
     useEffect(() => {
+        if (Number(isSigningUp) === 1) {
+            setFirstNameText(firstName ?? userData?.user?.firstName ?? "");
+            setLastNameText(lastName ?? userData?.user?.lastName ?? "");
+            return;
+        }
+
         if (Number(isSigningUp) !== 1 && userData) {
             setFirstNameText(userData.user?.firstName ?? null);
             setLastNameText(userData?.user?.lastName ?? null);
@@ -109,7 +146,7 @@ export default function ProfilePage() {
             );
             setIsEditing(false);
         }
-    }, [isSigningUp, userData]);
+    }, [firstName, isSigningUp, lastName, userData]);
 
     return (
         <>
@@ -164,6 +201,7 @@ export default function ProfilePage() {
                             <Text style={styles.labelText}>Favorite Genres</Text>
                         </View>
                         <View style={styles.pressableContainer}>
+                            {renderOptionsState(genreLoading, genreError, !!genreData?.length)}
                             <PressableBubblesGroup
                                 labels={genreData?.map(g => g.name)}
                                 selectedLabels={selectedGenres}
@@ -177,6 +215,7 @@ export default function ProfilePage() {
                             <Text style={styles.labelText}>Streaming Services</Text>
                         </View>
                         <View style={styles.pressableContainer}>
+                            {renderOptionsState(streamingServiceLoading, streamingServiceError, !!streamingServiceData?.length)}
                             <PressableBubblesGroup
                                 selectedLabels={selectedStreamingServices}
                                 setLabelState={setSelectedStreamingServices}
@@ -197,16 +236,48 @@ export default function ProfilePage() {
                                 <Text style={appStyles.buttonText}>Save</Text>
                             </Pressable>
                         ) : (
-                            <Pressable style={appStyles.button} onPress={async () => { await LogOut(auth); router.replace('/LoginPage');}}>
-                                <Text style={appStyles.buttonText}>Logout</Text>
-                            </Pressable>
+                            <>
+                                <Pressable style={appStyles.button} onPress={async () => { await LogOut(auth); router.replace('/LoginPage');}}>
+                                    <Text style={appStyles.buttonText}>Logout</Text>
+                                </Pressable>
+                                <Pressable style={styles.deleteAccountButton} onPress={() => setDeleteModalVisible(true)}>
+                                    <Text style={styles.deleteAccountText}>Delete Account</Text>
+                                </Pressable>
+                            </>
                         )}
                     </View>
 
                 </ScrollView>
 
+                <Modal
+                    visible={deleteModalVisible}
+                    transparent
+                    animationType="fade"
+                    onRequestClose={() => setDeleteModalVisible(false)}
+                >
+                    <View style={appStyles.modalOverlay}>
+                        <View style={styles.deleteModalContent}>
+                            <Text style={styles.deleteModalTitle}>Delete Account?</Text>
+                            <Text style={styles.deleteModalText}>
+                                This will permanently delete your StreamTrack account and sign-in account.
+                            </Text>
+                            <View style={styles.deleteModalButtons}>
+                                <Pressable style={styles.cancelButton} onPress={() => setDeleteModalVisible(false)}>
+                                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                                </Pressable>
+                                <Pressable
+                                    style={styles.confirmDeleteButton}
+                                    onPress={handleDeleteAccount}
+                                >
+                                    <Text style={styles.confirmDeleteText}>Delete</Text>
+                                </Pressable>
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
+
                 {/* Overlay */}
-                {saving && (
+                {(saving || deleting) && (
                     <View style={appStyles.overlay}>
                         <ActivityIndicator size="large" color="#fff" />
                     </View>
@@ -260,7 +331,8 @@ const styles = StyleSheet.create({
         minWidth: 45*1.5,
         borderRadius: 30,
         backgroundColor: Colors.grayCell,
-        padding: "4%",
+        paddingVertical: 8,
+        paddingHorizontal: 16,
         justifyContent: 'center',
         alignItems: 'center', 
     },
@@ -276,10 +348,77 @@ const styles = StyleSheet.create({
         color: "white",
         fontWeight: "600"
     },
+    optionsStateText: {
+        color: Colors.reviewTextColor,
+        fontSize: 14,
+        paddingVertical: 8,
+    },
     buttonContainer: {
         ...appStyles.buttonContainer,
         flex: 1,
         justifyContent: "flex-end",
         marginBottom: 75,
+    },
+    deleteAccountButton: {
+        marginTop: 18,
+        paddingVertical: 10,
+        paddingHorizontal: 18,
+    },
+    deleteAccountText: {
+        color: "#ff8f8f",
+        fontSize: 16,
+        fontWeight: "600",
+        textAlign: "center",
+    },
+    deleteModalContent: {
+        backgroundColor: Colors.altBackgroundColor,
+        borderRadius: 10,
+        padding: 20,
+        width: "80%",
+        maxWidth: 420,
+        alignItems: "center",
+        ...appStyles.shadow,
+    },
+    deleteModalTitle: {
+        color: Colors.selectedTextColor,
+        fontSize: 18,
+        fontWeight: "bold",
+        marginBottom: 10,
+    },
+    deleteModalText: {
+        color: Colors.reviewTextColor,
+        fontSize: 14,
+        textAlign: "center",
+        marginBottom: 15,
+    },
+    deleteModalButtons: {
+        flexDirection: "row",
+        columnGap: 12,
+    },
+    cancelButton: {
+        backgroundColor: Colors.grayCell,
+        borderRadius: 10,
+        paddingVertical: 12,
+        paddingHorizontal: 18,
+        minWidth: 100,
+        alignItems: "center",
+    },
+    cancelButtonText: {
+        color: Colors.altBackgroundColor,
+        fontSize: 16,
+        fontWeight: "600",
+    },
+    confirmDeleteButton: {
+        backgroundColor: "#b42323",
+        borderRadius: 10,
+        paddingVertical: 12,
+        paddingHorizontal: 18,
+        minWidth: 100,
+        alignItems: "center",
+    },
+    confirmDeleteText: {
+        color: Colors.selectedTextColor,
+        fontSize: 16,
+        fontWeight: "600",
     },
 });
