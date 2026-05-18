@@ -29,6 +29,7 @@ export default function ProfilePage() {
     const [saving, setSaving] = useState<boolean>(false);
     const [deleting, setDeleting] = useState<boolean>(false);
     const [deleteModalVisible, setDeleteModalVisible] = useState<boolean>(false);
+    const [deletePassword, setDeletePassword] = useState<string>("");
 
     const { userData } = useUserDataStore();
     const { streamingServiceData, loading: streamingServiceLoading, error: streamingServiceError } = useStreamingServiceDataStore();
@@ -105,15 +106,25 @@ export default function ProfilePage() {
             setAlertMessage("");
             setAlertType(Alert.Error);
 
-            const success = await DeleteAccount(auth, router, setAlertMessage, setAlertType);
+            const success = await DeleteAccount(auth, router, deletePassword, setAlertMessage, setAlertType);
             if (!success) {
-                setDeleting(false);
                 return;
             }
-        } finally {
+            setDeletePassword("");
             setDeleteModalVisible(false);
+        } finally {
             setDeleting(false);
         }
+    };
+
+    const closeDeleteModal = () => {
+        setDeleteModalVisible(false);
+        setDeletePassword("");
+    };
+
+    const showPasswordReauth = () => {
+        const providerIds = auth.currentUser?.providerData?.map(provider => provider.providerId) ?? [];
+        return providerIds.includes("password") && !providerIds.includes("apple.com") && !providerIds.includes("google.com");
     };
 
     const renderOptionsState = (loading: boolean, error: string | null, hasData: boolean) => {
@@ -253,7 +264,7 @@ export default function ProfilePage() {
                     visible={deleteModalVisible}
                     transparent
                     animationType="fade"
-                    onRequestClose={() => setDeleteModalVisible(false)}
+                    onRequestClose={closeDeleteModal}
                 >
                     <View style={appStyles.modalOverlay}>
                         <View style={styles.deleteModalContent}>
@@ -261,8 +272,20 @@ export default function ProfilePage() {
                             <Text style={styles.deleteModalText}>
                                 This will permanently delete your StreamTrack account and sign-in account.
                             </Text>
+                            {showPasswordReauth() && (
+                                <TextInput
+                                    style={styles.deletePasswordInput}
+                                    placeholder="Password"
+                                    placeholderTextColor={Colors.italicTextColor}
+                                    value={deletePassword}
+                                    onChangeText={setDeletePassword}
+                                    secureTextEntry
+                                    autoCapitalize="none"
+                                    autoCorrect={false}
+                                />
+                            )}
                             <View style={styles.deleteModalButtons}>
-                                <Pressable style={styles.cancelButton} onPress={() => setDeleteModalVisible(false)}>
+                                <Pressable style={styles.cancelButton} onPress={closeDeleteModal}>
                                     <Text style={styles.cancelButtonText}>Cancel</Text>
                                 </Pressable>
                                 <Pressable
@@ -389,6 +412,11 @@ const styles = StyleSheet.create({
         color: Colors.reviewTextColor,
         fontSize: 14,
         textAlign: "center",
+        marginBottom: 15,
+    },
+    deletePasswordInput: {
+        ...appStyles.textInput,
+        width: "100%",
         marginBottom: 15,
     },
     deleteModalButtons: {

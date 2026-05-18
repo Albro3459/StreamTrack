@@ -1,7 +1,7 @@
 "use client";
 
 import * as AppleAuthentication from 'expo-apple-authentication';
-import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, UserCredential, GoogleAuthProvider, OAuthProvider, GoogleSignin, reauthenticateWithCredential, revokeAccessToken, secrets } from "../../firebaseConfig";
+import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, UserCredential, GoogleAuthProvider, EmailAuthProvider, OAuthProvider, GoogleSignin, reauthenticateWithCredential, revokeAccessToken, secrets } from "../../firebaseConfig";
 import { checkIfUserExists, createUser, deleteUserAccount, updateUserProfile } from "./StreamTrack/userHelper";
 import { CACHE, ClearCache, FetchCache } from "./cacheHelper";
 import { Alert } from "../components/alertMessageComponent";
@@ -110,8 +110,19 @@ const reauthenticateGoogleUser = async (auth: Auth) => {
     await GoogleSignin?.revokeAccess();
 };
 
+const reauthenticatePasswordUser = async (auth: Auth, password?: string) => {
+    const email = auth.currentUser?.email;
+    if (!email || !password) {
+        throw new Error("Enter your password to delete your account");
+    }
+
+    const firebaseCredential = EmailAuthProvider.credential(email, password);
+    await reauthenticateWithCredential(auth.currentUser, firebaseCredential);
+};
+
 export const DeleteAccount = async (
     auth: Auth, router: Router,
+    password?: string,
     setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
     setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ): Promise<boolean> => {
@@ -128,6 +139,8 @@ export const DeleteAccount = async (
             await reauthenticateAppleUser(auth);
         } else if (providerIds.includes('google.com')) {
             await reauthenticateGoogleUser(auth);
+        } else if (providerIds.includes('password')) {
+            await reauthenticatePasswordUser(auth, password);
         }
 
         const token = await auth.currentUser.getIdToken(true);

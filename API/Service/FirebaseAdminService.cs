@@ -9,10 +9,38 @@ namespace API.Service;
 public class FirebaseAdminService {
     private static readonly SemaphoreSlim InitLock = new(1, 1);
     private static bool initialized = false;
+    private readonly ILogger<FirebaseAdminService> logger;
+
+    public FirebaseAdminService(ILogger<FirebaseAdminService> logger) {
+        this.logger = logger;
+    }
 
     public async Task DeleteUserAsync(string uid) {
         await EnsureInitializedAsync();
         await FirebaseAuth.DefaultInstance.DeleteUserAsync(uid);
+    }
+
+    public async Task DeleteUserIfExistsAsync(string uid) {
+        const int maxAttempts = 3;
+
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+                await DeleteUserAsync(uid);
+                return;
+            }
+            catch (FirebaseAuthException ex) when (IsUserNotFound(ex)) {
+                logger.LogInformation("Firebase user {Uid} was already deleted.", uid);
+                return;
+            }
+            catch (Exception ex) when (attempt == maxAttempts) {
+                logger.LogError(ex, "Firebase user delete failed for {Uid} after {MaxAttempts} attempts.", uid, maxAttempts);
+                throw;
+            }
+            catch (Exception ex) when (attempt < maxAttempts) {
+                logger.LogWarning(ex, "Firebase user delete failed for {Uid}. Attempt {Attempt} of {MaxAttempts}.", uid, attempt, maxAttempts);
+                await Task.Delay(TimeSpan.FromMilliseconds(250 * attempt));
+            }
+        }
     }
 
     private static async Task EnsureInitializedAsync() {
@@ -70,5 +98,11 @@ public class FirebaseAdminService {
 
     private static string? GetString(JsonElement root, string propertyName) {
         return root.TryGetProperty(propertyName, out JsonElement value) ? value.GetString() : null;
+    }
+
+    private static bool IsUserNotFound(FirebaseAuthException ex) {
+        return ex.AuthErrorCode == AuthErrorCode.UserNotFound
+            || ex.Message.Contains("USER_NOT_FOUND", StringComparison.OrdinalIgnoreCase)
+            || ex.Message.Contains("not found", StringComparison.OrdinalIgnoreCase);
     }
 }

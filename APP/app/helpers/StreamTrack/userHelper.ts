@@ -267,6 +267,12 @@ export const deleteUserAccount = async (router: Router, token: string | null,
                 });
                 return false;
             }
+            if (result.status === 403) {
+                console.warn("Recent sign-in required");
+                if (setAlertMessageFunc) setAlertMessageFunc('Please reauthenticate and try again');
+                if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
+                return false;
+            }
             const text = await result.text();
             console.warn(`Error deleting user ${result.status}: ${text}`);
             if (setAlertMessageFunc) setAlertMessageFunc('Error deleting account'); 

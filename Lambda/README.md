@@ -13,7 +13,7 @@ node dist/main.js # run the function
 To compile and upload the Zip to AWS Lambda (total Zip must be under 50 MB):
 ```sh
 cd StreamTrack/Lambda &&
-npm run build && rm -rf dist/secrets &&
+npm run build &&
 npm prune --omit=dev &&
 rm -rf /var/tmp/lambda && mkdir -p /var/tmp/lambda &&
 cp -r dist/* /var/tmp/lambda/ && cp -r node_modules /var/tmp/lambda/

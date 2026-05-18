@@ -19,6 +19,7 @@ public class UserController : ControllerBase {
     private readonly FirebaseAdminService firebaseAdminService;
     private readonly IMapper mapper;
     private const string USER_DEFAULT_LIST = "Favorites";
+    private static readonly TimeSpan RecentAuthWindow = TimeSpan.FromMinutes(5);
 
     public UserController(StreamTrackDbContext _context, HelperService _service, FirebaseAdminService _firebaseAdminService, IMapper _mapper) {
         context = _context;
@@ -222,19 +223,30 @@ public class UserController : ControllerBase {
             return Unauthorized();
         }
 
+        if (!HasRecentAuthentication(User)) {
+            return StatusCode(StatusCodes.Status403Forbidden, "Recent sign-in required.");
+        }
+
         User? user = await context.User
-            .Include(u => u.ListsOwned)
+            .IgnoreQueryFilters() // Pull all of the user's data, even soft-deleted data
             .Include(u => u.Genres)
             .Include(u => u.StreamingServices)
             .FirstOrDefaultAsync(u => u.UserID == uid);
 
         if (user == null) {
-            return Unauthorized();
+            await firebaseAdminService.DeleteUserIfExistsAsync(uid);
+            return Ok();
         }
 
-        List<string> ownedListIds = user.ListsOwned.Select(l => l.ListID).ToList();
+        List<List> ownedLists = await context.List
+            .IgnoreQueryFilters() // Pull all of the user's data, even soft-deleted data
+            .Where(l => l.OwnerUserID == uid)
+            .ToListAsync();
+
+        List<string> ownedListIds = ownedLists.Select(l => l.ListID).ToList();
 
         List<ListShares> shares = await context.ListShares
+            .IgnoreQueryFilters() // Pull all of the user's data, even soft-deleted data
             .Where(ls => ls.UserID == uid || ownedListIds.Contains(ls.ListID))
             .ToListAsync();
 
@@ -242,15 +254,12 @@ public class UserController : ControllerBase {
         await using var transaction = await context.Database.BeginTransactionAsync();
         try {
             context.ListShares.RemoveRange(shares);
-            context.List.RemoveRange(user.ListsOwned);
+            context.List.RemoveRange(ownedLists);
             user.Genres.Clear();
             user.StreamingServices.Clear();
             context.User.Remove(user);
 
             await context.SaveChangesAsync();
-
-            // If delete save succeeds, only then delete from Firebase
-            await firebaseAdminService.DeleteUserAsync(uid);
             await transaction.CommitAsync();
         }
         catch {
@@ -258,6 +267,21 @@ public class UserController : ControllerBase {
             throw;
         }
 
+        await firebaseAdminService.DeleteUserIfExistsAsync(uid);
+
         return Ok();
+    }
+
+    private static bool HasRecentAuthentication(ClaimsPrincipal principal) {
+        string? authTime = principal.FindFirst("auth_time")?.Value;
+        if (!long.TryParse(authTime, out long authTimeSeconds)) {
+            return false;
+        }
+
+        DateTimeOffset authenticatedAt = DateTimeOffset.FromUnixTimeSeconds(authTimeSeconds);
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+
+        return authenticatedAt <= now.AddMinutes(1)
+            && now - authenticatedAt <= RecentAuthWindow;
     }
 }
