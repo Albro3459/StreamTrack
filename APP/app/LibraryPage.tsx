@@ -31,7 +31,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { getPoster } from './helpers/StreamTrack/contentHelper';
 import { auth } from '@/firebaseConfig';
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
+const { width: screenWidth } = Dimensions.get("window");
 
 // Prevent splash screen from hiding until everything is loaded
 SplashScreen.preventAutoHideAsync();
@@ -62,7 +62,7 @@ export default function LibraryPage() {
     const [isLoading, setIsLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
 
-    const startWiggle = (index) => {
+    const startWiggle = (index: number) => {
         Animated?.loop(
             Animated?.sequence([
                 Animated?.timing(wiggleAnimations.current[index], { toValue: 1, duration: 70, useNativeDriver: true }),
@@ -72,13 +72,9 @@ export default function LibraryPage() {
         )?.start();
     };
 
-    const stopWiggle = (index) => {
+    const stopWiggle = (index: number) => {
         wiggleAnimations.current[index]?.stopAnimation();
         wiggleAnimations.current[index]?.setValue(0);
-    };
-
-    const getRandomNumber = (min: number = 0, max: number = 1000): number => {
-        return Math.floor(Math.random() * (max - min + 1)) + min;
     };
 
     const onRefresh = async () => {
@@ -140,11 +136,11 @@ export default function LibraryPage() {
     };
 
     const handleTabPress = (listName: string) => {
-        listName = listName.toLowerCase().trim();
-        setActiveTab(listName);
-        pagerViewRef?.current?.setPage(lists.map(l => l?.listName.toLowerCase()).indexOf(listName));
+        const index = lists.findIndex(l => l?.listName.toLowerCase().trim() === listName.toLowerCase().trim());
+        if (index < 0) return;
 
-        setLists(sortLists(lists));
+        setActiveTab(lists[index].listName);
+        pagerViewRef?.current?.setPage(index);
     };
 
     useFocusEffect(
@@ -183,7 +179,7 @@ export default function LibraryPage() {
   
         return (
         <FlatList<ContentPartialData>
-            data={userData?.contents && getContentsInList(userData.contents, lists, activeTab)}
+            data={contents}
             numColumns={3}
             keyExtractor={(content, index) => `${content.tmdbID}-${index}-${list}`}
             refreshControl={
@@ -269,7 +265,7 @@ export default function LibraryPage() {
                             horizontal
                             showsHorizontalScrollIndicator={false}
                             nestedScrollEnabled
-                            keyExtractor={(listName, index) => listName+"-"+index+"-"+getRandomNumber()}
+                            keyExtractor={(listName, index) => `${listName}-${index}`}
                             contentContainerStyle={{ alignItems: "center" }}
                             renderItem={({ item: listName, index }) => {
                                 const wiggle = wiggleAnimations.current[index]?.interpolate({
@@ -325,26 +321,19 @@ export default function LibraryPage() {
                     <PagerView
                         style={{ flex: 1, marginTop: 20, marginBottom: 50 }}
                         initialPage={lists.map(l => l?.listName.toLowerCase()).indexOf(activeTab.toLowerCase()) ?? 0}
-                        key={lists.map(l => l?.listName+"-"+getRandomNumber()).join('-')}
                         ref={pagerViewRef}
-                        onPageSelected={(e) => setActiveTab(lists[e.nativeEvent.position]?.listName)}
+                        onPageSelected={(e) => {
+                            const listName = lists[e.nativeEvent.position]?.listName;
+                            if (listName) setActiveTab(listName);
+                        }}
                     >
-                        {/* Renders all lists :(
-                        {lists.map(l => ({listName: l?.listName, contents: userData?.contents && getContentsInList(userData.contents, lists, l?.listName)})).map((list) => (
-                            <View style={{paddingHorizontal: 5}} key={list?.listName}>{renderTabContent(list.contents, list?.listName)}</View>
-                        ))} */}
-
-                        {lists.map((list, index) => {
-                            const isActive = (i: number) => (i >= 0 && i === lists.findIndex(item => item?.listName.toLowerCase() === activeTab.toLowerCase()));
-                            // Only rendering neighboring tabs
-                            if ((isActive(index) || isActive(index - 1) || isActive(index + 1)) && userData?.contents) {
-                                const contents = getContentsInList(userData.contents, lists, list?.listName);
-                                return <View style={{paddingHorizontal: 5}} key={list?.listName+"-"+(lists.map(l => l?.listName.toLowerCase()).indexOf(activeTab.toLowerCase()) ?? 0)+"-"+getRandomNumber()}>
-                                        {renderTabContent(contents, list?.listName.toLowerCase())}
-                                    </View>;
-                            } else {
-                                return <View style={{paddingHorizontal: 5}} key={list?.listName+"-"+(lists.map(l => l?.listName.toLowerCase()).indexOf(activeTab.toLowerCase()) ?? 0)+"-"+getRandomNumber()} />;
-                            }
+                        {lists.map((list) => {
+                            const contents = userData?.contents ? getContentsInList(userData.contents, lists, list.listName) : [];
+                            return (
+                                <View style={{paddingHorizontal: 5}} key={list.listName}>
+                                    {renderTabContent(contents, list.listName)}
+                                </View>
+                            );
                         })}
                     </PagerView>
 
