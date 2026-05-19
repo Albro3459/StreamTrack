@@ -2,12 +2,12 @@
 
 import { Stack, useRouter } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { Pressable, Button, View } from "react-native";
-import { Fontisto, Feather } from '@expo/vector-icons';
+import { Feather } from '@expo/vector-icons';
 import { Colors } from "../constants/Colors";
 import { useEffect } from "react";
 import { useFonts, Raleway_800ExtraBold } from '@expo-google-fonts/raleway';
 import { appStyles } from "../styles/appStyles";
+import { HeaderButton, hiddenGlassHeaderItem } from "./components/headerButtonComponent";
 // import { Kurale_400Regular } from '@expo-google-fonts/kurale';
 
 // Prevent splash screen from hiding until fonts are loaded
@@ -15,6 +15,43 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
     const router = useRouter();
+    const headerIconColor = Colors.selectedTextColor;
+
+    const backButton = (
+        <HeaderButton accessibilityLabel="Back" onPress={() => router.back()}>
+            <Feather name="chevron-left" size={32} color={headerIconColor} />
+        </HeaderButton>
+    );
+
+    const homeButton = (
+        <HeaderButton accessibilityLabel="Home" onPress={() => router.replace('/LandingPage')}>
+            <Feather name="home" size={24} color={headerIconColor} />
+        </HeaderButton>
+    );
+
+    const searchButton = (
+        <HeaderButton accessibilityLabel="Search" onPress={() => router.push('/SearchPage')}>
+            <Feather name="search" size={24} color={headerIconColor} />
+        </HeaderButton>
+    );
+
+    const profileButton = (
+        <HeaderButton
+            accessibilityLabel="Profile"
+            onPress={() => router.push({
+                pathname: '/ProfilePage',
+                params: { isSigningUp: 0 },
+            })}
+        >
+            <Feather name="user" size={24} color={headerIconColor} />
+        </HeaderButton>
+    );
+
+    const backButtonOptions = {
+        headerLeft: () => backButton,
+        unstable_headerLeftItems: () => [hiddenGlassHeaderItem(backButton)],
+        headerBackVisible: false,
+    };
 
     const [fontsLoaded] = useFonts({
         Raleway_800ExtraBold,
@@ -33,7 +70,17 @@ export default function RootLayout() {
     }
 
     return (
-        <Stack>
+        <Stack
+            screenOptions={{
+                headerBackButtonDisplayMode: "minimal",
+                headerBackButtonMenuEnabled: false,
+                headerTintColor: headerIconColor,
+                headerTitleStyle: appStyles.headerTitleStyle,
+                headerStyle: {
+                    backgroundColor: Colors.selectedColor,
+                },
+            }}
+        >
             <Stack.Screen 
                 name="index"
                 options={() => ({
@@ -52,12 +99,7 @@ export default function RootLayout() {
                 name="SearchPage" 
                 options={() => ({
                     title: "Search", 
-                    headerBackButtonDisplayMode: "minimal",
-                    headerTintColor: "white",
-                    headerTitleStyle: appStyles.headerTitleStyle,
-                    headerStyle: {
-                        backgroundColor: Colors.selectedColor,
-                    },
+                    ...backButtonOptions,
                 })}
             />
             <Stack.Screen
@@ -66,25 +108,10 @@ export default function RootLayout() {
                     title: "Stream Tracker",
                     gestureEnabled: false,
                     headerBackVisible: false,
-                    headerTitleStyle: appStyles.headerTitleStyle,
-                    headerStyle: {
-                        backgroundColor: Colors.selectedColor,
-                    },
-                    headerLeft: () => (
-                        <Pressable onPress={() => {
-                            router.push('/SearchPage');
-                        }}>
-                            <Feather name="search" size={24} color="white" />
-                        </Pressable>
-                    ),
-                    headerRight: () => (
-                        <Pressable onPress={() => router.push({
-                                    pathname: '/ProfilePage',
-                                    params: { isSigningUp: 0 }, // Have to pass as number or string
-                                })}>
-                            <Feather name="user" size={24} color="white" />
-                        </Pressable>
-                    ),
+                    headerLeft: () => searchButton,
+                    headerRight: () => profileButton,
+                    unstable_headerLeftItems: () => [hiddenGlassHeaderItem(searchButton)],
+                    unstable_headerRightItems: () => [hiddenGlassHeaderItem(profileButton)],
                 })}
             />
 
@@ -94,25 +121,14 @@ export default function RootLayout() {
                     title: "Spin to Pick",
                     // gestureEnabled: false,
                     // headerBackVisible: false,
-                    headerBackButtonDisplayMode: "minimal",
-                    headerTintColor: "white",
-                    headerTitleStyle: appStyles.headerTitleStyle,
-                    headerStyle: {
-                        backgroundColor: Colors.selectedColor,
-                    },
+                    ...backButtonOptions,
                     // headerLeft: () => (
                     //     <Pressable onPress={() => handleSpinnerPageBackPress(navigation)}>
                     //         <Feather name="chevron-left" size={32} color="white" />
                     //     </Pressable>
                     // ),
-                    headerRight: () => (
-                        <Pressable onPress={() => {
-                            // ClearLoadState();
-                            router.replace('/LandingPage');
-                        }}>
-                            <Feather name="home" size={24} color="white" />
-                        </Pressable>
-                    ),
+                    headerRight: () => homeButton,
+                    unstable_headerRightItems: () => [hiddenGlassHeaderItem(homeButton)],
                 })}
             />
            
@@ -121,12 +137,7 @@ export default function RootLayout() {
                 name="LibraryPage"
                 options={() => ({
                     title: "Library",
-                    headerBackButtonDisplayMode: "minimal",
-                    headerTintColor: "white",
-                    headerTitleStyle: appStyles.headerTitleStyle,
-                    headerStyle: {
-                        backgroundColor: Colors.selectedColor,
-                    },
+                    ...backButtonOptions,
                     // headerRight: () => (
                     //     <Pressable onPress={() => {
                     //         router.push('/SpinnerPage');
@@ -141,32 +152,18 @@ export default function RootLayout() {
                 name="InfoPage" 
                 options={() => ({
                     title: "Info", 
-                    headerBackButtonDisplayMode: "minimal",
-                    headerTintColor: "white",
-                    headerTitleStyle: appStyles.headerTitleStyle,
-                    headerStyle: {
-                        backgroundColor: Colors.selectedColor,
-                    },
-                    headerRight: () => (
-                        <Pressable onPress={() => {
-                            router.replace('/LandingPage');
-                        }}>
-                            <Feather name="home" size={24} color="white" />
-                        </Pressable>
-                    ),
+                    ...backButtonOptions,
+                    headerRight: () => homeButton,
+                    unstable_headerRightItems: () => [hiddenGlassHeaderItem(homeButton)],
                 })}
             /> 
             <Stack.Screen 
                 name="ProfilePage" 
                 options={() => ({
-                title: "Profile",
-                headerBackButtonDisplayMode: "minimal",
-                headerTintColor: "white",
-                headerTitleStyle: appStyles.headerTitleStyle,
-                headerStyle: {
-                        backgroundColor: Colors.selectedColor,
-                    },
-            })}/>
+                    title: "Profile",
+                    ...backButtonOptions,
+                })}
+            />
             
         </Stack>
     );

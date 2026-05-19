@@ -20,7 +20,7 @@ import { Stack, useRouter } from 'expo-router';
 import Heart from './components/heartComponent';
 import { appStyles } from '@/styles/appStyles';
 import { Colors } from '@/constants/Colors';
-import { Ionicons } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { fetchUserData, setUserData, useUserDataStore } from './stores/userDataStore';
 import { ContentPartialData, ListMinimalData } from './types/dataTypes';
 import { deleteUserList, FAVORITE_TAB, getContentsInList, handleCreateNewTab, isItemInList, moveItemToList, sortLists } from './helpers/StreamTrack/listHelper';
@@ -28,6 +28,7 @@ import MoveModal from './components/moveModalComponent';
 import CreateNewListModal from './components/createNewListComponent';
 import AlertMessage, { Alert } from './components/alertMessageComponent';
 import { useFocusEffect } from '@react-navigation/native';
+import { HeaderButton, hiddenGlassHeaderItem } from './components/headerButtonComponent';
 import { getPoster } from './helpers/StreamTrack/contentHelper';
 import { auth } from '@/firebaseConfig';
 
@@ -228,16 +229,26 @@ export default function LibraryPage() {
     };
 
     {/* Main Content */}
+    const doneButton = (
+        <HeaderButton accessibilityLabel="Done" onPress={() => doneDeleting(lists)}>
+            <Text style={{ color: Colors.selectedTextColor, fontWeight: "bold" }}>Done</Text>
+        </HeaderButton>
+    );
+    const backButton = (
+        <HeaderButton accessibilityLabel="Back" onPress={() => router.back()}>
+            <Feather name="chevron-left" size={32} color={Colors.selectedTextColor} />
+        </HeaderButton>
+    );
+
     return (
         <>
             <Stack.Screen
                 options={{
-                    headerLeft: deleting ? () => (
-                        <Pressable onPress={() => doneDeleting(lists)} style={{ marginRight: 16 }}>
-                            <Text style={{ color: Colors.selectedTextColor, fontWeight: "bold" }}>Done</Text>
-                        </Pressable>
-                    ) : undefined, // undefined means show the back button. I know its fucking stupid
-                    headerBackVisible: deleting ? false : true,
+                    headerLeft: deleting ? () => doneButton : () => backButton,
+                    unstable_headerLeftItems: deleting
+                        ? () => [hiddenGlassHeaderItem(doneButton)]
+                        : () => [hiddenGlassHeaderItem(backButton)],
+                    headerBackVisible: false,
                 }}
             />
             <View style={[styles.container]}>

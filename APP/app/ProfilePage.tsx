@@ -4,6 +4,7 @@ import { Text, TextInput, View, StyleSheet, ScrollView, Pressable, ActivityIndic
 import React, { useEffect, useState } from 'react';
 import { PressableBubblesGroup,} from './components/formComponents';
 import { Stack, useLocalSearchParams, useRouter } from "expo-router"
+import { Feather } from "@expo/vector-icons";
 import { Colors } from "../constants/Colors";
 import { AddPasswordLogin, DeleteAccount, LogOut } from "./helpers/authHelper";
 import { auth } from "../firebaseConfig";
@@ -14,6 +15,7 @@ import { updateUserProfile } from "./helpers/StreamTrack/userHelper";
 import { useStreamingServiceDataStore } from "./stores/streamingServiceDataStore";
 import { useGenreDataStore } from "./stores/genreDataStore";
 import AlertMessage, { Alert } from "./components/alertMessageComponent";
+import { HeaderButton, hiddenGlassHeaderItem } from "./components/headerButtonComponent";
 
 interface ProfilePageParams {
     isSigningUp?: number;
@@ -197,12 +199,20 @@ export default function ProfilePage() {
         }
     }, [firstName, isSigningUp, lastName, userData]);
 
+    const isSigningUpUser = Number(isSigningUp) === 1;
+    const backButton = (
+        <HeaderButton accessibilityLabel="Back" onPress={() => router.back()}>
+            <Feather name="chevron-left" size={32} color={Colors.selectedTextColor} />
+        </HeaderButton>
+    );
+
     return (
         <>
             <Stack.Screen
                 options={{
-                    headerLeft: Number(isSigningUp) === 1 ? () => null : undefined, // undefined means show the back button. I know its fucking stupid
-                    headerBackVisible:  Number(isSigningUp) === 1 ? false : true,
+                    headerLeft: isSigningUpUser ? () => null : () => backButton,
+                    unstable_headerLeftItems: isSigningUpUser ? () => [] : () => [hiddenGlassHeaderItem(backButton)],
+                    headerBackVisible: false,
                 }}
             />
             <View style={{ flex: 1 }}>
@@ -313,7 +323,7 @@ export default function ProfilePage() {
                         <View style={styles.deleteModalContent}>
                             <Text style={styles.deleteModalTitle}>Delete Account?</Text>
                             <Text style={styles.deleteModalText}>
-                                This will permanently delete your StreamTrack account and sign-in account.
+                                This will permanently delete your StreamTrack account.
                             </Text>
                             {showPasswordReauth() && (
                                 <TextInput
