@@ -23,6 +23,10 @@ cd StreamTrack/APP
 ```sh
 npx expo prebuild --platform ios
 ```
+to clean the build just in case:
+```sh
+npx expo prebuild --platform ios --clean
+```
 
 Use an iOS 26 simulator from Xcode 26 or later for App Store-compatible iOS builds.
 Make sure you are signed into iCloud on the simulator for sign in with Apple.

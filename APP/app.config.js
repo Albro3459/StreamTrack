@@ -52,7 +52,7 @@ export default {
             "@react-native-firebase/auth",
             [
                 "@react-native-google-signin/google-signin", { 
-                    iosUrlScheme: "com.googleusercontent.apps.179090561769-hoosdhks01bjar4h641rnnt35f4f1g0u" 
+                    iosUrlScheme: "com.googleusercontent.apps.179090561769-gkj14l1i54t2bbugloopll2fedjhmeqd" 
                 }
             ],
             [

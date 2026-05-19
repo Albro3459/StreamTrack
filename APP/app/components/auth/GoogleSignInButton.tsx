@@ -20,9 +20,10 @@ interface GoogleSignInButtonProps {
             ) => Promise<boolean>;
     onSignUp: (
                 userCreds: AuthUserCredential, router: Router, email: string,
+                firstName?: string | null, lastName?: string | null,
                 setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                 setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
-            ) => Promise<void>;
+            ) => Promise<boolean>;
 
     setAlertMessageFunc: React.Dispatch<React.SetStateAction<string>>;
     setAlertTypeFunc: React.Dispatch<React.SetStateAction<Alert>>;
@@ -50,6 +51,7 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
                 // No Error: User cancelled sign-in.
                 return;
             }
+
             const idToken = userInfo?.data?.idToken;
             const credential: OAuthCredential = GoogleAuthProvider?.credential(idToken);
             const userCredential: UserCredential = await signInWithCredential(auth, credential);
@@ -57,13 +59,20 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
             const googleCredential: AuthUserCredential = (userCredential as any) as AuthUserCredential;
             
             const isNewUser: boolean | undefined = googleCredential?._tokenResponse?.isNewUser;
-            const email = googleCredential?.user?.email || "";
+            const firstName = userInfo?.data?.user?.givenName ?? null;
+            const lastName = userInfo?.data?.user?.familyName ?? null;
+            const email = googleCredential?.user?.email || googleCredential?._tokenResponse?.email || userInfo?.data?.user?.email || "";
+
             if (isNewUser === true) {
-                await onSignUp(googleCredential, router, email, setAlertMessageFunc, setAlertTypeFunc);
-                if (auth?.currentUser) {
+                const success = await onSignUp(googleCredential, router, email, firstName, lastName, setAlertMessageFunc, setAlertTypeFunc);
+                if (success === true && auth?.currentUser) {
                     router.replace({
                         pathname: '/ProfilePage',
-                        params: { isSigningUp: 1 }, // Have to pass as number or string
+                        params: {
+                            isSigningUp: 1, // Have to pass as number or string
+                            ...(firstName && { firstName }),
+                            ...(lastName && { lastName }),
+                        },
                     });
                 } else {
                     await LogOut(auth);

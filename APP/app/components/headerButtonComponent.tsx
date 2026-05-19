@@ -34,3 +34,7 @@ export function hiddenGlassHeaderItem(element: ReactElement): NativeStackHeaderI
         hidesSharedBackground: true,
     };
 }
+
+export default function HeaderButtonComponentRoute(): null {
+    return null;
+}

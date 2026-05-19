@@ -12,17 +12,16 @@ import { LogOut } from '../../../app/helpers/authHelper';
 interface AppleSignInButtonProps {
     router: Router, 
     onSignIn: (
-        userCreds: AuthUserCredential, router: Router, email: string,
+        userCreds: AuthUserCredential, router: Router, email: string | null,
         setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
         setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
     ) => Promise<boolean>;
     onSignUp: (
-        userCreds: AuthUserCredential, router: Router, email: string,
-        firstName?: string | null,
-        lastName?: string | null,
+        userCreds: AuthUserCredential, router: Router, email: string | null,
+        firstName?: string | null, lastName?: string | null,
         setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
         setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
-    ) => Promise<void>;
+    ) => Promise<boolean>;
     setAlertMessageFunc: React.Dispatch<React.SetStateAction<string>>;
     setAlertTypeFunc: React.Dispatch<React.SetStateAction<Alert>>;
 }
@@ -57,11 +56,13 @@ export const AppleSignInButton: React.FC<AppleSignInButtonProps> = ({
                 .then(async (userCredential: UserCredential) => {
                     const appleCredential = (userCredential as any) as AuthUserCredential;
                     const isNewUser: boolean | undefined = appleCredential?._tokenResponse?.isNewUser;
+                    const firstName = credential?.fullName?.givenName ?? null;
+                    const lastName = credential?.fullName?.familyName ?? null;
+
+                    const email = appleCredential?.user?.email ?? appleCredential?._tokenResponse?.email ?? credential?.email ?? null;
                     if (isNewUser === true) {
-                        const firstName = credential?.fullName?.givenName ?? null;
-                        const lastName = credential?.fullName?.familyName ?? null;
-                        await onSignUp(appleCredential, router, appleCredential?.user?.email, firstName, lastName, setAlertMessageFunc, setAlertTypeFunc);
-                        if (auth?.currentUser) {
+                        const success = await onSignUp(appleCredential, router, email, firstName, lastName, setAlertMessageFunc, setAlertTypeFunc);
+                        if (success === true && auth?.currentUser) {
                             router.replace({
                                 pathname: '/ProfilePage',
                                 params: { 
@@ -74,7 +75,7 @@ export const AppleSignInButton: React.FC<AppleSignInButtonProps> = ({
                             await LogOut(auth);
                         }
                     } else {
-                        const success: boolean = await  onSignIn(appleCredential, router, appleCredential?.user?.email, setAlertMessageFunc, setAlertTypeFunc);
+                        const success: boolean = await  onSignIn(appleCredential, router, email, setAlertMessageFunc, setAlertTypeFunc);
                         if (success === true) {
                             router.replace("/LandingPage");
                         } else {
