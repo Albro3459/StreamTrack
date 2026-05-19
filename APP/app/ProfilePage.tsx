@@ -427,13 +427,13 @@ const styles = StyleSheet.create({
         paddingBottom: 5,
     },
     pressableContainer: {
+        width: "90%",
+        alignSelf: "center",
         flexWrap: "wrap",
         flexDirection: "row",
         alignItems: "flex-start",
         rowGap: 5,
         columnGap: 5,
-        paddingLeft: 20,
-        paddingRight: 16,
         marginBottom: 15,
     },
     textInput: {

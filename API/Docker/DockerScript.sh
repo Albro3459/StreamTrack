@@ -6,8 +6,8 @@
 
 set -euo pipefail
 
-# Server Restore DB: `./DockerScript.sh RESTORE_FROM_BACKUP=./backups/streamtrack_2026-05-19_15-57-49.sql` to restore from a backup and start DB, API, and Caddy
-# Local Restore DB: `./DockerScript.sh OCI_PROFILE=oracle RESTORE_FROM_BACKUP=./backups/streamtrack_2026-05-19_15-57-49.sql LOCAL_API=true` to restore from a backup and start DB, API, and IGNORE Caddy
+# Server Restore DB: `./DockerScript.sh RESTORE_FROM_BACKUP=./backups/streamtrack_2026-05-19_22-02-51.sql` to restore from a backup and start DB, API, and Caddy
+# Local Restore DB: `./DockerScript.sh OCI_PROFILE=oracle RESTORE_FROM_BACKUP=./backups/streamtrack_2026-05-19_22-02-51.sql LOCAL_API=true` to restore from a backup and start DB, API, and IGNORE Caddy
 
 # Server start app: `./DockerScript.sh` to starts DB, API, and Caddy
 # Local start API only: `./DockerScript.sh OCI_PROFILE=oracle LOCAL_API=true` to use the oracle OCI profile and start DB, API, and IGNORE Caddy

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { View, Image, Text, TextInput, StyleSheet, ActivityIndicator, Pressable, TouchableWithoutFeedback, Keyboard, KeyboardAvoidingView, ScrollView, Platform } from "react-native";
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { auth } from "../firebaseConfig";
-import { Router, useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { Colors } from "../constants/Colors";
 import { AppleSignIn, AppleSignUp, GoogleSignIn, GoogleSignUp, LogOut, SignIn, SignUp } from "./helpers/authHelper";
 import { appStyles } from "../styles/appStyles";
@@ -237,8 +237,9 @@ const styles = StyleSheet.create({
     },
     logo: {
         alignSelf: "center",
-        width: 1000,
-        height: 300,
+        width: "100%",
+        maxWidth: 420,
+        height: 220,
         marginTop: -90,
         marginBottom: -40,
     },
@@ -251,6 +252,9 @@ const styles = StyleSheet.create({
     },
     inputContainer: {
         ...appStyles.inputContainer,
+        alignSelf: "center",
+        width: "100%",
+        maxWidth: 360,
         marginBottom: 32,
         padding: 18,
     },
