@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# MUST BE RUN ON THE SERVER
+
 # Use this to create the initial server application or uncomment the needed commands to update the API code, run migrations, and/or reload Caddy
 
 # Run from the Docker directory!
@@ -41,7 +43,9 @@ docker compose up -d db # DB first (background)
 # MAKE A BACKUP FIRST WITH PGDUMP!!! AND MAKE SURE MIGRATIONS PRESERVE USER DATA
 # echo "Backing up the DB before applying migrations..."
 # mkdir -p backups
-# docker compose exec -T db pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" > backups/streamtrack_$(date +%F_%H-%M-%S).sql
+# export BACKUP_FILE="backups/streamtrack_$(date +%F_%H-%M-%S).sql"
+# docker compose exec -T db pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" > $BACKUP_FILE
+# echo "Backup saved to $(pwd)/$BACKUP_FILE"
 
 # echo "Running database migrations..."
 # docker compose build migrate # may need to add --no-cache if the build is stale and can't see new migrations

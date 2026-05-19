@@ -7,15 +7,18 @@ Swagger URL: http://localhost:5000/swagger/index.html
 cd StreamTrack/API
 ```
 
-* For Docker commands, you have to be in the Docker directory and you should only run these commands from the docker directory anyway.
+**NOTE**: For Docker commands, you have to be in the Docker directory and you should only run these commands from the docker directory anyway.
 
 #### Make a DB backup!
 * Please make a backup before any database changes
+* On the server, use [BackupDB](./Docker/BackupDB.sh) to make the backup.
 ```sh
 cd Docker
-mkdir -p backups
-docker compose exec -T db pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB" > backups/streamtrack_$(date +%F_%H-%M-%S).sql
+./BackupDB.sh
 ```
+
+#### Get a DB backup copy locally
+* See [BackupAndDownloadDB](./Docker/BackupAndDownloadDB.md) for the server backup and `scp` flow.
 
 #### To build the server or apply updated or a new migration:
 * See [DockerScript](./Docker/DockerScript.sh)
