@@ -93,18 +93,18 @@ until docker compose exec -T db pg_isready -U "$POSTGRES_USER" -d "$POSTGRES_DB"
 done
 
 # RESTORE ONLY ***************************************************************************************************
-if [[ -n "$RESTORE_FROM_BACKUP" ]]; then
-  if [[ ! -f "$RESTORE_FROM_BACKUP" ]]; then
-    echo "Backup file does not exist: $RESTORE_FROM_BACKUP" >&2
-    exit 1
-  fi
+# if [[ -n "$RESTORE_FROM_BACKUP" ]]; then
+#   if [[ ! -f "$RESTORE_FROM_BACKUP" ]]; then
+#     echo "Backup file does not exist: $RESTORE_FROM_BACKUP" >&2
+#     exit 1
+#   fi
 
-  echo "Restoring from backup file: $RESTORE_FROM_BACKUP" >&2
-  docker compose exec -T db psql -v ON_ERROR_STOP=1 --single-transaction \
-    -U "$POSTGRES_USER" -d "$POSTGRES_DB" < "$RESTORE_FROM_BACKUP"
+#   echo "Restoring from backup file: $RESTORE_FROM_BACKUP" >&2
+#   docker compose exec -T db psql -v ON_ERROR_STOP=1 --single-transaction \
+#     -U "$POSTGRES_USER" -d "$POSTGRES_DB" < "$RESTORE_FROM_BACKUP"
 
-  # exit 0 # uncomment if you want restart only 
-fi
+#   # exit 0 # uncomment if you want restart only 
+# fi
 # ****************************************************************************************************************
 
 # Only need to run on a fresh db or when running new migrations! *************************************************
@@ -128,8 +128,9 @@ if [[ "$LOCAL_API" == "true" ]]; then
 else
   echo "Starting API and Caddy reverse proxy..."
   # If you made API (and/or changes to the Caddy file/config by adding the 'caddy' service), run this first:
-  # docker compose build api # may need to add --no-cache
+  # docker compose build api # may need to add --no-cache. Add 'caddy' if needed
   docker compose up -d api caddy # Then start API and Caddy reverse proxy (background)
+  # docker compose up -d --force-recreate caddy # May need to run this (after starting the API) if Caddy still doesn't reload
 fi
 
 # To Stop with `docker compose stop` and Start with `docker compose start db api caddy`
