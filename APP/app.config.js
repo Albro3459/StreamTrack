@@ -5,7 +5,7 @@ const BackgroundColor = require("./constants/BackgroundColor");
 export default {
     expo: {
         name: "StreamTrack",
-        slug: "stream_track",
+        slug: "streamtrack",
         owner: "albro3459",
         version: "1.0.0",
         orientation: "portrait",
@@ -74,7 +74,7 @@ export default {
         extra: {
             router: {},
             eas: {
-                projectId: "8b6758e2-1727-486e-9570-b2fecd06aa1e"
+                projectId: "92d43521-1b7c-45f6-b809-58376ddada85"
             },
             // Secrets
             DATA_API_URL: process.env.DATA_API_URL,
