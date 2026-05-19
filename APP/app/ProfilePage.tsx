@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { PressableBubblesGroup,} from './components/formComponents';
 import { Stack, useLocalSearchParams, useRouter } from "expo-router"
 import { Colors } from "../constants/Colors";
-import { DeleteAccount, LogOut } from "./helpers/authHelper";
+import { AddPasswordLogin, DeleteAccount, LogOut } from "./helpers/authHelper";
 import { auth } from "../firebaseConfig";
 import { appStyles } from "../styles/appStyles";
 import { fetchUserData, setUserData, useUserDataStore } from "./stores/userDataStore";
@@ -28,8 +28,15 @@ export default function ProfilePage() {
     const [isEditing, setIsEditing] = useState<boolean>(!isSigningUp ? false : Number(isSigningUp) === 1 ? true : false);
     const [saving, setSaving] = useState<boolean>(false);
     const [deleting, setDeleting] = useState<boolean>(false);
+    const [addingPassword, setAddingPassword] = useState<boolean>(false);
     const [deleteModalVisible, setDeleteModalVisible] = useState<boolean>(false);
+    const [passwordModalVisible, setPasswordModalVisible] = useState<boolean>(false);
+    const [newPassword, setNewPassword] = useState<string>("");
+    const [confirmNewPassword, setConfirmNewPassword] = useState<string>("");
     const [deletePassword, setDeletePassword] = useState<string>("");
+    const [providerIds, setProviderIds] = useState<string[]>(
+        auth.currentUser?.providerData?.map(provider => provider.providerId) ?? []
+    );
 
     const { userData } = useUserDataStore();
     const { streamingServiceData, loading: streamingServiceLoading, error: streamingServiceError } = useStreamingServiceDataStore();
@@ -123,8 +130,38 @@ export default function ProfilePage() {
     };
 
     const showPasswordReauth = () => {
-        const providerIds = auth.currentUser?.providerData?.map(provider => provider.providerId) ?? [];
         return providerIds.includes("password") && !providerIds.includes("apple.com") && !providerIds.includes("google.com");
+    };
+
+    const showAddPasswordLogin = () => {
+        return !providerIds.includes("password") && (providerIds.includes("apple.com") || providerIds.includes("google.com"));
+    };
+
+    const closePasswordModal = () => {
+        setPasswordModalVisible(false);
+        setNewPassword("");
+        setConfirmNewPassword("");
+    };
+
+    const handleAddPasswordLogin = async () => {
+        if (newPassword !== confirmNewPassword) {
+            setAlertMessage("Passwords do not match");
+            setAlertType(Alert.Error);
+            return;
+        }
+
+        try {
+            setAddingPassword(true);
+            setAlertMessage("");
+            setAlertType(Alert.Error);
+            const success = await AddPasswordLogin(auth, newPassword, setAlertMessage, setAlertType);
+            if (success) {
+                setProviderIds(auth.currentUser?.providerData?.map(provider => provider.providerId) ?? []);
+                closePasswordModal();
+            }
+        } finally {
+            setAddingPassword(false);
+        }
     };
 
     const renderOptionsState = (loading: boolean, error: string | null, hasData: boolean) => {
@@ -155,6 +192,7 @@ export default function ProfilePage() {
                 userData?.user?.streamingServices ? new Set(userData.user.streamingServices.map(s => s.name))
                     : new Set()
             );
+            setProviderIds(auth.currentUser?.providerData?.map(provider => provider.providerId) ?? []);
             setIsEditing(false);
         }
     }, [firstName, isSigningUp, lastName, userData]);
@@ -251,6 +289,11 @@ export default function ProfilePage() {
                                 <Pressable style={appStyles.button} onPress={async () => { await LogOut(auth); router.replace('/LoginPage');}}>
                                     <Text style={appStyles.buttonText}>Logout</Text>
                                 </Pressable>
+                                {showAddPasswordLogin() && (
+                                    <Pressable style={[appStyles.button, appStyles.secondaryButton, styles.passwordLoginButton]} onPress={() => setPasswordModalVisible(true)}>
+                                        <Text style={[appStyles.buttonText, appStyles.secondaryButtonText]}>Add Password Login</Text>
+                                    </Pressable>
+                                )}
                                 <Pressable style={styles.deleteAccountButton} onPress={() => setDeleteModalVisible(true)}>
                                     <Text style={styles.deleteAccountText}>Delete Account</Text>
                                 </Pressable>
@@ -299,8 +342,55 @@ export default function ProfilePage() {
                     </View>
                 </Modal>
 
+                <Modal
+                    visible={passwordModalVisible}
+                    transparent
+                    animationType="fade"
+                    onRequestClose={closePasswordModal}
+                >
+                    <View style={appStyles.modalOverlay}>
+                        <View style={styles.deleteModalContent}>
+                            <Text style={styles.deleteModalTitle}>Add Password Login</Text>
+                            <Text style={styles.deleteModalText}>
+                                Use {auth.currentUser?.email} with a password next time you sign in.
+                            </Text>
+                            <TextInput
+                                style={styles.deletePasswordInput}
+                                placeholder="Password"
+                                placeholderTextColor={Colors.italicTextColor}
+                                value={newPassword}
+                                onChangeText={setNewPassword}
+                                secureTextEntry
+                                autoCapitalize="none"
+                                autoCorrect={false}
+                            />
+                            <TextInput
+                                style={styles.deletePasswordInput}
+                                placeholder="Confirm Password"
+                                placeholderTextColor={Colors.italicTextColor}
+                                value={confirmNewPassword}
+                                onChangeText={setConfirmNewPassword}
+                                secureTextEntry
+                                autoCapitalize="none"
+                                autoCorrect={false}
+                            />
+                            <View style={styles.deleteModalButtons}>
+                                <Pressable style={styles.cancelButton} onPress={closePasswordModal}>
+                                    <Text style={styles.cancelButtonText}>Cancel</Text>
+                                </Pressable>
+                                <Pressable
+                                    style={styles.confirmPasswordButton}
+                                    onPress={handleAddPasswordLogin}
+                                >
+                                    <Text style={styles.confirmDeleteText}>Add</Text>
+                                </Pressable>
+                            </View>
+                        </View>
+                    </View>
+                </Modal>
+
                 {/* Overlay */}
-                {(saving || deleting) && (
+                {(saving || deleting || addingPassword) && (
                     <View style={appStyles.overlay}>
                         <ActivityIndicator size="large" color="#fff" />
                     </View>
@@ -387,6 +477,10 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 18,
     },
+    passwordLoginButton: {
+        marginTop: 18,
+        width: 220,
+    },
     deleteAccountText: {
         color: "#ff8f8f",
         fontSize: 16,
@@ -448,5 +542,13 @@ const styles = StyleSheet.create({
         color: Colors.selectedTextColor,
         fontSize: 16,
         fontWeight: "600",
+    },
+    confirmPasswordButton: {
+        backgroundColor: Colors.selectedColor,
+        borderRadius: 10,
+        paddingVertical: 12,
+        paddingHorizontal: 18,
+        minWidth: 100,
+        alignItems: "center",
     },
 });

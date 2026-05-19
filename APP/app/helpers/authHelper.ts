@@ -1,7 +1,7 @@
 "use client";
 
 import * as AppleAuthentication from 'expo-apple-authentication';
-import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, UserCredential, GoogleAuthProvider, EmailAuthProvider, OAuthProvider, GoogleSignin, reauthenticateWithCredential, revokeAccessToken, secrets } from "../../firebaseConfig";
+import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, UserCredential, GoogleAuthProvider, EmailAuthProvider, OAuthProvider, GoogleSignin, reauthenticateWithCredential, revokeAccessToken, linkWithCredential, secrets } from "../../firebaseConfig";
 import { checkIfUserExists, createUser, deleteUserAccount, updateUserProfile } from "./StreamTrack/userHelper";
 import { CACHE, ClearCache, FetchCache } from "./cacheHelper";
 import { Alert } from "../components/alertMessageComponent";
@@ -65,11 +65,69 @@ export const LogOut = async (auth: Auth) => {
     await signOut(auth);
 };
 
+export const AddPasswordLogin = async (
+    auth: Auth,
+    password: string,
+    setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>,
+    setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+): Promise<boolean> => {
+    const user = auth?.currentUser;
+    const email = user?.email?.trim();
+
+    if (!user || !email) {
+        if (setAlertMessageFunc) setAlertMessageFunc("Sign in with Google or Apple before adding password login");
+        if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
+        return false;
+    }
+
+    if (password.length < 6) {
+        if (setAlertMessageFunc) setAlertMessageFunc("Password must be at least 6 characters");
+        if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
+        return false;
+    }
+
+    const providerIds = getProviderIds(auth);
+    if (providerIds.includes("password")) {
+        if (setAlertMessageFunc) setAlertMessageFunc("Password login is already enabled");
+        if (setAlertTypeFunc) setAlertTypeFunc(Alert.Info);
+        return false;
+    }
+
+    if (!providerIds.includes("apple.com") && !providerIds.includes("google.com")) {
+        if (setAlertMessageFunc) setAlertMessageFunc("Sign in with Google or Apple before adding password login");
+        if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
+        return false;
+    }
+
+    try {
+        await reauthenticateCurrentUser(auth);
+        const credential = EmailAuthProvider.credential(email, password);
+        await linkWithCredential(user, credential);
+        await user.reload();
+        if (setAlertMessageFunc) setAlertMessageFunc("Password login added");
+        if (setAlertTypeFunc) setAlertTypeFunc(Alert.Success);
+        return true;
+    } catch (e: any) {
+        console.warn("Add password login failed", e);
+        if (setAlertMessageFunc) {
+            if (e?.code === "auth/provider-already-linked") {
+                setAlertMessageFunc("Password login is already enabled");
+            } else if (e?.code === "auth/credential-already-in-use" || e?.code === "auth/email-already-in-use") {
+                setAlertMessageFunc("That email is already linked to another sign-in account");
+            } else {
+                setAlertMessageFunc(e?.message || "Add password login failed");
+            }
+        }
+        if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
+        return false;
+    }
+};
+
 const getProviderIds = (auth: Auth): string[] => {
     return auth?.currentUser?.providerData?.map(provider => provider.providerId) ?? [];
 };
 
-const reauthenticateAppleUser = async (auth: Auth) => {
+const reauthenticateAppleUser = async (auth: Auth, revokeAccess: boolean = false) => {
     const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
             AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
@@ -77,17 +135,19 @@ const reauthenticateAppleUser = async (auth: Auth) => {
         ],
     });
 
-    if (!credential.identityToken || !credential.authorizationCode) {
+    if (!credential.identityToken || (revokeAccess && !credential.authorizationCode)) {
         throw new Error("Apple reauthentication failed");
     }
 
     const provider = new OAuthProvider('apple.com');
     const firebaseCredential = provider.credential({ idToken: credential.identityToken });
     await reauthenticateWithCredential(auth.currentUser, firebaseCredential);
-    await revokeAccessToken(auth, credential.authorizationCode);
+    if (revokeAccess) {
+        await revokeAccessToken(auth, credential.authorizationCode);
+    }
 };
 
-const reauthenticateGoogleUser = async (auth: Auth) => {
+const reauthenticateGoogleUser = async (auth: Auth, revokeAccess: boolean = false) => {
     GoogleSignin?.configure({
         webClientId: secrets.webClientID,
         iosClientId: secrets.iosClientID,
@@ -107,7 +167,9 @@ const reauthenticateGoogleUser = async (auth: Auth) => {
 
     const firebaseCredential = GoogleAuthProvider.credential(idToken);
     await reauthenticateWithCredential(auth.currentUser, firebaseCredential);
-    await GoogleSignin?.revokeAccess();
+    if (revokeAccess) {
+        await GoogleSignin?.revokeAccess();
+    }
 };
 
 const reauthenticatePasswordUser = async (auth: Auth, password?: string) => {
@@ -118,6 +180,23 @@ const reauthenticatePasswordUser = async (auth: Auth, password?: string) => {
 
     const firebaseCredential = EmailAuthProvider.credential(email, password);
     await reauthenticateWithCredential(auth.currentUser, firebaseCredential);
+};
+
+const reauthenticateCurrentUser = async (auth: Auth, password?: string, revokeAccess: boolean = false) => {
+    const providerIds = getProviderIds(auth);
+
+    if (providerIds.includes('apple.com')) {
+        await reauthenticateAppleUser(auth, revokeAccess);
+    } else if (providerIds.includes('google.com')) {
+        await reauthenticateGoogleUser(auth, revokeAccess);
+    } else if (providerIds.includes('password')) {
+        if (!password) {
+            throw new Error("Enter your password to continue");
+        }
+        await reauthenticatePasswordUser(auth, password);
+    } else {
+        throw new Error("No supported sign-in provider found");
+    }
 };
 
 export const DeleteAccount = async (
@@ -133,15 +212,7 @@ export const DeleteAccount = async (
     }
 
     try {
-        const providerIds = getProviderIds(auth);
-
-        if (providerIds.includes('apple.com')) {
-            await reauthenticateAppleUser(auth);
-        } else if (providerIds.includes('google.com')) {
-            await reauthenticateGoogleUser(auth);
-        } else if (providerIds.includes('password')) {
-            await reauthenticatePasswordUser(auth, password);
-        }
+        await reauthenticateCurrentUser(auth, password, true);
 
         const token = await auth.currentUser.getIdToken(true);
         const streamTrackDeleted = await deleteUserAccount(router, token, setAlertMessageFunc, setAlertTypeFunc);
@@ -162,10 +233,11 @@ export const DeleteAccount = async (
     }
 };
 
-export const SignUp = async (auth: Auth, router: Router, email: string, password: string,
-                                setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
-                                setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
-) => {
+export const SignUp = async (
+    auth: Auth, router: Router, email: string, password: string,
+    setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
+    setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+): Promise<boolean> => {
     ClearCache(CACHE.USER);
     if (!auth) {
         if (setAlertMessageFunc) setAlertMessageFunc(prev => {
@@ -173,7 +245,7 @@ export const SignUp = async (auth: Auth, router: Router, email: string, password
             if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
             return 'Sign Up auth failed';
         });
-        return;
+        return false;
     }
     email = email?.trim();
     if (!email.includes('@') || !email.includes('.')) {
@@ -182,25 +254,38 @@ export const SignUp = async (auth: Auth, router: Router, email: string, password
             if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
             return 'Sign Up invalid email';
         });
-        return;
+        return false;
     }
-    const userCreds: UserCredential = await createUserWithEmailAndPassword(auth, email, password);
+    let userCreds: UserCredential;
+    try {
+        userCreds = await createUserWithEmailAndPassword(auth, email, password);
+    } catch (e: any) {
+        if (e?.code === "auth/email-already-in-use") {
+            if (setAlertMessageFunc) setAlertMessageFunc("Email already in use. Try sign in with Google or Apple, then add password login from Profile.");
+            if (setAlertTypeFunc) setAlertTypeFunc(Alert.Info);
+            return false;
+        }
+        throw e;
+    }
 
-    const user = userCreds.user;
+    const user = userCreds?.user;
     if (user) {
         const token = await user?.getIdToken() ?? null;
         await createUser(router, token, setAlertMessageFunc, setAlertTypeFunc);
         token && FetchCache(router, token, setAlertMessageFunc, setAlertTypeFunc);
+        return true;
     } else {
         console.warn('Sign Up user failed'); 
         if (setAlertMessageFunc) setAlertMessageFunc('Sign Up user failed'); 
         if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
+        return false;
     }
 };
 
-export const AppleSignIn = async (userCreds: AuthUserCredential, router: Router, email: string,
-                                setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
-                                setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+export const AppleSignIn = async (
+    userCreds: AuthUserCredential, router: Router, email: string,
+    setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
+    setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ) : Promise<boolean> => {
     ClearCache(CACHE.USER);
     if (!userCreds) {

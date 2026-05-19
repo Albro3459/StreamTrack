@@ -40,7 +40,7 @@ xcodebuild \
   -scheme StreamTrack \
   -configuration Debug \
   -sdk iphonesimulator \
-  -destination 'platform=iOS Simulator,name=iPhone 17 Pro,OS=26.1' \
+  -destination 'platform=iOS Simulator,OS=latest,name=iPhone 17 Pro' \
   CODE_SIGNING_ALLOWED=NO \
   build
 cd -

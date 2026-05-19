@@ -5,7 +5,7 @@ import { View, Text, StyleSheet, Pressable, StatusBar} from "react-native";
 export enum Alert {
     Error = "error",
     Info = "info",
-    Successs = "success"
+    Success = "success"
 }
 
 interface AlertProps {
@@ -25,9 +25,9 @@ const AlertMessage: React.FC<AlertProps> = ({
 
   return (
     <View style={[styles.overlay, styles[type], onIndex && styles.onIndex]}>
-        <Text style={[styles.text, type === Alert.Successs ? styles.successText : styles.errorText]}>{message}</Text>
+        <Text style={[styles.text, type === Alert.Success ? styles.successText : styles.errorText]}>{message}</Text>
         <Pressable onPress={() => setMessage("")} style={styles.closeBtn}>
-          <Text style={[styles.closeText, type === Alert.Successs ? styles.successText : styles.errorText]}>X</Text>
+          <Text style={[styles.closeText, type === Alert.Success ? styles.successText : styles.errorText]}>X</Text>
         </Pressable>
     </View>
   );
