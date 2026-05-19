@@ -23,6 +23,7 @@ services:
             - DOTNET_RUNNING_IN_CONTAINER=true
             - OCI_REGION=${OCI_REGION}
             - SECRET_OCID=${SECRET_OCID}
+            - STREAMTRACK_SECRET_JSON=${STREAMTRACK_SECRET_JSON}
 
     api:
         restart: unless-stopped
@@ -34,11 +35,12 @@ services:
         environment:
             - ASPNETCORE_ENVIRONMENT=Production
             - DOTNET_RUNNING_IN_CONTAINER=true
-            - ASPNETCORE_URLS=http://+:5000
+            - ASPNETCORE_URLS=http://+:6969
             - OCI_REGION=${OCI_REGION}
             - SECRET_OCID=${SECRET_OCID}
+            - STREAMTRACK_SECRET_JSON=${STREAMTRACK_SECRET_JSON}
         ports:
-            - "5000:5000"
+            - "127.0.0.1:6969:6969"
 
     caddy:
         build:

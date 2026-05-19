@@ -1,6 +1,6 @@
 # API
 
-Swagger URL: http://localhost:5000/swagger/index.html
+Local Docker Swagger URL: http://localhost:6969/swagger/index.html
 
 ## Commands
 ```sh

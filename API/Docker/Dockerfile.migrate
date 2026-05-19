@@ -18,5 +18,5 @@ ENV PATH="${PATH}:/root/.dotnet/tools"
 COPY ./Docker/MigrationScript.sh .
 RUN chmod +x ./MigrationScript.sh
 
-EXPOSE 5000
+EXPOSE 6969
 ENTRYPOINT ["bash", "./MigrationScript.sh"]

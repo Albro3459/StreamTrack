@@ -21,7 +21,7 @@ streamtrack.gocloudlaunch.com {
         }
     }
 
-    reverse_proxy api:5000
+    reverse_proxy api:6969
     encode gzip
     log {
         output stdout

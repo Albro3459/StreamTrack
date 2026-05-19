@@ -56,7 +56,7 @@ scp streamtrack:~/StreamTrack/API/Docker/backups/streamtrack_2026-05-19_15-23-44
 ```
 
 If `scp` looks stuck, it may just be copying without progress output. Add `-v` for connection details or use `rsync` for progress:
-
+* Note `rsync` must be installed on both the VM and local Mac
 ```sh
 rsync -avP streamtrack:/home/ubuntu/StreamTrack/API/Docker/backups/streamtrack_2026-05-19_15-23-44.sql ./backups/
 ```

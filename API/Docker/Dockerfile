@@ -23,5 +23,5 @@ RUN apt-get update && apt-get install -y netcat-openbsd
 COPY ./Docker/APIScript.sh .
 RUN chmod +x /app/APIScript.sh
 
-EXPOSE 5000
+EXPOSE 6969
 ENTRYPOINT ["bash", "./APIScript.sh"]

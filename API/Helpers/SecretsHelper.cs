@@ -19,6 +19,7 @@ public static class SecretsHelper {
 
     private const string OCI_REGION = "OCI_REGION";
     private const string SECRET_OCID = "SECRET_OCID";
+    private const string STREAMTRACK_SECRET_JSON = "STREAMTRACK_SECRET_JSON";
 
     public static async Task<string> GetSecretKey(Secrets secret) {
         using var doc = await GetSecretJsonDocument();
@@ -39,6 +40,11 @@ public static class SecretsHelper {
     }
 
     private static async Task<JsonDocument> GetSecretJsonDocument() {
+        string? localSecretJson = Environment.GetEnvironmentVariable(STREAMTRACK_SECRET_JSON);
+        if (!string.IsNullOrWhiteSpace(localSecretJson)) {
+            return JsonDocument.Parse(localSecretJson);
+        }
+
         string region = Environment.GetEnvironmentVariable(OCI_REGION)
             ?? throw new InvalidOperationException($"Missing required environment variable {OCI_REGION}.");
         string secretOcid = Environment.GetEnvironmentVariable(SECRET_OCID)
