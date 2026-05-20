@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.OpenApi.Models;
+using System.Net;
 
 using API.Infrastructure;
 using API.Service;
@@ -80,7 +81,18 @@ builder.Services.AddScoped<HelperService>();
 builder.Services.AddScoped<PosterService>();
 builder.Services.AddScoped<PopularSortingService>();
 builder.Services.AddSingleton<FirebaseAdminService>();
-builder.Services.AddHttpClient<APIService>();
+
+// TMDB's CloudFront path has returned malformed gzip bodies over HTTP/1.1 from the OCI VM so using HTTP/2 because it keeps decompression reliable
+builder.Services.AddHttpClient(APIService.TMDBHttpClientName, client => {
+    client.DefaultRequestVersion = HttpVersion.Version20;
+    client.DefaultVersionPolicy = HttpVersionPolicy.RequestVersionOrHigher;
+}).ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler {
+    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli
+});
+builder.Services.AddHttpClient<APIService>().ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler {
+    AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate | DecompressionMethods.Brotli
+});
+
 builder.Services.AddSingleton<BackgroundTaskQueue>();
 builder.Services.AddHostedService<QueuedHostedService>();
 

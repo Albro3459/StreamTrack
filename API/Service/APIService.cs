@@ -21,8 +21,10 @@ public class APIService {
 
     private readonly StreamTrackDbContext context;
     private readonly HttpClient httpClient;
+    private readonly HttpClient tmdbHttpClient;
     private readonly PosterService posterService;
     private readonly IMapper mapper;
+    public const string TMDBHttpClientName = "TMDB";
     private const string RapidAPI_Base_Url = "https://streaming-availability.p.rapidapi.com/shows/";
     private const string RapidAPI_Ending = "?series_granularity=show&output_language=en&country=us";
     private const string RapidApiKeyHeader = "x-rapidapi-key";
@@ -37,9 +39,10 @@ public class APIService {
     // Safe across concurrent requests, lock on TMDB_IDs while they are being refreshed.
     private static readonly ConcurrentDictionary<string, byte> InFlightPosterRefreshIds = new();
 
-    public APIService(StreamTrackDbContext _context, HttpClient _httpClient, PosterService _posterService, IMapper _mapper) {
+    public APIService(StreamTrackDbContext _context, HttpClient _httpClient, IHttpClientFactory _httpClientFactory, PosterService _posterService, IMapper _mapper) {
         context = _context;
         httpClient = _httpClient;
+        tmdbHttpClient = _httpClientFactory.CreateClient(TMDBHttpClientName);
         posterService = _posterService;
         mapper = _mapper;
     }
@@ -112,7 +115,7 @@ public class APIService {
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await SecretsHelper.GetSecretKey(Secrets.TMDBBearerToken));
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-        using var response = await httpClient.SendAsync(request);
+        using var response = await tmdbHttpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
         string json = await response.Content.ReadAsStringAsync();
 
@@ -155,7 +158,7 @@ public class APIService {
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", await SecretsHelper.GetSecretKey(Secrets.TMDBBearerToken));
         request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-        using var response = await httpClient.SendAsync(request);
+        using var response = await tmdbHttpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
         string json = await response.Content.ReadAsStringAsync();
 
