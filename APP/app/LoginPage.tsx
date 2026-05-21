@@ -37,6 +37,15 @@ export default function LoginPage() {
     const [alertMessage, setAlertMessage] = useState<string>("");
     const [alertType, setAlertType] = useState<Alert>(Alert.Error);
 
+    const continueAsGuest = () => {
+        const target = Array.isArray(returnTo) ? returnTo[0] : returnTo;
+        if (target?.startsWith("/LibraryPage")) {
+            router.replace("/LandingPage");
+            return;
+        }
+        navigateToReturnTo(router, returnTo);
+    };
+
     // Main submit handler
     const handleAuth = async () => {
         setAlertMessage("");
@@ -220,7 +229,7 @@ export default function LoginPage() {
                             />
                             <Pressable
                                 style={[appStyles.button, appStyles.secondaryButton, {marginTop: 15}]}
-                                onPress={() => navigateToReturnTo(router, returnTo)}
+                                onPress={continueAsGuest}
                             >
                                 <Text style={[appStyles.buttonText, appStyles.secondaryButtonText]}>Continue as Guest</Text>
                             </Pressable>
