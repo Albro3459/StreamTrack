@@ -5,7 +5,7 @@ import { auth, User, secrets } from "../../../firebaseConfig";
 import { setUserData, useUserDataStore } from "../../../app/stores/userDataStore";
 import { Alert } from "../../../app/components/alertMessageComponent";
 import { Router } from "expo-router";
-import { authHeader, handleAccountUnauthorized } from "./authRequiredHelper";
+import { authHeader, handleAccountUnauthorized } from "./authApiHelper";
 
 export const FAVORITE_TAB = "Favorites";
 

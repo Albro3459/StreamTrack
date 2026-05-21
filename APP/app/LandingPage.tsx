@@ -153,7 +153,7 @@ export default function LandingPage () {
                     />
                 }
             >
-                <Text style={styles.welcomeText}>WELCOME{Number(justSignedUp) === 1 ? "" : " BACK"}{userData?.user?.firstName?.length > 0 && " "+userData.user.firstName.toUpperCase()}!</Text>
+                <Text style={styles.welcomeText}>WELCOME{(isGuest || Number(justSignedUp) === 1) ? "" : " BACK"}{userData?.user?.firstName?.length > 0 && " "+userData.user.firstName.toUpperCase()}!</Text>
                 <View style={{ marginBottom: 24, alignItems: "center" }}>
                     <Carousel<ContentSimpleData>
                         ref={carouselRef}

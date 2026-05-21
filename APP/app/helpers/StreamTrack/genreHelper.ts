@@ -4,7 +4,7 @@ import { GenreData } from "../../types/dataTypes";
 import { Alert } from "../../../app/components/alertMessageComponent";
 import { secrets } from "../../../firebaseConfig";
 import { Router } from "expo-router";
-import { authHeader } from "./authRequiredHelper";
+import { authHeader } from "./authApiHelper";
 
 export const getGenreData = async (router: Router, token?: string | null,
                                     setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 

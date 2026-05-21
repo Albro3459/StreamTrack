@@ -4,7 +4,7 @@ import { Alert } from "../../../app/components/alertMessageComponent";
 import { StreamingServiceData } from "../../../app/types/dataTypes";
 import { secrets } from "../../../firebaseConfig";
 import { Router } from "expo-router";
-import { authHeader } from "./authRequiredHelper";
+import { authHeader } from "./authApiHelper";
 
 export const getStreamingServiceData = async (router: Router, token?: string | null,
                                                 setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 

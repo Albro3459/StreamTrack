@@ -4,7 +4,7 @@ import { Alert } from "../../../app/components/alertMessageComponent";
 import { ContentData, ContentInfoData, ContentPartialData, ContentRequestData, ContentSimpleData, PopularContentData } from "../../../app/types/dataTypes";
 import { secrets } from "../../../firebaseConfig";
 import { Router } from "expo-router";
-import { authHeader } from "./authRequiredHelper";
+import { authHeader } from "./authApiHelper";
 
 const missingVerticalPoster: number = require('@/assets/images/MissingVerticalPoster.png') || "";
 const missingHorizontalPoster: number = require('@/assets/images/MissingHorizontalPoster.png') || "";

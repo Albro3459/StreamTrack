@@ -4,7 +4,7 @@ import { ContentPartialData, UpdateUserProfileData, UserMinimalData } from "../.
 import { Alert } from "../../../app/components/alertMessageComponent";
 import { secrets } from "../../../firebaseConfig";
 import { Router } from "expo-router";
-import { authHeader, handleAccountUnauthorized } from "./authRequiredHelper";
+import { authHeader, handleAccountUnauthorized } from "./authApiHelper";
 
 export const checkIfUserExists = async (token: string,
                                         setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 

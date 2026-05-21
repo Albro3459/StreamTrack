@@ -39,7 +39,7 @@ export default function LoginPage() {
 
     const continueAsGuest = () => {
         const target = Array.isArray(returnTo) ? returnTo[0] : returnTo;
-        if (target?.startsWith("/LibraryPage")) {
+        if (target?.startsWith("/LibraryPage") || target?.startsWith("/ProfilePage")) {
             router.replace("/LandingPage");
             return;
         }
@@ -228,7 +228,7 @@ export default function LoginPage() {
                                 setAlertTypeFunc={setAlertType}         
                             />
                             <Pressable
-                                style={[appStyles.button, appStyles.secondaryButton, {marginTop: 15}]}
+                                style={[appStyles.button, appStyles.secondaryButton, styles.continueAsGuestButton, {marginTop: 15}]}
                                 onPress={continueAsGuest}
                             >
                                 <Text style={[appStyles.buttonText, appStyles.secondaryButtonText]}>Continue as Guest</Text>
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
         width: "100%",
         maxWidth: 420,
         height: 220,
-        marginTop: -90,
+        marginTop: -50,
         marginBottom: -40,
     },
     title: {
@@ -289,5 +289,8 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontStyle: "italic",
         textDecorationLine: "underline"
+    },
+    continueAsGuestButton: {
+        width: 200,
     },
 });
