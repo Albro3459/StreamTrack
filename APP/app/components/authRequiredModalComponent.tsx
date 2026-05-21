@@ -13,7 +13,7 @@ export default function AuthRequiredModal() {
 
     const goToAuth = () => {
         hideAuthPrompt();
-        router.push({
+        router.replace({
             pathname: "/LoginPage",
             params: { returnTo },
         });
