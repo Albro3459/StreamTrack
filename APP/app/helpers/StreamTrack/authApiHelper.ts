@@ -2,6 +2,7 @@
 
 import { clearCache } from "../../stores/contentCacheStore";
 import { DEFAULT_AUTH_RETURN_TO, showAuthPrompt } from "../../stores/authPromptStore";
+import { auth, signOut } from "../../../firebaseConfig";
 
 let clearUserAccountData = () => {};
 
@@ -13,9 +14,16 @@ export const authHeader = (token?: string | null) => (
     token ? { Authorization: `Bearer ${token}` } : {}
 );
 
-export const handleAccountUnauthorized = (returnTo: string = DEFAULT_AUTH_RETURN_TO, showPrompt: boolean = false) => {
+export const handleAccountUnauthorized = async (returnTo: string = DEFAULT_AUTH_RETURN_TO, showPrompt: boolean = false) => {
     clearUserAccountData();
     clearCache();
+    if (auth.currentUser) {
+        try {
+            await signOut(auth);
+        } catch (e: any) {
+            console.warn("Firebase sign out after unauthorized account failed", e);
+        }
+    }
     if (showPrompt) {
         showAuthPrompt(returnTo);
     }

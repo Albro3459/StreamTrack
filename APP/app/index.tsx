@@ -5,8 +5,8 @@ import { View, Image, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 
 import { Colors } from "../constants/Colors";
-import { auth, onAuthStateChanged, User } from "../firebaseConfig";
-import { checkIfUserExists } from "./helpers/StreamTrack/userHelper";
+import { auth, onAuthStateChanged, signOut, User } from "../firebaseConfig";
+import { checkIfUserExists, UserExistsResult } from "./helpers/StreamTrack/userHelper";
 import { CACHE, ClearCache, FetchCache } from "./helpers/cacheHelper";
 import AlertMessage, { Alert } from "./components/alertMessageComponent";
 
@@ -20,12 +20,19 @@ export default function Index() {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             const asyncCheck = async (user: User) => {
                 const token = await user.getIdToken();
-                const userExists: boolean = await checkIfUserExists(token, setAlertMessage, setAlertType);
-                if (userExists) {
+                const userExists: UserExistsResult = await checkIfUserExists(token, setAlertMessage, setAlertType);
+                if (userExists.exists) {
                     FetchCache(router, token, setAlertMessage, setAlertType);
                 } 
                 else {
-                    ClearCache(CACHE.USER);
+                    if (userExists.status === 401) {
+                        ClearCache(CACHE.USER);
+                        try {
+                            await signOut(auth);
+                        } catch (e: any) {
+                            console.warn("Firebase sign out after missing StreamTrack account failed", e);
+                        }
+                    }
                     FetchCache(router, null, setAlertMessage, setAlertType, CACHE.POPULAR, CACHE.GENRE, CACHE.STREAMING);
                 }
                 router.replace("/LandingPage");

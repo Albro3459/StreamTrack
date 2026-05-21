@@ -83,11 +83,11 @@ export const handleCreateNewTab = async (
                     const user: User | null = auth.currentUser;
                     const userData = useUserDataStore.getState().userData;
                     if (!user) {
-                        handleAccountUnauthorized("/LandingPage", true);
+                        await handleAccountUnauthorized("/LandingPage", true);
                         return;
                     }
                     if (!userData) {
-                        handleAccountUnauthorized("/LandingPage", true);
+                        await handleAccountUnauthorized("/LandingPage", true);
                         return;
                     }
                     const token = await user.getIdToken();
@@ -144,12 +144,12 @@ export const moveItemToList = async (router: Router, content: ContentPartialData
         }
         const user: User | null = auth.currentUser;
         if (!user) {
-            handleAccountUnauthorized("/LandingPage", true);
+            await handleAccountUnauthorized("/LandingPage", true);
             return;
         }
         const userData = useUserDataStore.getState().userData;
         if (!userData) {
-            handleAccountUnauthorized("/LandingPage", true);
+            await handleAccountUnauthorized("/LandingPage", true);
             return;
         }
         const token = await user.getIdToken();
@@ -221,7 +221,7 @@ export const addContentToUserList = async (router: Router, token: string | null,
         if (!result.ok) {
             if (result.status === 401) {
                 console.warn("Unauthorized");
-                handleAccountUnauthorized("/LandingPage", true);
+                await handleAccountUnauthorized("/LandingPage", true);
                 return null;
             }
             let text = await result.text();
@@ -271,7 +271,7 @@ export const removeContentFromUserList = async (router: Router, token: string | 
         if (!result.ok) {
             if (result.status === 401) {
                 console.warn("Unauthorized");
-                handleAccountUnauthorized("/LandingPage", true);
+                await handleAccountUnauthorized("/LandingPage", true);
                 return null;
             }
             const text = await result.text();
@@ -316,7 +316,7 @@ export const createNewUserList = async (router: Router, token: string | null, li
         if (!result.ok) {
             if (result.status === 401) {
                 console.warn("Unauthorized");
-                handleAccountUnauthorized("/LandingPage", true);
+                await handleAccountUnauthorized("/LandingPage", true);
                 return null;
             }
             const text = await result.text();
@@ -361,7 +361,7 @@ export const deleteUserList = async (router: Router, token: string | null, listN
         if (!result.ok) {
             if (result.status === 401) {
                 console.warn("Unauthorized");
-                handleAccountUnauthorized("/LandingPage", true);
+                await handleAccountUnauthorized("/LandingPage", true);
                 return false;
             }
             const text = await result.text();

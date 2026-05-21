@@ -38,7 +38,8 @@ export const SignIn = async (auth: Auth, router: Router, email: string, password
     const user = auth.currentUser;
     const token = await user?.getIdToken() ?? null;
     if (token) {
-        if (!await checkIfUserExists(token)) { // intentionally NOT passing error funcs
+        const userExists = await checkIfUserExists(token); // intentionally NOT passing error funcs
+        if (userExists.status === 401) {
             // doesnt exist in DB, but does in Firebase, so try to create the user
             const token = await user?.getIdToken() ?? null;
             const success: boolean = await createUser(router, token); // intentionally NOT passing error funcs
@@ -46,7 +47,7 @@ export const SignIn = async (auth: Auth, router: Router, email: string, password
                 FetchCache(router, token, setAlertMessageFunc, setAlertTypeFunc);
                 return true;
             }
-        } else {
+        } else if (userExists.exists) {
             FetchCache(router, token, setAlertMessageFunc, setAlertTypeFunc);
             return true;
         }
@@ -310,14 +311,14 @@ export const AppleSignIn = async (
     const token = await getUserIdToken(userCreds);
     if (token) {
         const userExists = await checkIfUserExists(token);
-        if (!userExists) { // intentionally NOT passing error funcs
+        if (userExists.status === 401) { // intentionally NOT passing error funcs
             // doesnt exist in DB, but does in Firebase, so try to create the user
             const success: boolean = await createUser(router, token); // intentionally NOT passing error funcs
             if (success) {
                 FetchCache(router, token, setAlertMessageFunc, setAlertTypeFunc);
                 return true;
             }
-        } else {
+        } else if (userExists.exists) {
             FetchCache(router, token, setAlertMessageFunc, setAlertTypeFunc);
             return true;
         }
@@ -401,14 +402,14 @@ export const GoogleSignIn = async (
     const token = await getUserIdToken(userCreds);
     if (token) {
         const userExists = await checkIfUserExists(token);
-        if (!userExists) { // intentionally NOT passing error funcs
+        if (userExists.status === 401) { // intentionally NOT passing error funcs
             // doesnt exist in DB, but does in Firebase, so try to create the user
             const success: boolean = await createUser(router, token); // intentionally NOT passing error funcs
             if (success) {
                 FetchCache(router, token, setAlertMessageFunc, setAlertTypeFunc);
                 return true;
             }
-        } else {
+        } else if (userExists.exists) {
             FetchCache(router, token, setAlertMessageFunc, setAlertTypeFunc);
             return true;
         }

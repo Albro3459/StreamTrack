@@ -6,10 +6,16 @@ import { secrets } from "../../../firebaseConfig";
 import { Router } from "expo-router";
 import { authHeader, handleAccountUnauthorized } from "./authApiHelper";
 
-export const checkIfUserExists = async (token: string,
-                                        setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
-                                        setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
-): Promise<boolean> => {
+export type UserExistsResult = {
+    exists: boolean;
+    status: number | null;
+};
+
+export const checkIfUserExists = async (
+    token: string,
+    setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
+    setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+): Promise<UserExistsResult> => {
     try {
         const url = secrets.dataAPIURL + "API/User/Check";
 
@@ -25,28 +31,30 @@ export const checkIfUserExists = async (token: string,
         const result = await fetch(url, options);
 
         if (!result.ok) {
-            // Don't need to check unauthorized here because caller will handle it
             const text = await result.text();
             console.warn(`Error getting user data ${result.status}: ${text}`);
-            if (setAlertMessageFunc) setAlertMessageFunc('User does not exist'); 
+            if (setAlertMessageFunc) {
+                setAlertMessageFunc(result.status >= 500 ? 'StreamTrack is temporarily unavailable' : 'User does not exist');
+            }
             if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
-            return false;
+            return { exists: false, status: result.status };
         }
         else {
-            return true;
+            return { exists: true, status: result.status };
         }
 
     } catch (err) {
         console.warn('Fetch user data failed:', err);
         if (setAlertMessageFunc) setAlertMessageFunc('Fetch user data failed'); 
         if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
-        return false;
+        return { exists: false, status: null };
     }
 };
 
-export const getUserMinimalData = async (router: Router, token: string,
-                                        setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
-                                        setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+export const getUserMinimalData = async (
+    router: Router, token: string,
+    setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
+    setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ): Promise<UserMinimalData | null> => {
     try {
         const url = secrets.dataAPIURL + "API/User/Get";
@@ -65,7 +73,7 @@ export const getUserMinimalData = async (router: Router, token: string,
         if (!result.ok) {
             if (result.status === 401) {
                 console.warn("Unauthorized");
-                handleAccountUnauthorized();
+                await handleAccountUnauthorized();
                 return null;
             }
             const text = await result.text();
@@ -86,9 +94,10 @@ export const getUserMinimalData = async (router: Router, token: string,
     }
 };
 
-export const getUserContents = async (router: Router, token: string,
-                                        setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
-                                        setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+export const getUserContents = async (
+    router: Router, token: string,
+    setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
+    setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ): Promise<ContentPartialData[] | null> => {
     try {
         const url = secrets.dataAPIURL + "API/User/GetContents";
@@ -107,7 +116,7 @@ export const getUserContents = async (router: Router, token: string,
         if (!result.ok) {
             if (result.status === 401) {
                 console.warn("Unauthorized");
-                handleAccountUnauthorized();
+                await handleAccountUnauthorized();
                 return null;
             }
             const text = await result.text();
@@ -128,9 +137,10 @@ export const getUserContents = async (router: Router, token: string,
     }
 };
 
-export const createUser = async (router: Router, token: string | null,
-                                    setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
-                                    setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+export const createUser = async (
+    router: Router, token: string | null,
+    setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
+    setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ) => {
     try {
         if (!token) return null;
@@ -151,7 +161,7 @@ export const createUser = async (router: Router, token: string | null,
         if (!result.ok) {
             if (result.status === 401) {
                 console.warn("Unauthorized");
-                handleAccountUnauthorized("/LandingPage", true);
+                await handleAccountUnauthorized("/LandingPage", true);
                 return null;
             }
             const text = await result.text();
@@ -169,10 +179,11 @@ export const createUser = async (router: Router, token: string | null,
     }
 };
 
-export const updateUserProfile = async (router: Router, token: string | null, firstName: string | null, lastName: string | null, 
-                                        genres: Set<string>, streamingServices: Set<string>,
-                                        setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
-                                        setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+export const updateUserProfile = async (
+    router: Router, token: string | null, firstName: string | null, lastName: string | null, 
+    genres: Set<string>, streamingServices: Set<string>,
+    setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
+    setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ) : Promise<UserMinimalData | null> => {
     try {
         if (!token) return null;    
@@ -201,7 +212,7 @@ export const updateUserProfile = async (router: Router, token: string | null, fi
         if (!result.ok) {
             if (result.status === 401) {
                 console.warn("Unauthorized");
-                handleAccountUnauthorized("/ProfilePage?isSigningUp=0", true);
+                await handleAccountUnauthorized("/ProfilePage?isSigningUp=0", true);
                 return null;
             }
             const text = await result.text();
@@ -222,9 +233,10 @@ export const updateUserProfile = async (router: Router, token: string | null, fi
     }
 };
 
-export const deleteUserAccount = async (router: Router, token: string | null,
-                                        setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
-                                        setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+export const deleteUserAccount = async (
+    router: Router, token: string | null,
+    setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
+    setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ): Promise<boolean> => {
     try {
         if (!token) return false;
@@ -245,7 +257,7 @@ export const deleteUserAccount = async (router: Router, token: string | null,
         if (!result.ok) {
             if (result.status === 401) {
                 console.warn("Unauthorized");
-                handleAccountUnauthorized("/ProfilePage?isSigningUp=0", true);
+                await handleAccountUnauthorized("/ProfilePage?isSigningUp=0", true);
                 return false;
             }
             if (result.status === 403) {
