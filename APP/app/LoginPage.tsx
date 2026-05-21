@@ -11,15 +11,18 @@ import { appStyles } from "../styles/appStyles";
 import AlertMessage, { Alert } from "./components/alertMessageComponent";
 import { GoogleSignInButton } from "./components/auth/GoogleSignInButton";
 import { AppleSignInButton } from "./components/auth/AppleSignInButton";
+import { DEFAULT_AUTH_RETURN_TO } from "./stores/authPromptStore";
+import { navigateToReturnTo } from "./helpers/StreamTrack/authRequiredHelper";
 
 interface LoginPageParams {
     unauthorized?: number;
+    returnTo?: string;
 }
 
 export default function LoginPage() {
     const router = useRouter();
 
-    const { unauthorized } = useLocalSearchParams() as LoginPageParams;
+    const { unauthorized, returnTo } = useLocalSearchParams() as LoginPageParams;
 
     const [signing, setSigning] = useState<boolean>(false);
 
@@ -66,7 +69,7 @@ export default function LoginPage() {
                 if (auth?.currentUser) {
                     router.replace({
                         pathname: '/ProfilePage',
-                        params: { isSigningUp: 1 }, // Have to pass as number or string
+                        params: { isSigningUp: 1, returnTo: returnTo || DEFAULT_AUTH_RETURN_TO }, // Have to pass as number or string
                     });
                 } else {
                     await LogOut(auth);
@@ -75,7 +78,7 @@ export default function LoginPage() {
                 setSigning(true);
                 const success: boolean = await SignIn(auth, router, email?.trim(), password, setAlertMessage, setAlertType);
                 if (success) {
-                    router.replace("/LandingPage");
+                    navigateToReturnTo(router, returnTo);
                 } else {
                     await LogOut(auth);
                 }
@@ -202,6 +205,7 @@ export default function LoginPage() {
                                 router={router}
                                 onSignIn={AppleSignIn}    
                                 onSignUp={AppleSignUp}       
+                                returnTo={returnTo || DEFAULT_AUTH_RETURN_TO}
                                 setAlertMessageFunc={setAlertMessage}
                                 setAlertTypeFunc={setAlertType}         
                             />
@@ -210,9 +214,16 @@ export default function LoginPage() {
                                 router={router}
                                 onSignIn={GoogleSignIn}    
                                 onSignUp={GoogleSignUp}       
+                                returnTo={returnTo || DEFAULT_AUTH_RETURN_TO}
                                 setAlertMessageFunc={setAlertMessage}
                                 setAlertTypeFunc={setAlertType}         
                             />
+                            <Pressable
+                                style={[appStyles.button, appStyles.secondaryButton, {marginTop: 15}]}
+                                onPress={() => navigateToReturnTo(router, returnTo)}
+                            >
+                                <Text style={[appStyles.buttonText, appStyles.secondaryButtonText]}>Continue as Guest</Text>
+                            </Pressable>
                         </View>
 
                         {/* Overlay */}

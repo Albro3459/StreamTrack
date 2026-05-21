@@ -10,6 +10,7 @@ import { useState } from "react";
 import CreateNewListModal from "./createNewListComponent";
 import { Alert } from "./alertMessageComponent";
 import { Router } from "expo-router";
+import { showAuthPrompt } from "../stores/authPromptStore";
 
 interface MoveModalProps {
     router: Router, 
@@ -42,6 +43,8 @@ interface MoveModalProps {
     // Used fo create new list modal
     setRefsFunc?: (index: number, length: number) => void,
     setActiveTabFunc?: React.Dispatch<React.SetStateAction<string>>,
+    requiresAuth?: boolean;
+    authReturnTo?: string;
 }
 
 export default function MoveModal({ 
@@ -61,10 +64,18 @@ export default function MoveModal({
     setAlertTypeFunc,
     setRefsFunc,
     setActiveTabFunc,
+    requiresAuth = false,
+    authReturnTo = "/LandingPage",
 } : MoveModalProps) {
 
     const [createListModalVisible, setCreateListModalVisible] = useState<boolean>(false);
     const [newListName, setNewListName] = useState<string>("");
+
+    const showAccountPrompt = () => {
+        setVisibilityFunc(false);
+        setAutoPlayFunc && setAutoPlayFunc(true);
+        showAuthPrompt(authReturnTo);
+    };
 
     if (!selectedContent) return null;
 
@@ -88,7 +99,7 @@ export default function MoveModal({
                             </Text>
                         )}
                         <Pressable
-                            onPress={() => {setVisibilityFunc(false); setCreateListModalVisible(true);}}
+                            onPress={() => requiresAuth ? showAccountPrompt() : (setVisibilityFunc(false), setCreateListModalVisible(true))}
                             style={{ position: "absolute", right: 0, top: -5 }}
                         >
                             <Ionicons name="add" size={28} color="white" />
@@ -106,7 +117,7 @@ export default function MoveModal({
                                         appStyles.modalButton,
                                         isSelected && appStyles.selectedModalButton,
                                     ]}
-                                    onPress={async () => await moveItemFunc(router, selectedContent, list.listName, lists, setListsFunc, setIsLoadingFunc, setVisibilityFunc, setAutoPlayFunc, setAlertMessageFunc, setAlertTypeFunc)}
+                                    onPress={async () => requiresAuth ? showAccountPrompt() : await moveItemFunc(router, selectedContent, list.listName, lists, setListsFunc, setIsLoadingFunc, setVisibilityFunc, setAutoPlayFunc, setAlertMessageFunc, setAlertTypeFunc)}
                                 >
                                     <Text style={[
                                         appStyles.modalButtonText,
@@ -126,7 +137,7 @@ export default function MoveModal({
                             <Heart
                                 isSelected={() => isItemInListFunc(lists, FAVORITE_TAB, selectedContent?.tmdbID)}
                                 size={35}
-                                onPress={async () => await moveItemFunc(router, selectedContent, FAVORITE_TAB, lists, setListsFunc, setIsLoadingFunc, setVisibilityFunc, setAutoPlayFunc)}
+                                onPress={async () => requiresAuth ? showAccountPrompt() : await moveItemFunc(router, selectedContent, FAVORITE_TAB, lists, setListsFunc, setIsLoadingFunc, setVisibilityFunc, setAutoPlayFunc)}
                             />
                             </View>
                         )}

@@ -1,9 +1,10 @@
 import { Alert } from "../../../app/components/alertMessageComponent";
 import { ContentPartialData } from "../../../app/types/dataTypes";
-import { auth, signOut, secrets } from "../../../firebaseConfig";
+import { secrets } from "../../../firebaseConfig";
 import { Router } from "expo-router";
+import { authHeader } from "./authRequiredHelper";
 
-export const searchTMDB = async (router: Router, token: string, keyword: string,
+export const searchTMDB = async (router: Router, token: string | null, keyword: string,
                                         setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                         setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>,
 ): Promise<ContentPartialData[]> => {
@@ -23,22 +24,13 @@ export const searchTMDB = async (router: Router, token: string, keyword: string,
             headers: {
                 accept: 'application/json',
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
+                ...authHeader(token)
             },
         };
 
         const result = await fetch(url, options);
 
         if (!result.ok) {
-            if (result.status === 401) {
-                console.warn("Unauthorized");
-                await signOut(auth);
-                router.replace({
-                    pathname: '/LoginPage',
-                    params: { unauthorized: 1 },
-                });
-                return [];
-            }
             const text = await result.text();
             console.warn(`Error searching TMDB ${result.status}: ${text}`);
             if (setAlertMessageFunc) setAlertMessageFunc('Error searching'); 

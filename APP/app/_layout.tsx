@@ -8,6 +8,7 @@ import { useEffect } from "react";
 import { useFonts, Raleway_800ExtraBold } from '@expo-google-fonts/raleway';
 import { appStyles } from "../styles/appStyles";
 import { HeaderButton, hiddenGlassHeaderItem } from "./components/headerButtonComponent";
+import AuthRequiredModal from "./components/authRequiredModalComponent";
 // import { Kurale_400Regular } from '@expo-google-fonts/kurale';
 
 // Prevent splash screen from hiding until fonts are loaded
@@ -70,6 +71,7 @@ export default function RootLayout() {
     }
 
     return (
+        <>
         <Stack
             screenOptions={{
                 headerBackButtonDisplayMode: "minimal",
@@ -166,5 +168,7 @@ export default function RootLayout() {
             />
             
         </Stack>
+        <AuthRequiredModal />
+        </>
     );
 }

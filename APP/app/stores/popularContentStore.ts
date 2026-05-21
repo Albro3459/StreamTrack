@@ -7,7 +7,7 @@ import { Alert } from '../components/alertMessageComponent';
 import { Router } from 'expo-router';
 
 // Wrappers
-export const fetchPopularContent = (router: Router, token: string,
+export const fetchPopularContent = (router: Router, token?: string | null,
                                     setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                     setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ) => {
@@ -23,7 +23,7 @@ interface PopularContentStore {
     popularContent: PopularContentData | null;
     loading: boolean;
     error: string | null;
-    fetchPopularContent: (router: Router, token: string,
+    fetchPopularContent: (router: Router, token?: string | null,
                             setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                             setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
     ) => Promise<void>;
@@ -35,7 +35,7 @@ export const usePopularContentStore = create<PopularContentStore>((set) => ({
     loading: false,
     error: null,
 
-    fetchPopularContent: async (router: Router, token: string,
+    fetchPopularContent: async (router: Router, token?: string | null,
                                     setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                     setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
     ) => {

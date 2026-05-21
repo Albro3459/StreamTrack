@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 
 using API.DTOs;
 using API.Infrastructure;
@@ -38,14 +39,8 @@ public class StreamingController : ControllerBase {
 
     // GET: API/Streaming/GetMain
     [HttpGet("GetMain")]
+    [AllowAnonymous]
     public async Task<ActionResult<List<StreamingServiceDTO>>> GetMainStreamingProfileOptions() {
-        string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (string.IsNullOrEmpty(uid))
-            return Unauthorized();
-        var user = await context.User.FirstOrDefaultAsync(u => u.UserID == uid);
-        if (user == null) return Unauthorized();
-
         // See db context for the main ones
         List<string> mainIDs = new List<string> { "1", "2", "3", "4", "5", "6", "7", "8" };
 

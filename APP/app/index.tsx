@@ -1,16 +1,14 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { View, Image, StyleSheet, Pressable, Text } from "react-native";
+import { View, Image, StyleSheet } from "react-native";
 import { useRouter } from "expo-router";
 
 import { Colors } from "../constants/Colors";
 import { auth, onAuthStateChanged, User } from "../firebaseConfig";
 import { checkIfUserExists } from "./helpers/StreamTrack/userHelper";
-import { FetchCache } from "./helpers/cacheHelper";
+import { CACHE, ClearCache, FetchCache } from "./helpers/cacheHelper";
 import AlertMessage, { Alert } from "./components/alertMessageComponent";
-import { LogOut } from "./helpers/authHelper";
-import { appStyles } from "../styles/appStyles";
 
 export default function Index() {
     const router = useRouter();
@@ -18,24 +16,29 @@ export default function Index() {
     const [alertMessage, setAlertMessage] = useState<string>("");
     const [alertType, setAlertType] = useState<Alert>(Alert.Error);
 
-    const [badUserAccount, setBadUserAccount] = useState<boolean>(false);
-
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
             const asyncCheck = async (user: User) => {
                 const token = await user.getIdToken();
                 const userExists: boolean = await checkIfUserExists(token, setAlertMessage, setAlertType);
                 if (userExists) {
-                    setBadUserAccount(false);
                     FetchCache(router, token, setAlertMessage, setAlertType);
-                    router.replace("/LandingPage");
                 } 
                 else {
-                    setBadUserAccount(true);
+                    ClearCache(CACHE.USER);
+                    FetchCache(router, null, setAlertMessage, setAlertType, CACHE.POPULAR, CACHE.GENRE, CACHE.STREAMING);
                 }
+                router.replace("/LandingPage");
             }
 
-            user ? asyncCheck(user) : router.replace("/LoginPage");
+            if (user) {
+                asyncCheck(user);
+            }
+            else {
+                ClearCache(CACHE.USER);
+                FetchCache(router, null, setAlertMessage, setAlertType, CACHE.POPULAR, CACHE.GENRE, CACHE.STREAMING);
+                router.replace("/LandingPage");
+            }
         });
         return unsubscribe;
     }, []);
@@ -53,12 +56,6 @@ export default function Index() {
                 style={styles.logo}
                 resizeMode="contain"
             />
-
-            {badUserAccount && (
-                <Pressable style={[appStyles.button, {position: "absolute", bottom: 50, alignSelf: "center"}]} onPress={async () => {await LogOut(auth); router.replace('/LoginPage');}}>
-                    <Text style={appStyles.buttonText}>Reset App</Text>
-                </Pressable>
-            )}
         </View>
     );
 }

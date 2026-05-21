@@ -10,7 +10,7 @@ import { appStyles } from '@/styles/appStyles';
 import { Feather } from '@expo/vector-icons';
 import { useUserDataStore } from './stores/userDataStore';
 import { ContentData, ContentPartialData, ContentSimpleData, ListMinimalData } from './types/dataTypes';
-import { FAVORITE_TAB, isItemInList, moveItemToList, sortLists } from './helpers/StreamTrack/listHelper';
+import { FAVORITE_TAB, getGuestLists, isItemInList, moveItemToList, sortLists } from './helpers/StreamTrack/listHelper';
 import MoveModal from './components/moveModalComponent';
 import { StarRating } from './components/starRatingComponent';
 import AlertMessage, { Alert } from './components/alertMessageComponent';
@@ -20,13 +20,14 @@ import { getPoster } from './helpers/StreamTrack/contentHelper';
 import { usePopularContentStore } from './stores/popularContentStore';
 import { searchTMDB } from './helpers/StreamTrack/searchHelper';
 import { auth } from '@/firebaseConfig';
+import { getCurrentUserToken, requireAccount } from './helpers/StreamTrack/authRequiredHelper';
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
 export default function SearchPage() {    
     const router = useRouter();
     
-    const { userData } = useUserDataStore();
+    const { userData, loading: userDataLoading } = useUserDataStore();
     const { contentCache, cacheSearch } = useCacheStore();
     const { popularContent } = usePopularContentStore();
     
@@ -43,7 +44,8 @@ export default function SearchPage() {
 
     const [moveModalVisible, setMoveModalVisible] = useState<boolean>(false);
 
-    const [lists, setLists] = useState<ListMinimalData[] | null>([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]);
+    const isGuest = !auth.currentUser || (!userData && !userDataLoading);
+    const [lists, setLists] = useState<ListMinimalData[] | null>(sortLists(userData ? [...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []] : getGuestLists()));
 
     const [selectedContent, setSelectedContent] = useState<ContentPartialData>(null);
 
@@ -71,7 +73,7 @@ export default function SearchPage() {
 
                 contents = getCachedSearch(searchText) ?? [];
                 if (contents?.length === 0) {
-                    contents = await searchTMDB(router, await auth?.currentUser?.getIdToken(), searchText, setAlertMessage, setAlertType) ?? [];
+                    contents = await searchTMDB(router, await getCurrentUserToken(), searchText, setAlertMessage, setAlertType) ?? [];
                     cacheSearch(searchText, contents);
                 }
                 setContents(contents);
@@ -87,9 +89,7 @@ export default function SearchPage() {
 
     useFocusEffect(
         useCallback(() => {
-            if (userData) {
-                setLists(sortLists([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]));
-            }
+            setLists(sortLists(userData ? [...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []] : getGuestLists()));
         }, [userData])
     );
 
@@ -186,7 +186,7 @@ export default function SearchPage() {
                                             <Heart 
                                                 isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
                                                 size={30}
-                                                onPress={async () => await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsSearching, () => {}, () => {}, setAlertMessage, setAlertType)}
+                                                onPress={async () => isGuest ? requireAccount("/SearchPage") : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsSearching, () => {}, () => {}, setAlertMessage, setAlertType)}
                                             />
                                         </View>
                                     </Pressable>
@@ -234,7 +234,7 @@ export default function SearchPage() {
                                         <Heart 
                                             isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
                                             size={30}
-                                            onPress={async () => await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsSearching, () => {}, () => {}, setAlertMessage, setAlertType)}
+                                            onPress={async () => isGuest ? requireAccount("/SearchPage") : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsSearching, () => {}, () => {}, setAlertMessage, setAlertType)}
                                         />
                                     </View>
                                 </Pressable>
@@ -272,7 +272,7 @@ export default function SearchPage() {
                             <Heart 
                                 isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
                                 size={35}
-                                onPress={async () => await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsSearching, () => {}, () => {}, setAlertMessage, setAlertType)}
+                                onPress={async () => isGuest ? requireAccount("/SearchPage") : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsSearching, () => {}, () => {}, setAlertMessage, setAlertType)}
                             />
                         </View>
                     </Pressable>
@@ -295,6 +295,8 @@ export default function SearchPage() {
                     isItemInListFunc={isItemInList}
 
                     setListsFunc={setLists}
+                    requiresAuth={isGuest}
+                    authReturnTo="/SearchPage"
                     
                     setAlertMessageFunc={setAlertMessage}
                     setAlertTypeFunc={setAlertType}

@@ -16,17 +16,20 @@ import { useStreamingServiceDataStore } from "./stores/streamingServiceDataStore
 import { useGenreDataStore } from "./stores/genreDataStore";
 import AlertMessage, { Alert } from "./components/alertMessageComponent";
 import { HeaderButton, hiddenGlassHeaderItem } from "./components/headerButtonComponent";
+import { DEFAULT_AUTH_RETURN_TO } from "./stores/authPromptStore";
+import { getCurrentUserToken, navigateToReturnTo, requireAccount } from "./helpers/StreamTrack/authRequiredHelper";
 
 interface ProfilePageParams {
     isSigningUp?: number;
     firstName?: string;
     lastName?: string;
+    returnTo?: string;
 }
 
 export default function ProfilePage() {
     const router = useRouter();
 
-    const { isSigningUp, firstName, lastName } = useLocalSearchParams() as ProfilePageParams;
+    const { isSigningUp, firstName, lastName, returnTo } = useLocalSearchParams() as ProfilePageParams;
     const [isEditing, setIsEditing] = useState<boolean>(!isSigningUp ? false : Number(isSigningUp) === 1 ? true : false);
     const [saving, setSaving] = useState<boolean>(false);
     const [deleting, setDeleting] = useState<boolean>(false);
@@ -40,7 +43,7 @@ export default function ProfilePage() {
         auth.currentUser?.providerData?.map(provider => provider.providerId) ?? []
     );
 
-    const { userData } = useUserDataStore();
+    const { userData, loading: userDataLoading } = useUserDataStore();
     const { streamingServiceData, loading: streamingServiceLoading, error: streamingServiceError } = useStreamingServiceDataStore();
     const { genreData, loading: genreLoading, error: genreError } = useGenreDataStore();
 
@@ -62,12 +65,16 @@ export default function ProfilePage() {
     );
 
     const [refreshing, setRefreshing] = useState(false);
+    const isGuest = !auth.currentUser || (!userData && !userDataLoading);
     const onRefresh = async () => {
+        if (isGuest) return;
         setRefreshing(true);
         setAlertMessage("");
         setAlertType(Alert.Error);
         try {
-            await fetchUserData(router, await auth.currentUser.getIdToken(), setAlertMessage, setAlertType);
+            const token = await getCurrentUserToken();
+            if (!token) return;
+            await fetchUserData(router, token, setAlertMessage, setAlertType);
         } finally {
             setRefreshing(false);
         }
@@ -101,10 +108,7 @@ export default function ProfilePage() {
             setSaving(false);
     
             if (Number(isSigningUp) === 1) {
-                router.replace({
-                    pathname: '/LandingPage',
-                    params: { justSignedUp: 1 }
-                });
+                navigateToReturnTo(router, returnTo || DEFAULT_AUTH_RETURN_TO);
             }
         }
     };
@@ -200,6 +204,7 @@ export default function ProfilePage() {
     }, [firstName, isSigningUp, lastName, userData]);
 
     const isSigningUpUser = Number(isSigningUp) === 1;
+    const showGuestProfileOverlay = isGuest && !isSigningUpUser;
     const backButton = (
         <HeaderButton accessibilityLabel="Back" onPress={() => router.back()}>
             <Feather name="chevron-left" size={32} color={Colors.selectedTextColor} />
@@ -233,8 +238,12 @@ export default function ProfilePage() {
                         />
                     }
                 >
+                    <View style={styles.profileBodyWrapper}>
                     {/* First container */}
-                    <View style={[styles.container]}>
+                    <View
+                        style={[styles.container, showGuestProfileOverlay && styles.guestProfileBody]}
+                        pointerEvents={showGuestProfileOverlay ? "none" : "auto"}
+                    >
                         <View style={[styles.labelContainer, {paddingTop: 10}]}>
                             <Text style={styles.labelText}>First Name</Text>
                         </View>
@@ -244,6 +253,7 @@ export default function ProfilePage() {
                             value={firstNameText || ""}
                             autoCapitalize="words"
                             onChangeText={(newText) => {setFirstNameText(newText); setIsEditing(true);}}
+                            editable={!showGuestProfileOverlay}
                         />
                         <View style={styles.labelContainer}>
                             <Text style={styles.labelText}>Last Name</Text>
@@ -254,6 +264,7 @@ export default function ProfilePage() {
                             value={lastNameText || ""}
                             autoCapitalize="words"
                             onChangeText={(newText) => {setLastNameText(newText); setIsEditing(true);}}
+                            editable={!showGuestProfileOverlay}
                         />
 
                         <View style={styles.labelContainer}>
@@ -284,13 +295,21 @@ export default function ProfilePage() {
                             />
                         </View>
                     </View>
+                    {showGuestProfileOverlay && (
+                        <View style={styles.guestPromptOverlay}>
+                            <Pressable style={styles.guestPromptButton} onPress={() => requireAccount("/ProfilePage?isSigningUp=0")}>
+                                <Text style={appStyles.buttonText}>Sign In / Sign Up</Text>
+                            </Pressable>
+                        </View>
+                    )}
+                    </View>
 
                     {/* <View style={styles.separatorLine}></View> */}
 
                     {/* Button container */}
                     <View style={styles.buttonContainer} >
                         {/* Button */}
-                        { isEditing || Number(isSigningUp) === 1 ? (
+                        { showGuestProfileOverlay ? null : isEditing || Number(isSigningUp) === 1 ? (
                             <Pressable style={appStyles.button} onPress={async () => await saveProfile(firstNameText, lastNameText, selectedGenres, selectedStreamingServices, setAlertMessage, setAlertType)}>
                                 <Text style={appStyles.buttonText}>Save</Text>
                             </Pressable>
@@ -420,6 +439,22 @@ const styles = StyleSheet.create({
         paddingVertical: "3%",
         marginVertical: "5%",
         marginTop: "8%",
+    },
+    profileBodyWrapper: {
+        position: "relative",
+    },
+    guestProfileBody: {
+        opacity: 0.35,
+    },
+    guestPromptOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        justifyContent: "center",
+        alignItems: "center",
+        paddingHorizontal: 24,
+    },
+    guestPromptButton: {
+        ...appStyles.button,
+        width: 220,
     },
     labelContainer: {
         flexDirection: "row",

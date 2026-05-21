@@ -9,6 +9,8 @@ import { OAuthCredential } from "firebase/auth";
 import { SignInResponse, statusCodes } from "@react-native-google-signin/google-signin";
 import { AuthUserCredential } from "../../types/AuthUserCredential";
 import { LogOut } from "../../../app/helpers/authHelper";
+import { DEFAULT_AUTH_RETURN_TO } from "../../stores/authPromptStore";
+import { navigateToReturnTo } from "../../helpers/StreamTrack/authRequiredHelper";
 
 interface GoogleSignInButtonProps {
     router: Router, 
@@ -27,10 +29,11 @@ interface GoogleSignInButtonProps {
 
     setAlertMessageFunc: React.Dispatch<React.SetStateAction<string>>;
     setAlertTypeFunc: React.Dispatch<React.SetStateAction<Alert>>;
+    returnTo?: string;
 }
 
 export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({ 
-    router, onSignIn, onSignUp, setAlertMessageFunc, setAlertTypeFunc 
+    router, onSignIn, onSignUp, setAlertMessageFunc, setAlertTypeFunc, returnTo = DEFAULT_AUTH_RETURN_TO
 }) => {
 
     // Configure GoogleSignin ONCE (do not put inside render!)
@@ -70,6 +73,7 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
                         pathname: '/ProfilePage',
                         params: {
                             isSigningUp: 1, // Have to pass as number or string
+                            returnTo,
                             ...(firstName && { firstName }),
                             ...(lastName && { lastName }),
                         },
@@ -80,7 +84,7 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
             } else {
                 const success: boolean = await onSignIn(googleCredential, router, email, setAlertMessageFunc, setAlertTypeFunc);
                 if (success === true) {
-                    router.replace("/LandingPage");
+                    navigateToReturnTo(router, returnTo);
                 } else {
                     await LogOut(auth);
                 }

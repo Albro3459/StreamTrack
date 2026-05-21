@@ -2,8 +2,9 @@
 
 import { ContentPartialData, UpdateUserProfileData, UserMinimalData } from "../../types/dataTypes";
 import { Alert } from "../../../app/components/alertMessageComponent";
-import { auth, signOut, secrets } from "../../../firebaseConfig";
+import { secrets } from "../../../firebaseConfig";
 import { Router } from "expo-router";
+import { authHeader, handleAccountUnauthorized } from "./authRequiredHelper";
 
 export const checkIfUserExists = async (token: string,
                                         setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
@@ -17,7 +18,7 @@ export const checkIfUserExists = async (token: string,
             headers: {
                 accept: 'application/json',
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
+                ...authHeader(token)
             }
         };
 
@@ -55,7 +56,7 @@ export const getUserMinimalData = async (router: Router, token: string,
             headers: {
                 accept: 'application/json',
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
+                ...authHeader(token)
             }
         };
 
@@ -64,11 +65,7 @@ export const getUserMinimalData = async (router: Router, token: string,
         if (!result.ok) {
             if (result.status === 401) {
                 console.warn("Unauthorized");
-                await signOut(auth);
-                router.replace({
-                    pathname: '/LoginPage',
-                    params: { unauthorized: 1 },
-                });
+                handleAccountUnauthorized();
                 return null;
             }
             const text = await result.text();
@@ -101,7 +98,7 @@ export const getUserContents = async (router: Router, token: string,
             headers: {
                 accept: 'application/json',
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
+                ...authHeader(token)
             }
         };
 
@@ -110,11 +107,7 @@ export const getUserContents = async (router: Router, token: string,
         if (!result.ok) {
             if (result.status === 401) {
                 console.warn("Unauthorized");
-                await signOut(auth);
-                router.replace({
-                    pathname: '/LoginPage',
-                    params: { unauthorized: 1 },
-                });
+                handleAccountUnauthorized();
                 return null;
             }
             const text = await result.text();
@@ -149,7 +142,7 @@ export const createUser = async (router: Router, token: string | null,
             headers: {
                 accept: 'application/json',
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
+                ...authHeader(token)
             }
         };
 
@@ -158,11 +151,7 @@ export const createUser = async (router: Router, token: string | null,
         if (!result.ok) {
             if (result.status === 401) {
                 console.warn("Unauthorized");
-                await signOut(auth);
-                router.replace({
-                    pathname: '/LoginPage',
-                    params: { unauthorized: 1 },
-                });
+                handleAccountUnauthorized("/LandingPage", true);
                 return null;
             }
             const text = await result.text();
@@ -202,7 +191,7 @@ export const updateUserProfile = async (router: Router, token: string | null, fi
             headers: {
                 accept: 'application/json',
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
+                ...authHeader(token)
             },
             body: JSON.stringify(body)
         };
@@ -212,11 +201,7 @@ export const updateUserProfile = async (router: Router, token: string | null, fi
         if (!result.ok) {
             if (result.status === 401) {
                 console.warn("Unauthorized");
-                await signOut(auth);
-                router.replace({
-                    pathname: '/LoginPage',
-                    params: { unauthorized: 1 },
-                });
+                handleAccountUnauthorized("/ProfilePage?isSigningUp=0", true);
                 return null;
             }
             const text = await result.text();
@@ -251,7 +236,7 @@ export const deleteUserAccount = async (router: Router, token: string | null,
             headers: {
                 accept: 'application/json',
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
+                ...authHeader(token)
             }
         };
 
@@ -260,11 +245,7 @@ export const deleteUserAccount = async (router: Router, token: string | null,
         if (!result.ok) {
             if (result.status === 401) {
                 console.warn("Unauthorized");
-                await signOut(auth);
-                router.replace({
-                    pathname: '/LoginPage',
-                    params: { unauthorized: 1 },
-                });
+                handleAccountUnauthorized("/ProfilePage?isSigningUp=0", true);
                 return false;
             }
             if (result.status === 403) {

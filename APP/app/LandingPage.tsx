@@ -10,7 +10,7 @@ import { useUserDataStore } from "./stores/userDataStore";
 import { fetchPopularContent, usePopularContentStore } from "./stores/popularContentStore";
 import { ContentSimpleData, ListMinimalData } from "./types/dataTypes";
 import MoveModal from "./components/moveModalComponent";
-import { FAVORITE_TAB, isItemInList, moveItemToList, sortLists } from "./helpers/StreamTrack/listHelper";
+import { FAVORITE_TAB, getGuestLists, isItemInList, moveItemToList, sortLists } from "./helpers/StreamTrack/listHelper";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { runOnJS } from 'react-native-reanimated';
 import { auth } from "../firebaseConfig";
@@ -18,6 +18,7 @@ import AlertMessage, { Alert } from "./components/alertMessageComponent";
 import { useFocusEffect } from "@react-navigation/native";
 import { getPoster, POSTER, PosterURI } from "./helpers/StreamTrack/contentHelper";
 import Heart from "./components/heartComponent";
+import { getCurrentUserToken, requireAccount } from "./helpers/StreamTrack/authRequiredHelper";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -34,13 +35,14 @@ export default function LandingPage () {
 
     const { justSignedUp } = useLocalSearchParams() as LandingPageParams;
     
-    const { userData } = useUserDataStore();
+    const { userData, loading: userDataLoading } = useUserDataStore();
     const { popularContent } = usePopularContentStore();
 
     const [alertMessage, setAlertMessage] = useState<string>("");
     const [alertType, setAlertType] = useState<Alert>(Alert.Error);
 
-    const [lists, setLists] = useState<ListMinimalData[] | null>(sortLists([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]));
+    const isGuest = !auth.currentUser || (!userData && !userDataLoading);
+    const [lists, setLists] = useState<ListMinimalData[] | null>(sortLists(userData ? [...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []] : getGuestLists()));
 
     const [moveModalVisible, setMoveModalVisible] = useState(false);
     const [autoPlay, setAutoPlay] = useState(true);
@@ -59,7 +61,7 @@ export default function LandingPage () {
         setAlertMessage("");
         setAlertType(Alert.Error);
         try {
-            await fetchPopularContent(router, await auth.currentUser.getIdToken(), setAlertMessage, setAlertType);
+            await fetchPopularContent(router, await getCurrentUserToken(), setAlertMessage, setAlertType);
         } finally {
             setRefreshing(false);
         }
@@ -67,9 +69,7 @@ export default function LandingPage () {
 
     useFocusEffect(
         useCallback(() => {
-            if (userData && !carouselImagesLoading) {
-                setLists(sortLists([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]));
-            }
+            setLists(sortLists(userData ? [...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []] : getGuestLists()));
         }, [userData, carouselImagesLoading])
     );
 
@@ -213,7 +213,7 @@ export default function LandingPage () {
                                                     isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
                                                     size={20}
                                                     background={true}
-                                                    onPress={async () => await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)}
+                                                    onPress={async () => isGuest ? requireAccount("/LandingPage") : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)}
                                                 />
                                             </View>
                                         </View>
@@ -250,6 +250,8 @@ export default function LandingPage () {
                 isItemInListFunc={isItemInList}
 
                 setListsFunc={setLists}
+                requiresAuth={isGuest}
+                authReturnTo="/LandingPage"
                 
                 setAlertMessageFunc={setAlertMessage}
                 setAlertTypeFunc={setAlertType}
@@ -259,7 +261,7 @@ export default function LandingPage () {
             <View style={styles.libraryOverlay}>
                 <Pressable
                     style={styles.libraryButton}
-                    onPress={() => router.push('/LibraryPage')} // Navigate to the Library page
+                    onPress={() => isGuest ? requireAccount("/LibraryPage") : router.push('/LibraryPage')} // Navigate to the Library page
                 >
                     <Text style={styles.libraryButtonText}>Library</Text>
                 </Pressable>
