@@ -292,7 +292,7 @@ export default function SearchPage() {
                     selectedContent={selectedContent}
                     lists={lists}
 
-                    showHeart={false}
+                    showHeart={isGuest}
                     visibility={moveModalVisible}
 
                     setVisibilityFunc={setMoveModalVisible}

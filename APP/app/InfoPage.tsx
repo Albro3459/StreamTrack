@@ -385,7 +385,7 @@ export default function InfoPage() {
                 lists={lists}
 
                 // showLabel={false}
-                showHeart={false}
+                showHeart={isGuest}
                 visibility={listModalVisible}
                 
                 setVisibilityFunc={setListModalVisible}
@@ -408,7 +408,7 @@ export default function InfoPage() {
                 lists={lists}
 
                 // showLabel={false}
-                showHeart={false}
+                showHeart={isGuest}
                 visibility={recommendedListModalVisible}
 
                 setVisibilityFunc={setRecommendedListModalVisible}
