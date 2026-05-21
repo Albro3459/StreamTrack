@@ -36,7 +36,7 @@ export default function LandingPage () {
     const { justSignedUp } = useLocalSearchParams() as LandingPageParams;
     
     const { userData, loading: userDataLoading } = useUserDataStore();
-    const { popularContent } = usePopularContentStore();
+    const { popularContent, loading: popularContentLoading, error: popularContentError } = usePopularContentStore();
 
     const [alertMessage, setAlertMessage] = useState<string>("");
     const [alertType, setAlertType] = useState<Alert>(Alert.Error);
@@ -68,6 +68,16 @@ export default function LandingPage () {
         }
     };
 
+    useEffect(() => {
+        if (popularContent || popularContentLoading || popularContentError) return;
+
+        const fetchGuestContent = async () => {
+            await fetchPopularContent(router, await getCurrentUserToken(), setAlertMessage, setAlertType);
+        };
+
+        fetchGuestContent();
+    }, [popularContent, popularContentError, popularContentLoading, router]);
+
     useFocusEffect(
         useCallback(() => {
             setLists(sortLists(userData ? [...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []] : getGuestLists()));
@@ -77,24 +87,28 @@ export default function LandingPage () {
     // Make sure carousel images are loaded
     useEffect(() => {
         if (popularContent?.carousel && popularContent.carousel.length > 0) {
+            setCarouselImagesLoading(true);
             const uris : string[] = popularContent.carousel.map(item => getPoster(item, POSTER.HORIZONTAL))
                                                             .filter(poster => typeof poster === 'object' && poster.uri)
                                                             .map(poster => typeof poster === 'object' && poster.uri);
             Promise.all(uris.map(uri => Image.prefetch(uri)))
                 .then(() => setCarouselImagesLoading(false))
                 .catch(() => setCarouselImagesLoading(false)); // fail open, show what you can
+        } else if (!popularContentLoading) {
+            setCarouselImagesLoading(false);
         }
-    }, [popularContent]);
+    }, [popularContent, popularContentLoading]);
 
     useEffect(() => {
-        const store = usePopularContentStore.getState(); 
         if (popularContent && lists) {
             setIsLoading(false);
         }
-        else if (!lists || (store.loading && !popularContent)) {
+        else if (!lists || (popularContentLoading && !popularContent)) {
             setIsLoading(true);
+        } else {
+            setIsLoading(false);
         }
-    }, [popularContent, lists]);
+    }, [popularContent, popularContentLoading, lists]);
 
     const handlePress = (content: ContentSimpleData) => {
         router.push({

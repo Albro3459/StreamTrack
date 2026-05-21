@@ -10,7 +10,7 @@ import { SignInResponse, statusCodes } from "@react-native-google-signin/google-
 import { AuthUserCredential } from "../../types/AuthUserCredential";
 import { LogOut } from "../../../app/helpers/authHelper";
 import { DEFAULT_AUTH_RETURN_TO } from "../../stores/authPromptStore";
-import { navigateToReturnTo } from "../../helpers/StreamTrack/authRequiredHelper";
+import { getPostSignUpReturnTo, navigateToReturnTo } from "../../helpers/StreamTrack/authRequiredHelper";
 
 interface GoogleSignInButtonProps {
     router: Router, 
@@ -73,7 +73,7 @@ export const GoogleSignInButton: React.FC<GoogleSignInButtonProps> = ({
                         pathname: '/ProfilePage',
                         params: {
                             isSigningUp: 1, // Have to pass as number or string
-                            returnTo,
+                            returnTo: getPostSignUpReturnTo(returnTo),
                             ...(firstName && { firstName }),
                             ...(lastName && { lastName }),
                         },

@@ -12,8 +12,8 @@ import { appStyles } from "../styles/appStyles";
 import { fetchUserData, setUserData, useUserDataStore } from "./stores/userDataStore";
 import { UserData, UserMinimalData } from "./types/dataTypes";
 import { updateUserProfile } from "./helpers/StreamTrack/userHelper";
-import { useStreamingServiceDataStore } from "./stores/streamingServiceDataStore";
-import { useGenreDataStore } from "./stores/genreDataStore";
+import { fetchStreamingServiceData, useStreamingServiceDataStore } from "./stores/streamingServiceDataStore";
+import { fetchGenreData, useGenreDataStore } from "./stores/genreDataStore";
 import AlertMessage, { Alert } from "./components/alertMessageComponent";
 import { HeaderButton, hiddenGlassHeaderItem } from "./components/headerButtonComponent";
 import { DEFAULT_AUTH_RETURN_TO } from "./stores/authPromptStore";
@@ -183,6 +183,26 @@ export default function ProfilePage() {
     };
 
     useEffect(() => {
+        if (genreData || genreLoading || genreError) return;
+
+        const fetchOptions = async () => {
+            fetchGenreData(router, await getCurrentUserToken(), setAlertMessage, setAlertType);
+        };
+
+        fetchOptions();
+    }, [genreData, genreError, genreLoading, router]);
+
+    useEffect(() => {
+        if (streamingServiceData || streamingServiceLoading || streamingServiceError) return;
+
+        const fetchOptions = async () => {
+            fetchStreamingServiceData(router, await getCurrentUserToken(), setAlertMessage, setAlertType);
+        };
+
+        fetchOptions();
+    }, [router, streamingServiceData, streamingServiceError, streamingServiceLoading]);
+
+    useEffect(() => {
         if (Number(isSigningUp) === 1) {
             setFirstNameText(firstName ?? userData?.user?.firstName ?? "");
             setLastNameText(lastName ?? userData?.user?.lastName ?? "");
@@ -273,7 +293,7 @@ export default function ProfilePage() {
                             <Text style={styles.labelText}>Favorite Genres</Text>
                         </View>
                         <View style={styles.pressableContainer}>
-                            {renderOptionsState(genreLoading, genreError, !!genreData?.length)}
+                            {renderOptionsState(genreLoading || (!genreData && !genreError), genreError, !!genreData?.length)}
                             <PressableBubblesGroup
                                 labels={genreData?.map(g => g.name)}
                                 selectedLabels={selectedGenres}
@@ -287,7 +307,7 @@ export default function ProfilePage() {
                             <Text style={styles.labelText}>Streaming Services</Text>
                         </View>
                         <View style={styles.pressableContainer}>
-                            {renderOptionsState(streamingServiceLoading, streamingServiceError, !!streamingServiceData?.length)}
+                            {renderOptionsState(streamingServiceLoading || (!streamingServiceData && !streamingServiceError), streamingServiceError, !!streamingServiceData?.length)}
                             <PressableBubblesGroup
                                 selectedLabels={selectedStreamingServices}
                                 setLabelState={setSelectedStreamingServices}

@@ -12,11 +12,11 @@ import AlertMessage, { Alert } from "./components/alertMessageComponent";
 import { GoogleSignInButton } from "./components/auth/GoogleSignInButton";
 import { AppleSignInButton } from "./components/auth/AppleSignInButton";
 import { DEFAULT_AUTH_RETURN_TO } from "./stores/authPromptStore";
-import { navigateToReturnTo } from "./helpers/StreamTrack/authRequiredHelper";
+import { getPostSignUpReturnTo, navigateToReturnTo, normalizeReturnTo } from "./helpers/StreamTrack/authRequiredHelper";
 
 interface LoginPageParams {
     unauthorized?: number;
-    returnTo?: string;
+    returnTo?: string; // technically can be a string[]
 }
 
 export default function LoginPage() {
@@ -38,12 +38,12 @@ export default function LoginPage() {
     const [alertType, setAlertType] = useState<Alert>(Alert.Error);
 
     const continueAsGuest = () => {
-        const target = Array.isArray(returnTo) ? returnTo[0] : returnTo;
-        if (target?.startsWith("/LibraryPage") || target?.startsWith("/ProfilePage")) {
+        const returnToTarget: string | null = normalizeReturnTo(returnTo);
+        if (returnToTarget?.startsWith("/LibraryPage")) {
             router.replace("/LandingPage");
             return;
         }
-        navigateToReturnTo(router, returnTo);
+        navigateToReturnTo(router, returnToTarget);
     };
 
     // Main submit handler
@@ -78,7 +78,7 @@ export default function LoginPage() {
                 if (auth?.currentUser) {
                     router.replace({
                         pathname: '/ProfilePage',
-                        params: { isSigningUp: 1, returnTo: returnTo || DEFAULT_AUTH_RETURN_TO }, // Have to pass as number or string
+                        params: { isSigningUp: 1, returnTo: getPostSignUpReturnTo(returnTo) }, // Have to pass as number or string
                     });
                 } else {
                     await LogOut(auth);

@@ -9,7 +9,7 @@ import { Colors } from "../../../constants/Colors";
 import { AuthUserCredential } from '../../types/AuthUserCredential';
 import { LogOut } from '../../../app/helpers/authHelper';
 import { DEFAULT_AUTH_RETURN_TO } from '../../stores/authPromptStore';
-import { navigateToReturnTo } from '../../helpers/StreamTrack/authRequiredHelper';
+import { getPostSignUpReturnTo, navigateToReturnTo } from '../../helpers/StreamTrack/authRequiredHelper';
 
 interface AppleSignInButtonProps {
     router: Router, 
@@ -70,7 +70,7 @@ export const AppleSignInButton: React.FC<AppleSignInButtonProps> = ({
                                 pathname: '/ProfilePage',
                                 params: { 
                                     isSigningUp: 1,
-                                    returnTo,
+                                    returnTo: getPostSignUpReturnTo(returnTo),
                                     ...(firstName && { firstName }),
                                     ...(lastName && { lastName }),
                                 },
