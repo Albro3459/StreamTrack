@@ -46,6 +46,7 @@ export default function InfoPage() {
     const [alertMessage, setAlertMessage] = useState<string>("");
     const [alertType, setAlertType] = useState<Alert>(Alert.Error);
 
+    const waitingForUserData = !!auth.currentUser && userDataLoading && !userData;
     const isGuest = !auth.currentUser || (!userData && !userDataLoading);
     const returnTo = `/InfoPage?tmdbID=${encodeURIComponent(tmdbID || "")}&verticalPoster=${encodeURIComponent(verticalPoster || "")}&largeVerticalPoster=${encodeURIComponent(largeVerticalPoster || "")}&horizontalPoster=${encodeURIComponent(horizontalPoster || "")}`;
     const [lists, setLists] = useState<ListMinimalData[] | null>(userData ? [...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []] : getGuestLists());
@@ -143,6 +144,7 @@ export default function InfoPage() {
     }
     
     const handleLongPress = (content: ContentPartialData) => {
+        if (waitingForUserData) return;
         setSelectedRecommendation(content); setRecommendedListModalVisible(true);
     }
 
@@ -283,7 +285,7 @@ export default function InfoPage() {
                                         isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
                                         size={20}
                                         background={true}
-                                        onPress={async () => isGuest ? requireAccount(returnTo) : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)}
+                                        onPress={async () => waitingForUserData ? undefined : isGuest ? requireAccount(returnTo) : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)}
                                     />
                                 </View>
                             </View>
@@ -338,7 +340,7 @@ export default function InfoPage() {
                         <View style={[styles.attributeContainer, {marginTop: 18}]} >
                             <Pressable
                                 style={[appStyles.button, (lists.length > 1) ? {width: 140} : {width: undefined, paddingHorizontal: 10}]}
-                                onPress={() => isGuest ? requireAccount(returnTo) : (lists.length > 1) ? setListModalVisible(true) : setCreateListModalVisible(true)}
+                                onPress={() => waitingForUserData ? undefined : isGuest ? requireAccount(returnTo) : (lists.length > 1) ? setListModalVisible(true) : setCreateListModalVisible(true)}
                                 disabled={!info || !info.content}
                             >
                                 <Text style={[appStyles.buttonText, {fontSize: 16}]}>
@@ -349,7 +351,7 @@ export default function InfoPage() {
                             <Heart
                                 isSelected={() => isItemInList(lists, FAVORITE_TAB, tmdbID ? tmdbID : info ? info?.content?.tmdbID : "")}
                                 size={35}
-                                onPress={async () => isGuest ? requireAccount(returnTo) : await moveItemToList(router, info?.content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)}
+                                onPress={async () => waitingForUserData ? undefined : isGuest ? requireAccount(returnTo) : await moveItemToList(router, info?.content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)}
                                 disabled={!info || !info.content}
                             />
                         </View>
@@ -394,6 +396,7 @@ export default function InfoPage() {
 
                 setListsFunc={setLists}
                 requiresAuth={isGuest}
+                accountLoading={waitingForUserData}
                 authReturnTo={returnTo}
 
                 setAlertMessageFunc={setAlertMessage}
@@ -416,6 +419,7 @@ export default function InfoPage() {
 
                 setListsFunc={setLists}
                 requiresAuth={isGuest}
+                accountLoading={waitingForUserData}
                 authReturnTo={returnTo}
 
                 setAlertMessageFunc={setAlertMessage}
@@ -445,7 +449,7 @@ export default function InfoPage() {
             />
 
             {/* Overlay */}
-            {isLoading && (
+            {(isLoading || waitingForUserData) && (
                 <View style={appStyles.overlay}>
                     <ActivityIndicator size="large" color="#fff" />
                 </View>

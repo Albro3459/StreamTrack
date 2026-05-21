@@ -81,17 +81,24 @@ export const handleCreateNewTab = async (
             try {
                 if (!lists.map(l => l.listName.toLowerCase()).includes(listName.toLowerCase())) {
                     const user: User | null = auth.currentUser;
+                    const userData = useUserDataStore.getState().userData;
                     if (!user) {
+                        handleAccountUnauthorized("/LandingPage", true);
+                        return;
+                    }
+                    if (!userData) {
                         handleAccountUnauthorized("/LandingPage", true);
                         return;
                     }
                     const token = await user.getIdToken();
                     const newList: ListMinimalData = await createNewUserList(router, token, listName, setAlertMessageFunc, setAlertTypeFunc);
+                    if (!newList) {
+                        return;
+                    }
                     setListNameFunc("");
                     finalLists = sortLists([...lists, newList]);
                     setListsFunc(finalLists);
     
-                    const userData = useUserDataStore.getState().userData;
                     setUserData({
                         ...userData,
                         user: {
@@ -140,6 +147,11 @@ export const moveItemToList = async (router: Router, content: ContentPartialData
             handleAccountUnauthorized("/LandingPage", true);
             return;
         }
+        const userData = useUserDataStore.getState().userData;
+        if (!userData) {
+            handleAccountUnauthorized("/LandingPage", true);
+            return;
+        }
         const token = await user.getIdToken();
 
         const shouldRemove: boolean = list.tmdbIDs.includes(content.tmdbID);
@@ -147,7 +159,6 @@ export const moveItemToList = async (router: Router, content: ContentPartialData
                 ? await removeContentFromUserList(router, token, list.listName, content.tmdbID, setAlertMessageFunc, setAlertTypeFunc)
                 : await addContentToUserList(router, token, list.listName, content, setAlertMessageFunc, setAlertTypeFunc);
         if (updatedList) {
-            const userData: UserData = { ...useUserDataStore.getState().userData };
             const newListsOwned: ListMinimalData[] = userData.user.listsOwned.map(l => l.listName === updatedList.listName ? updatedList : l);
             setLists(sortLists([...newListsOwned, ...userData.user.listsSharedWithMe]));
 

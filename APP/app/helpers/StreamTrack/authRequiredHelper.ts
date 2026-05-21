@@ -4,12 +4,13 @@ import { Router } from "expo-router";
 import { auth } from "../../../firebaseConfig";
 import { CACHE, ClearCache } from "../cacheHelper";
 import { DEFAULT_AUTH_RETURN_TO, showAuthPrompt } from "../../stores/authPromptStore";
+import { useUserDataStore } from "../../stores/userDataStore";
 
 export const authHeader = (token?: string | null) => (
     token ? { Authorization: `Bearer ${token}` } : {}
 );
 
-export const hasAccount = () => !!auth.currentUser;
+export const hasAccount = () => !!auth.currentUser && !!useUserDataStore.getState().userData;
 
 export const requireAccount = (returnTo: string = DEFAULT_AUTH_RETURN_TO) => {
     if (hasAccount()) return true;

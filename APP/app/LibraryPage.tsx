@@ -45,7 +45,10 @@ export default function LibraryPage() {
     const wiggleAnimations = useRef([]);
 
     const { userData, loading: userDataLoading } = useUserDataStore();
-    const isGuest = !auth.currentUser || (!userData && !userDataLoading);
+    const hasFirebaseUser = !!auth.currentUser;
+    const hasUsableAccount = hasFirebaseUser && !!userData;
+    const waitingForUserData = hasFirebaseUser && userDataLoading && !userData;
+    const isGuest = !hasFirebaseUser || (!userData && !userDataLoading);
 
     const [alertMessage, setAlertMessage] = useState<string>("");
     const [alertType, setAlertType] = useState<Alert>(Alert.Error);
@@ -158,6 +161,12 @@ export default function LibraryPage() {
         }, [userData])
     );
 
+    useEffect(() => {
+        if (userData) {
+            setLists(sortLists([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]));
+        }
+    }, [userData]);
+
      useEffect(() => {
         if (isGuest) {
             requireAccount("/LibraryPage");
@@ -253,6 +262,14 @@ export default function LibraryPage() {
 
     if (isGuest) {
         return null;
+    }
+
+    if (waitingForUserData || !hasUsableAccount || !lists || lists.length === 0) {
+        return (
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={Colors.selectedTextColor} />
+            </View>
+        );
     }
 
     return (

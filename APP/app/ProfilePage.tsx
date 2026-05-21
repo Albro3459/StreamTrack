@@ -85,6 +85,7 @@ export default function ProfilePage() {
                                 setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                 setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
     ) => {
+        let saved = false;
         try {
             setSaving(true);
             const user = auth.currentUser;
@@ -94,9 +95,11 @@ export default function ProfilePage() {
             if (userMinimalData) {
                 const newUserData: UserData = {
                     user: userMinimalData,
-                    contents: userData.contents
+                    contents: userData?.contents ?? []
                 }
-                setUserData(newUserData);
+                setUserData(newUserData, true);
+                setIsEditing(false);
+                saved = true;
             }
             
         } catch(e: any) {
@@ -104,10 +107,9 @@ export default function ProfilePage() {
             if (setAlertMessageFunc) setAlertMessageFunc('Error saving user profile');
             if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
         } finally {
-            setIsEditing(false);
             setSaving(false);
     
-            if (Number(isSigningUp) === 1) {
+            if (saved && Number(isSigningUp) === 1) {
                 navigateToReturnTo(router, returnTo || DEFAULT_AUTH_RETURN_TO);
             }
         }

@@ -44,12 +44,19 @@ export default function SearchPage() {
 
     const [moveModalVisible, setMoveModalVisible] = useState<boolean>(false);
 
+    const waitingForUserData = !!auth.currentUser && userDataLoading && !userData;
     const isGuest = !auth.currentUser || (!userData && !userDataLoading);
     const [lists, setLists] = useState<ListMinimalData[] | null>(sortLists(userData ? [...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []] : getGuestLists()));
 
     const [selectedContent, setSelectedContent] = useState<ContentPartialData>(null);
 
     const [contents, setContents] = useState<ContentPartialData[]>([]);
+
+    const handleLongPress = (content: ContentPartialData) => {
+        if (waitingForUserData) return;
+        setSelectedContent(content);
+        setMoveModalVisible(true);
+    };
 
     const noResultsOrTrySearching: (searchText: string, showNoResults: boolean, isSearching: boolean) => boolean = (
         searchText: string, showNoResults: boolean, isSearching: boolean
@@ -166,7 +173,7 @@ export default function SearchPage() {
                                                 params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, largeVerticalPoster: content.largeVerticalPoster, horizontalPoster: content.horizontalPoster },
                                             });
                                         }}
-                                        onLongPress={() => {setSelectedContent(content); setMoveModalVisible(true);}}
+                                        onLongPress={() => handleLongPress(content)}
                                     >
                                         <View style={[appStyles.cardContainer]}>
                                             <Image source={getPoster(content)} style={[appStyles.cardPoster, {height: 70, borderRadius: 7}]} />
@@ -186,7 +193,7 @@ export default function SearchPage() {
                                             <Heart 
                                                 isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
                                                 size={30}
-                                                onPress={async () => isGuest ? requireAccount("/SearchPage") : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsSearching, () => {}, () => {}, setAlertMessage, setAlertType)}
+                                                onPress={async () => waitingForUserData ? undefined : isGuest ? requireAccount("/SearchPage") : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsSearching, () => {}, () => {}, setAlertMessage, setAlertType)}
                                             />
                                         </View>
                                     </Pressable>
@@ -214,7 +221,7 @@ export default function SearchPage() {
                                             params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, largeVerticalPoster: content.largeVerticalPoster, horizontalPoster: content.horizontalPoster },
                                         });
                                     }}
-                                    onLongPress={() => {setSelectedContent(content); setMoveModalVisible(true);}}
+                                    onLongPress={() => handleLongPress(content)}
                                 >
                                     <View style={[appStyles.cardContainer]}>
                                         <Image source={getPoster(content)} style={[appStyles.cardPoster, {height: 70, borderRadius: 7}]} />
@@ -234,7 +241,7 @@ export default function SearchPage() {
                                         <Heart 
                                             isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
                                             size={30}
-                                            onPress={async () => isGuest ? requireAccount("/SearchPage") : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsSearching, () => {}, () => {}, setAlertMessage, setAlertType)}
+                                            onPress={async () => waitingForUserData ? undefined : isGuest ? requireAccount("/SearchPage") : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsSearching, () => {}, () => {}, setAlertMessage, setAlertType)}
                                         />
                                     </View>
                                 </Pressable>
@@ -260,7 +267,7 @@ export default function SearchPage() {
                                 params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, largeVerticalPoster: content.largeVerticalPoster, horizontalPoster: content.horizontalPoster },
                             });
                         }}
-                        onLongPress={() => { setSelectedContent(content); setMoveModalVisible(true);}}
+                        onLongPress={() => handleLongPress(content)}
                     >
                         <View style={[appStyles.cardContainer, {marginHorizontal: 16}]}>
                             <Image source={getPoster(content)} style={[appStyles.cardPoster, {width: 60}]} />
@@ -272,7 +279,7 @@ export default function SearchPage() {
                             <Heart 
                                 isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
                                 size={35}
-                                onPress={async () => isGuest ? requireAccount("/SearchPage") : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsSearching, () => {}, () => {}, setAlertMessage, setAlertType)}
+                                onPress={async () => waitingForUserData ? undefined : isGuest ? requireAccount("/SearchPage") : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsSearching, () => {}, () => {}, setAlertMessage, setAlertType)}
                             />
                         </View>
                     </Pressable>
@@ -296,6 +303,7 @@ export default function SearchPage() {
 
                     setListsFunc={setLists}
                     requiresAuth={isGuest}
+                    accountLoading={waitingForUserData}
                     authReturnTo="/SearchPage"
                     
                     setAlertMessageFunc={setAlertMessage}
@@ -303,7 +311,7 @@ export default function SearchPage() {
                 />
 
                 {/* Loading Overlay */}
-                {isSearching && (
+                {(isSearching || waitingForUserData) && (
                     <View style={appStyles.overlay}>
                         <ActivityIndicator size="large" color="#fff" />
                     </View>

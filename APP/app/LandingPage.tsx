@@ -41,6 +41,7 @@ export default function LandingPage () {
     const [alertMessage, setAlertMessage] = useState<string>("");
     const [alertType, setAlertType] = useState<Alert>(Alert.Error);
 
+    const waitingForUserData = !!auth.currentUser && userDataLoading && !userData;
     const isGuest = !auth.currentUser || (!userData && !userDataLoading);
     const [lists, setLists] = useState<ListMinimalData[] | null>(sortLists(userData ? [...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []] : getGuestLists()));
 
@@ -103,6 +104,7 @@ export default function LandingPage () {
     }
 
     const handleLongPress = (content: ContentSimpleData) => {
+        if (waitingForUserData) return;
         setSelectedContent(content); setAutoPlay(false); setMoveModalVisible(true);
     }
 
@@ -213,7 +215,7 @@ export default function LandingPage () {
                                                     isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
                                                     size={20}
                                                     background={true}
-                                                    onPress={async () => isGuest ? requireAccount("/LandingPage") : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)}
+                                                    onPress={async () => waitingForUserData ? undefined : isGuest ? requireAccount("/LandingPage") : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)}
                                                 />
                                             </View>
                                         </View>
@@ -251,6 +253,7 @@ export default function LandingPage () {
 
                 setListsFunc={setLists}
                 requiresAuth={isGuest}
+                accountLoading={waitingForUserData}
                 authReturnTo="/LandingPage"
                 
                 setAlertMessageFunc={setAlertMessage}
@@ -261,14 +264,14 @@ export default function LandingPage () {
             <View style={styles.libraryOverlay}>
                 <Pressable
                     style={styles.libraryButton}
-                    onPress={() => isGuest ? requireAccount("/LibraryPage") : router.push('/LibraryPage')} // Navigate to the Library page
+                    onPress={() => waitingForUserData ? undefined : isGuest ? requireAccount("/LibraryPage") : router.push('/LibraryPage')} // Navigate to the Library page
                 >
                     <Text style={styles.libraryButtonText}>Library</Text>
                 </Pressable>
             </View>
 
             {/* Loading Overlay */}
-            {(isLoading || carouselImagesLoading) && (
+            {(isLoading || carouselImagesLoading || waitingForUserData) && (
                 <View style={appStyles.overlay}>
                     <ActivityIndicator size="large" color="#fff" />
                 </View>
