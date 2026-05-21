@@ -49,6 +49,7 @@ public class PosterService {
         if (string.IsNullOrWhiteSpace(url)) return true;
         var lowered = url.ToLowerInvariant();
         if (lowered.Contains("svg") || lowered.StartsWith("https://www.")) return true;
+        if (lowered.Contains("cdn.movie") && !lowered.Contains("signature")) return true;
         return false;
     }
 
