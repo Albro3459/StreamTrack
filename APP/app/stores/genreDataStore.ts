@@ -10,14 +10,14 @@ interface GenreDataStore {
     genreData: GenreData[] | null;
     loading: boolean;
     error: string | null;
-    fetchGenreData: (router: Router, token: string,
+    fetchGenreData: (router: Router, token?: string | null,
                     setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                     setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
     ) => Promise<void>;
     clearGenreData: () => void;
 }
 
-export const fetchGenreData = (router: Router, token: string,
+export const fetchGenreData = (router: Router, token?: string | null,
                                 setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                 setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ) => {
@@ -32,7 +32,7 @@ export const useGenreDataStore = create<GenreDataStore>((set) => ({
     loading: false,
     error: null,
 
-    fetchGenreData: async (router: Router, token: string,
+    fetchGenreData: async (router: Router, token?: string | null,
                                 setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                 setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
     ) => {

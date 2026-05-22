@@ -2,10 +2,11 @@
 
 import { Alert } from "../../../app/components/alertMessageComponent";
 import { StreamingServiceData } from "../../../app/types/dataTypes";
-import { auth, signOut, secrets } from "../../../firebaseConfig";
+import { secrets } from "../../../firebaseConfig";
 import { Router } from "expo-router";
+import { authHeader } from "./authApiHelper";
 
-export const getStreamingServiceData = async (router: Router, token: string,
+export const getStreamingServiceData = async (router: Router, token?: string | null,
                                                 setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                                 setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ): Promise<StreamingServiceData[] | null> => {
@@ -17,22 +18,13 @@ export const getStreamingServiceData = async (router: Router, token: string,
             headers: {
                 accept: 'application/json',
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
+                ...authHeader(token)
             }
         };
 
         const result = await fetch(url, options);
 
         if (!result.ok) {
-            if (result.status === 401) {
-                console.warn("Unauthorized");
-                await signOut(auth);
-                router.replace({
-                    pathname: '/LoginPage',
-                    params: { unauthorized: 1 },
-                });
-                return null;
-            }
             const text = await result.text();
             console.warn(`Error getting streaming data ${result.status}: ${text}`);
             if (setAlertMessageFunc) setAlertMessageFunc('Error getting streaming data'); 

@@ -2,8 +2,9 @@
 
 import { Alert } from "../../../app/components/alertMessageComponent";
 import { ContentData, ContentInfoData, ContentPartialData, ContentRequestData, ContentSimpleData, PopularContentData } from "../../../app/types/dataTypes";
-import { auth, signOut, secrets } from "../../../firebaseConfig";
+import { secrets } from "../../../firebaseConfig";
 import { Router } from "expo-router";
+import { authHeader } from "./authApiHelper";
 
 const missingVerticalPoster: number = require('@/assets/images/MissingVerticalPoster.png') || "";
 const missingHorizontalPoster: number = require('@/assets/images/MissingHorizontalPoster.png') || "";
@@ -70,7 +71,7 @@ export const contentSimpleToPartial = (simple: ContentSimpleData): ContentPartia
     };
 };
 
-export const getContentInfo = async (router: Router, token: string, content: ContentRequestData,
+export const getContentInfo = async (router: Router, token: string | null, content: ContentRequestData,
                                         setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                         setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>,
                                         shouldRefresh: boolean = false,
@@ -83,7 +84,7 @@ export const getContentInfo = async (router: Router, token: string, content: Con
             headers: {
                 accept: 'application/json',
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
+                ...authHeader(token)
             },
             body: JSON.stringify(content)
         };
@@ -91,15 +92,6 @@ export const getContentInfo = async (router: Router, token: string, content: Con
         const result = await fetch(url, options);
 
         if (!result.ok) {
-            if (result.status === 401) {
-                console.warn("Unauthorized");
-                await signOut(auth);
-                router.replace({
-                    pathname: '/LoginPage',
-                    params: { unauthorized: 1 },
-                });
-                return null;
-            }
             const text = await result.text();
             console.warn(`Error getting content details ${result.status}: ${text}`);
             if (setAlertMessageFunc) setAlertMessageFunc('Unfortunately, streaming information is currently unavailable for this movie/show'); 
@@ -118,7 +110,7 @@ export const getContentInfo = async (router: Router, token: string, content: Con
     }
 };
 
-export const getPopularContent = async (router: Router, token: string,
+export const getPopularContent = async (router: Router, token?: string | null,
                                         setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                         setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ) : Promise<PopularContentData | null> => {
@@ -130,22 +122,13 @@ export const getPopularContent = async (router: Router, token: string,
             headers: {
                 accept: 'application/json',
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
+                ...authHeader(token)
             },
         };
 
         const result = await fetch(url, options);
 
         if (!result.ok) {
-            if (result.status === 401) {
-                console.warn("Unauthorized");
-                await signOut(auth);
-                router.replace({
-                    pathname: '/LoginPage',
-                    params: { unauthorized: 1 },
-                });
-                return null;
-            }
             const text = await result.text();
             console.warn(`Error getting popular content ${result.status}: ${text}`);
             if (setAlertMessageFunc) setAlertMessageFunc('Error getting popular content'); 

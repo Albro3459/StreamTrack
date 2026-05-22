@@ -12,9 +12,13 @@ set -euo pipefail
 # Server start app: `./DockerScript.sh` to starts DB, API, and Caddy
 # Local start API only: `./DockerScript.sh OCI_PROFILE=oracle LOCAL_API=true` to use the oracle OCI profile and start DB, API, and IGNORE Caddy
 
+# Server apply new API changes: `./DockerScript.sh REBUILD_API=true` to start DB, API, and Caddy and rebuild the API
+# Local apply new API changes: `./DockerScript.sh OCI_PROFILE=oracle LOCAL_API=true REBUILD_API=true` to use the oracle OCI profile, start DB, API, and IGNORE Caddy, and rebuild the API
+
 # Defaults
 OCI_PROFILE="" # Only use locally (specifies the OCI profile to use. Server needs to use OCI instance creds instead)
 LOCAL_API=false # Only use locally (sets custom API port and doesn't start Caddy)
+REBUILD_API=false # Rebuilds the API for applying new API changes
 RESTORE_FROM_BACKUP=""
 
 for arg in "$@"; do
@@ -24,6 +28,9 @@ for arg in "$@"; do
       ;;
     LOCAL_API=*)
       LOCAL_API="${arg#*=}"
+      ;;
+    REBUILD_API=*)
+      REBUILD_API="${arg#*=}"
       ;;
     RESTORE_FROM_BACKUP=*)
       RESTORE_FROM_BACKUP="${arg#*=}"
@@ -35,7 +42,7 @@ for arg in "$@"; do
   esac
 done
 
-# Normalize boolean
+# Normalize booleans
 case "$LOCAL_API" in
   true|TRUE|True|1|yes|YES|Yes)
     LOCAL_API=true
@@ -44,9 +51,18 @@ case "$LOCAL_API" in
     LOCAL_API=false
     ;;
 esac
+case "$REBUILD_API" in
+  true|TRUE|True|1|yes|YES|Yes)
+    REBUILD_API=true
+    ;;
+  *)
+    REBUILD_API=false
+    ;;
+esac
 
 echo "OCI_PROFILE = $OCI_PROFILE"
 echo "LOCAL_API = $LOCAL_API"
+echo "REBUILD_API = $REBUILD_API"
 echo "RESTORE_FROM_BACKUP = $RESTORE_FROM_BACKUP"
 
 echo "Fetching DB credentials from OCI Vault..."
@@ -120,15 +136,16 @@ done
 # docker compose run --rm migrate # Then Migrations (--rm means remove when done)
 # *****************************************************************************************************************
 
+if [[ "$REBUILD_API" == "true" ]]; then
+  # If you made API (and/or changes to the Caddy file/config by adding the 'caddy' service), run this first:
+  docker compose build api # may need to add --no-cache. Add 'caddy' if needed
+fi
+
 if [[ "$LOCAL_API" == "true" ]]; then
   echo "LOCAL_API is true, starting the API only..."
-  # If you made API, run this first:
-  # docker compose build api # may need to add --no-cache
   docker compose up -d api # Then start API (background)
 else
   echo "Starting API and Caddy reverse proxy..."
-  # If you made API (and/or changes to the Caddy file/config by adding the 'caddy' service), run this first:
-  # docker compose build api # may need to add --no-cache. Add 'caddy' if needed
   docker compose up -d api caddy # Then start API and Caddy reverse proxy (background)
   # docker compose up -d --force-recreate caddy # May need to run this (after starting the API) if Caddy still doesn't reload
 fi

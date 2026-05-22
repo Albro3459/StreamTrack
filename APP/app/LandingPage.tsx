@@ -10,7 +10,7 @@ import { useUserDataStore } from "./stores/userDataStore";
 import { fetchPopularContent, usePopularContentStore } from "./stores/popularContentStore";
 import { ContentSimpleData, ListMinimalData } from "./types/dataTypes";
 import MoveModal from "./components/moveModalComponent";
-import { FAVORITE_TAB, isItemInList, moveItemToList, sortLists } from "./helpers/StreamTrack/listHelper";
+import { FAVORITE_TAB, getGuestLists, isItemInList, moveItemToList, sortLists } from "./helpers/StreamTrack/listHelper";
 import { Gesture, GestureDetector } from "react-native-gesture-handler";
 import { runOnJS } from 'react-native-reanimated';
 import { auth } from "../firebaseConfig";
@@ -18,6 +18,7 @@ import AlertMessage, { Alert } from "./components/alertMessageComponent";
 import { useFocusEffect } from "@react-navigation/native";
 import { getPoster, POSTER, PosterURI } from "./helpers/StreamTrack/contentHelper";
 import Heart from "./components/heartComponent";
+import { getCurrentUserToken, requireAccount } from "./helpers/StreamTrack/authRequiredHelper";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
@@ -34,13 +35,15 @@ export default function LandingPage () {
 
     const { justSignedUp } = useLocalSearchParams() as LandingPageParams;
     
-    const { userData } = useUserDataStore();
-    const { popularContent } = usePopularContentStore();
+    const { userData, loading: userDataLoading } = useUserDataStore();
+    const { popularContent, loading: popularContentLoading, error: popularContentError } = usePopularContentStore();
 
     const [alertMessage, setAlertMessage] = useState<string>("");
     const [alertType, setAlertType] = useState<Alert>(Alert.Error);
 
-    const [lists, setLists] = useState<ListMinimalData[] | null>(sortLists([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]));
+    const waitingForUserData = !!auth.currentUser && userDataLoading && !userData;
+    const isGuest = !auth.currentUser || (!userData && !userDataLoading);
+    const [lists, setLists] = useState<ListMinimalData[] | null>(sortLists(userData ? [...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []] : getGuestLists()));
 
     const [moveModalVisible, setMoveModalVisible] = useState(false);
     const [autoPlay, setAutoPlay] = useState(true);
@@ -59,41 +62,53 @@ export default function LandingPage () {
         setAlertMessage("");
         setAlertType(Alert.Error);
         try {
-            await fetchPopularContent(router, await auth.currentUser.getIdToken(), setAlertMessage, setAlertType);
+            await fetchPopularContent(router, await getCurrentUserToken(), setAlertMessage, setAlertType);
         } finally {
             setRefreshing(false);
         }
     };
 
+    useEffect(() => {
+        if (popularContent || popularContentLoading || popularContentError) return;
+
+        const fetchGuestContent = async () => {
+            await fetchPopularContent(router, await getCurrentUserToken(), setAlertMessage, setAlertType);
+        };
+
+        fetchGuestContent();
+    }, [popularContent, popularContentError, popularContentLoading, router]);
+
     useFocusEffect(
         useCallback(() => {
-            if (userData && !carouselImagesLoading) {
-                setLists(sortLists([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]));
-            }
+            setLists(sortLists(userData ? [...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []] : getGuestLists()));
         }, [userData, carouselImagesLoading])
     );
 
     // Make sure carousel images are loaded
     useEffect(() => {
         if (popularContent?.carousel && popularContent.carousel.length > 0) {
+            setCarouselImagesLoading(true);
             const uris : string[] = popularContent.carousel.map(item => getPoster(item, POSTER.HORIZONTAL))
                                                             .filter(poster => typeof poster === 'object' && poster.uri)
                                                             .map(poster => typeof poster === 'object' && poster.uri);
             Promise.all(uris.map(uri => Image.prefetch(uri)))
                 .then(() => setCarouselImagesLoading(false))
                 .catch(() => setCarouselImagesLoading(false)); // fail open, show what you can
+        } else if (!popularContentLoading) {
+            setCarouselImagesLoading(false);
         }
-    }, [popularContent]);
+    }, [popularContent, popularContentLoading]);
 
     useEffect(() => {
-        const store = usePopularContentStore.getState(); 
         if (popularContent && lists) {
             setIsLoading(false);
         }
-        else if (!lists || (store.loading && !popularContent)) {
+        else if (!lists || (popularContentLoading && !popularContent)) {
             setIsLoading(true);
+        } else {
+            setIsLoading(false);
         }
-    }, [popularContent, lists]);
+    }, [popularContent, popularContentLoading, lists]);
 
     const handlePress = (content: ContentSimpleData) => {
         router.push({
@@ -103,6 +118,7 @@ export default function LandingPage () {
     }
 
     const handleLongPress = (content: ContentSimpleData) => {
+        if (waitingForUserData) return;
         setSelectedContent(content); setAutoPlay(false); setMoveModalVisible(true);
     }
 
@@ -151,7 +167,7 @@ export default function LandingPage () {
                     />
                 }
             >
-                <Text style={styles.welcomeText}>WELCOME{Number(justSignedUp) === 1 ? "" : " BACK"}{userData?.user?.firstName?.length > 0 && " "+userData.user.firstName.toUpperCase()}!</Text>
+                <Text style={styles.welcomeText}>WELCOME{(isGuest || Number(justSignedUp) === 1) ? "" : " BACK"}{userData?.user?.firstName?.length > 0 && " "+userData.user.firstName.toUpperCase()}!</Text>
                 <View style={{ marginBottom: 24, alignItems: "center" }}>
                     <Carousel<ContentSimpleData>
                         ref={carouselRef}
@@ -213,7 +229,13 @@ export default function LandingPage () {
                                                     isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
                                                     size={20}
                                                     background={true}
-                                                    onPress={async () => await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)}
+                                                    onPress={async () => {
+                                                        return waitingForUserData 
+                                                                ? undefined 
+                                                                : isGuest 
+                                                                    ? requireAccount("/LandingPage") 
+                                                                    : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)
+                                                    }}
                                                 />
                                             </View>
                                         </View>
@@ -250,6 +272,9 @@ export default function LandingPage () {
                 isItemInListFunc={isItemInList}
 
                 setListsFunc={setLists}
+                requiresAuth={isGuest}
+                accountLoading={waitingForUserData}
+                authReturnTo="/LandingPage"
                 
                 setAlertMessageFunc={setAlertMessage}
                 setAlertTypeFunc={setAlertType}
@@ -259,14 +284,20 @@ export default function LandingPage () {
             <View style={styles.libraryOverlay}>
                 <Pressable
                     style={styles.libraryButton}
-                    onPress={() => router.push('/LibraryPage')} // Navigate to the Library page
+                    onPress={() => {
+                        return waitingForUserData 
+                                ? undefined 
+                                : isGuest 
+                                    ? requireAccount("/LibraryPage") 
+                                    : router.push('/LibraryPage')
+                    }}
                 >
                     <Text style={styles.libraryButtonText}>Library</Text>
                 </Pressable>
             </View>
 
             {/* Loading Overlay */}
-            {(isLoading || carouselImagesLoading) && (
+            {(isLoading || carouselImagesLoading || waitingForUserData) && (
                 <View style={appStyles.overlay}>
                     <ActivityIndicator size="large" color="#fff" />
                 </View>

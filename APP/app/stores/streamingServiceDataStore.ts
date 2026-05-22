@@ -10,20 +10,20 @@ interface StreamingServiceDataStore {
   streamingServiceData: StreamingServiceData[] | null;
   loading: boolean;
   error: string | null;
-  fetchStreamingServiceData: (router: Router, token: string,
+  fetchStreamingServiceData: (router: Router, token?: string | null,
                                 setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                 setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
   ) => Promise<void>;
   clearStreamingServiceData: () => void;
 }
 
-export const fetchStreamingServiceData = (router: Router, token: string,
+export const fetchStreamingServiceData = (router: Router, token?: string | null,
                                 setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                 setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ) => {
     const store = useStreamingServiceDataStore.getState();
     if (store.loading) return;
-    store.fetchStreamingServiceData(router, token);
+    store.fetchStreamingServiceData(router, token, setAlertMessageFunc, setAlertTypeFunc);
 };
 export const clearStreamingServiceData = () => useStreamingServiceDataStore.getState().clearStreamingServiceData();
 
@@ -32,7 +32,7 @@ export const useStreamingServiceDataStore = create<StreamingServiceDataStore>((s
     loading: false,
     error: null,
 
-    fetchStreamingServiceData: async (router: Router, token: string,
+    fetchStreamingServiceData: async (router: Router, token?: string | null,
                                     setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                                     setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
         ) => {

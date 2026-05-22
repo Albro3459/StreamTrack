@@ -31,6 +31,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { HeaderButton, hiddenGlassHeaderItem } from './components/headerButtonComponent';
 import { getPoster } from './helpers/StreamTrack/contentHelper';
 import { auth } from '@/firebaseConfig';
+import { getCurrentUserToken, requireAccount } from './helpers/StreamTrack/authRequiredHelper';
 
 const { width: screenWidth } = Dimensions.get("window");
 
@@ -43,7 +44,11 @@ export default function LibraryPage() {
     const flatListRef = useRef<FlatList<string> | null>(null); // Scrolling the tab names to show current one
     const wiggleAnimations = useRef([]);
 
-    const { userData } = useUserDataStore();
+    const { userData, loading: userDataLoading } = useUserDataStore();
+    const hasFirebaseUser = !!auth.currentUser;
+    const hasUsableAccount = hasFirebaseUser && !!userData;
+    const waitingForUserData = hasFirebaseUser && userDataLoading && !userData;
+    const isGuest = !hasFirebaseUser || (!userData && !userDataLoading);
 
     const [alertMessage, setAlertMessage] = useState<string>("");
     const [alertType, setAlertType] = useState<Alert>(Alert.Error);
@@ -83,7 +88,10 @@ export default function LibraryPage() {
         setAlertMessage("");
         setAlertType(Alert.Error);
         try {
-            await fetchUserData(router, await auth.currentUser.getIdToken());
+            if (!requireAccount("/LibraryPage")) return;
+            const token = await getCurrentUserToken();
+            if (!token) return;
+            await fetchUserData(router, token);
         } finally {
             setRefreshing(false);
         }
@@ -115,7 +123,8 @@ export default function LibraryPage() {
 
     const handleTabDelete = async (listName: string) => {
         const normalized = listName.toLowerCase().trim();
-        const success = await deleteUserList(router, await auth?.currentUser?.getIdToken(), normalized, setAlertMessage, setAlertType);
+        if (!requireAccount("/LibraryPage")) return;
+        const success = await deleteUserList(router, await getCurrentUserToken(), normalized, setAlertMessage, setAlertType);
         if (success) {
             const newListsOwned: ListMinimalData[] = [...userData?.user?.listsOwned.filter(l => l.listName.toLowerCase().trim() !== normalized) || []];
             const newListsSharedWithMe: ListMinimalData[] = [...userData?.user?.listsSharedWithMe.filter(l => l.listName.toLowerCase().trim() !== normalized) || []];
@@ -152,7 +161,18 @@ export default function LibraryPage() {
         }, [userData])
     );
 
+    useEffect(() => {
+        if (userData) {
+            setLists(sortLists([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]));
+        }
+    }, [userData]);
+
      useEffect(() => {
+        if (isGuest) {
+            requireAccount("/LibraryPage");
+            router.replace("/LandingPage");
+            return;
+        }
         if (lists) {
             if (isLoading) {
                 setIsLoading(false);
@@ -165,7 +185,7 @@ export default function LibraryPage() {
                 wiggleAnimations?.current?.pop();
             }
         }
-    }, [lists, isLoading, wiggleAnimations]);
+    }, [isGuest, lists, isLoading, wiggleAnimations]);
 
     const renderTabContent = (contents: ContentPartialData[], list: string) => {
         if (!contents || contents.length === 0) {
@@ -239,6 +259,18 @@ export default function LibraryPage() {
             <Feather name="chevron-left" size={32} color={Colors.selectedTextColor} />
         </HeaderButton>
     );
+
+    if (isGuest) {
+        return null;
+    }
+
+    if (waitingForUserData || !hasUsableAccount || !lists || lists.length === 0) {
+        return (
+            <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color={Colors.selectedTextColor} />
+            </View>
+        );
+    }
 
     return (
         <>

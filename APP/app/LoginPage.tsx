@@ -11,15 +11,18 @@ import { appStyles } from "../styles/appStyles";
 import AlertMessage, { Alert } from "./components/alertMessageComponent";
 import { GoogleSignInButton } from "./components/auth/GoogleSignInButton";
 import { AppleSignInButton } from "./components/auth/AppleSignInButton";
+import { DEFAULT_AUTH_RETURN_TO } from "./stores/authPromptStore";
+import { getPostSignUpReturnTo, navigateToReturnTo, normalizeReturnTo } from "./helpers/StreamTrack/authRequiredHelper";
 
 interface LoginPageParams {
     unauthorized?: number;
+    returnTo?: string; // technically can be a string[]
 }
 
 export default function LoginPage() {
     const router = useRouter();
 
-    const { unauthorized } = useLocalSearchParams() as LoginPageParams;
+    const { unauthorized, returnTo } = useLocalSearchParams() as LoginPageParams;
 
     const [signing, setSigning] = useState<boolean>(false);
 
@@ -33,6 +36,15 @@ export default function LoginPage() {
 
     const [alertMessage, setAlertMessage] = useState<string>("");
     const [alertType, setAlertType] = useState<Alert>(Alert.Error);
+
+    const continueAsGuest = () => {
+        const returnToTarget: string | null = normalizeReturnTo(returnTo);
+        if (returnToTarget?.startsWith("/LibraryPage")) {
+            router.replace("/LandingPage");
+            return;
+        }
+        navigateToReturnTo(router, returnToTarget);
+    };
 
     // Main submit handler
     const handleAuth = async () => {
@@ -66,7 +78,10 @@ export default function LoginPage() {
                 if (auth?.currentUser) {
                     router.replace({
                         pathname: '/ProfilePage',
-                        params: { isSigningUp: 1 }, // Have to pass as number or string
+                        params: { 
+                            isSigningUp: 1, // Have to pass as number or string
+                            returnTo: getPostSignUpReturnTo(returnTo) 
+                        }
                     });
                 } else {
                     await LogOut(auth);
@@ -75,7 +90,7 @@ export default function LoginPage() {
                 setSigning(true);
                 const success: boolean = await SignIn(auth, router, email?.trim(), password, setAlertMessage, setAlertType);
                 if (success) {
-                    router.replace("/LandingPage");
+                    navigateToReturnTo(router, returnTo);
                 } else {
                     await LogOut(auth);
                 }
@@ -202,6 +217,7 @@ export default function LoginPage() {
                                 router={router}
                                 onSignIn={AppleSignIn}    
                                 onSignUp={AppleSignUp}       
+                                returnTo={returnTo || DEFAULT_AUTH_RETURN_TO}
                                 setAlertMessageFunc={setAlertMessage}
                                 setAlertTypeFunc={setAlertType}         
                             />
@@ -210,9 +226,16 @@ export default function LoginPage() {
                                 router={router}
                                 onSignIn={GoogleSignIn}    
                                 onSignUp={GoogleSignUp}       
+                                returnTo={returnTo || DEFAULT_AUTH_RETURN_TO}
                                 setAlertMessageFunc={setAlertMessage}
                                 setAlertTypeFunc={setAlertType}         
                             />
+                            <Pressable
+                                style={[appStyles.button, appStyles.secondaryButton, styles.continueAsGuestButton, {marginTop: 15}]}
+                                onPress={continueAsGuest}
+                            >
+                                <Text style={[appStyles.buttonText, appStyles.secondaryButtonText]}>Continue as Guest</Text>
+                            </Pressable>
                         </View>
 
                         {/* Overlay */}
@@ -240,7 +263,7 @@ const styles = StyleSheet.create({
         width: "100%",
         maxWidth: 420,
         height: 220,
-        marginTop: -90,
+        marginTop: -50,
         marginBottom: -40,
     },
     title: {
@@ -269,5 +292,8 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontStyle: "italic",
         textDecorationLine: "underline"
+    },
+    continueAsGuestButton: {
+        width: 200,
     },
 });

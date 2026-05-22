@@ -16,22 +16,20 @@ export enum CACHE {
     STREAMING
 };
 
-export const FetchCache = (router: Router, token: string,
+export const FetchCache = (router: Router, token?: string | null,
                             setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
                             setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>,
                             ...data: CACHE[]
 ) => {
-    if (!token) return;
-
     if (data.length === 0 || data.includes(CACHE.ALL)) {
-        fetchUserData(router, token, setAlertMessageFunc, setAlertTypeFunc);
+        if (token) fetchUserData(router, token, setAlertMessageFunc, setAlertTypeFunc);
         fetchPopularContent(router, token, setAlertMessageFunc, setAlertTypeFunc);
         fetchGenreData(router, token, setAlertMessageFunc, setAlertTypeFunc);
         fetchStreamingServiceData(router, token, setAlertMessageFunc, setAlertTypeFunc);
         return;
     }
 
-    if (data.includes(CACHE.USER)) {
+    if (data.includes(CACHE.USER) && token) {
         fetchUserData(router, token, setAlertMessageFunc, setAlertTypeFunc);
     }
     if (data.includes(CACHE.POPULAR)) {

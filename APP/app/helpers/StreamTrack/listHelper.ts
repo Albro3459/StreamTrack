@@ -1,14 +1,21 @@
 "use client";
 
 import { ContentPartialData, ListMinimalData, UserData } from "../../../app/types/dataTypes";
-import { auth, signOut, User, secrets } from "../../../firebaseConfig";
+import { auth, User, secrets } from "../../../firebaseConfig";
 import { setUserData, useUserDataStore } from "../../../app/stores/userDataStore";
 import { Alert } from "../../../app/components/alertMessageComponent";
 import { Router } from "expo-router";
+import { authHeader, handleAccountUnauthorized } from "./authApiHelper";
 
 export const FAVORITE_TAB = "Favorites";
 
 export const MAX_USER_LIST_COUNT = 10;
+
+export const getGuestLists = (): ListMinimalData[] => ([{
+    listName: FAVORITE_TAB,
+    tmdbIDs: [],
+    isOwner: true,
+}]);
 
 // Sorts the lists so the favorite tab is first and alphabetical order
 export const sortLists = <T extends { listName: string }>(lists: T[]): T[] => {
@@ -74,18 +81,24 @@ export const handleCreateNewTab = async (
             try {
                 if (!lists.map(l => l.listName.toLowerCase()).includes(listName.toLowerCase())) {
                     const user: User | null = auth.currentUser;
+                    const userData = useUserDataStore.getState().userData;
                     if (!user) {
-                        setAlertMessageFunc("User doesn't exist");
-                        setAlertTypeFunc(Alert.Error);
+                        await handleAccountUnauthorized("/LandingPage", true);
+                        return;
+                    }
+                    if (!userData) {
+                        await handleAccountUnauthorized("/LandingPage", true);
                         return;
                     }
                     const token = await user.getIdToken();
                     const newList: ListMinimalData = await createNewUserList(router, token, listName, setAlertMessageFunc, setAlertTypeFunc);
+                    if (!newList) {
+                        return;
+                    }
                     setListNameFunc("");
                     finalLists = sortLists([...lists, newList]);
                     setListsFunc(finalLists);
     
-                    const userData = useUserDataStore.getState().userData;
                     setUserData({
                         ...userData,
                         user: {
@@ -131,6 +144,12 @@ export const moveItemToList = async (router: Router, content: ContentPartialData
         }
         const user: User | null = auth.currentUser;
         if (!user) {
+            await handleAccountUnauthorized("/LandingPage", true);
+            return;
+        }
+        const userData = useUserDataStore.getState().userData;
+        if (!userData) {
+            await handleAccountUnauthorized("/LandingPage", true);
             return;
         }
         const token = await user.getIdToken();
@@ -140,7 +159,6 @@ export const moveItemToList = async (router: Router, content: ContentPartialData
                 ? await removeContentFromUserList(router, token, list.listName, content.tmdbID, setAlertMessageFunc, setAlertTypeFunc)
                 : await addContentToUserList(router, token, list.listName, content, setAlertMessageFunc, setAlertTypeFunc);
         if (updatedList) {
-            const userData: UserData = { ...useUserDataStore.getState().userData };
             const newListsOwned: ListMinimalData[] = userData.user.listsOwned.map(l => l.listName === updatedList.listName ? updatedList : l);
             setLists(sortLists([...newListsOwned, ...userData.user.listsSharedWithMe]));
 
@@ -149,7 +167,16 @@ export const moveItemToList = async (router: Router, content: ContentPartialData
             if (shouldRemove && !isInOtherList) {
                 newContents = newContents.filter(c => c.tmdbID !== content.tmdbID);
             } else if (!newContents.some(c => c.tmdbID === content.tmdbID)) {
-                newContents.push({ tmdbID: content.tmdbID, title: content.title, releaseYear: content.releaseYear, verticalPoster: content.verticalPoster, largeVerticalPoster: content.largeVerticalPoster, horizontalPoster: content.horizontalPoster } as ContentPartialData);
+                newContents.push({ 
+                    tmdbID: content.tmdbID, 
+                    title: content.title,
+                    overview: content.overview || '',
+                    rating: content.rating || 0,
+                    releaseYear: content.releaseYear, 
+                    verticalPoster: content.verticalPoster, 
+                    largeVerticalPoster: content.largeVerticalPoster, 
+                    horizontalPoster: content.horizontalPoster 
+                } satisfies ContentPartialData);
             }
             setUserData({
                 ...userData,
@@ -158,7 +185,7 @@ export const moveItemToList = async (router: Router, content: ContentPartialData
                     listsOwned: newListsOwned
                 },
                 contents: newContents
-            } as UserData, true);
+            } satisfies UserData, true);
         } else {
             if (setAlertMessageFunc) setAlertMessageFunc(prev => {
                 if (prev.includes("limit")) {
@@ -193,7 +220,7 @@ export const addContentToUserList = async (router: Router, token: string | null,
             headers: {
                 accept: 'application/json',
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
+                ...authHeader(token)
             },
             body: JSON.stringify(content)
         };
@@ -203,11 +230,7 @@ export const addContentToUserList = async (router: Router, token: string | null,
         if (!result.ok) {
             if (result.status === 401) {
                 console.warn("Unauthorized");
-                await signOut(auth);
-                router.replace({
-                    pathname: '/LoginPage',
-                    params: { unauthorized: 1 },
-                });
+                await handleAccountUnauthorized("/LandingPage", true);
                 return null;
             }
             let text = await result.text();
@@ -248,7 +271,7 @@ export const removeContentFromUserList = async (router: Router, token: string | 
             headers: {
                 accept: 'application/json',
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
+                ...authHeader(token)
             },
         };
 
@@ -257,11 +280,7 @@ export const removeContentFromUserList = async (router: Router, token: string | 
         if (!result.ok) {
             if (result.status === 401) {
                 console.warn("Unauthorized");
-                await signOut(auth);
-                router.replace({
-                    pathname: '/LoginPage',
-                    params: { unauthorized: 1 },
-                });
+                await handleAccountUnauthorized("/LandingPage", true);
                 return null;
             }
             const text = await result.text();
@@ -297,7 +316,7 @@ export const createNewUserList = async (router: Router, token: string | null, li
             headers: {
                 accept: 'application/json',
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
+                ...authHeader(token)
             },
         };
 
@@ -306,11 +325,7 @@ export const createNewUserList = async (router: Router, token: string | null, li
         if (!result.ok) {
             if (result.status === 401) {
                 console.warn("Unauthorized");
-                await signOut(auth);
-                router.replace({
-                    pathname: '/LoginPage',
-                    params: { unauthorized: 1 },
-                });
+                await handleAccountUnauthorized("/LandingPage", true);
                 return null;
             }
             const text = await result.text();
@@ -346,7 +361,7 @@ export const deleteUserList = async (router: Router, token: string | null, listN
             headers: {
                 accept: 'application/json',
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
+                ...authHeader(token)
             },
         };
 
@@ -355,11 +370,7 @@ export const deleteUserList = async (router: Router, token: string | null, listN
         if (!result.ok) {
             if (result.status === 401) {
                 console.warn("Unauthorized");
-                await signOut(auth);
-                router.replace({
-                    pathname: '/LoginPage',
-                    params: { unauthorized: 1 },
-                });
+                await handleAccountUnauthorized("/LandingPage", true);
                 return false;
             }
             const text = await result.text();

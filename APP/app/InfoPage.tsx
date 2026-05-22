@@ -9,7 +9,7 @@ import { appStyles, RalewayFont } from '@/styles/appStyles';
 import { SvgUri } from 'react-native-svg';
 import { ContentData, ContentInfoData, ContentPartialData, ContentRequestData, ListMinimalData, StreamingOptionData, TMDB_MEDIA_TYPE } from './types/dataTypes';
 import { setUserData, useUserDataStore } from './stores/userDataStore';
-import { FAVORITE_TAB, handleCreateNewTab, isItemInList, moveItemToList } from './helpers/StreamTrack/listHelper';
+import { FAVORITE_TAB, getGuestLists, handleCreateNewTab, isItemInList, moveItemToList } from './helpers/StreamTrack/listHelper';
 import MoveModal from './components/moveModalComponent';
 import { StarRating } from './components/starRatingComponent';
 import { getContentInfo, getPoster, POSTER } from './helpers/StreamTrack/contentHelper';
@@ -17,6 +17,7 @@ import { auth } from '@/firebaseConfig';
 import { getCachedContent, useCacheStore } from './stores/contentCacheStore';
 import AlertMessage, { Alert } from './components/alertMessageComponent';
 import CreateNewListModal from './components/createNewListComponent';
+import { getCurrentUserToken, requireAccount } from './helpers/StreamTrack/authRequiredHelper';
 
 const screenWidth = Dimensions.get("window").width;
 const STREAMING_LOGO_WIDTH = 110;
@@ -39,13 +40,16 @@ export default function InfoPage() {
 
     const { tmdbID, verticalPoster, largeVerticalPoster, horizontalPoster } = useLocalSearchParams() as InfoPageParams;
 
-    const { userData } = useUserDataStore();
+    const { userData, loading: userDataLoading } = useUserDataStore();
     const { cacheContent } = useCacheStore();
 
     const [alertMessage, setAlertMessage] = useState<string>("");
     const [alertType, setAlertType] = useState<Alert>(Alert.Error);
 
-    const [lists, setLists] = useState<ListMinimalData[] | null>([...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []]);
+    const waitingForUserData = !!auth.currentUser && userDataLoading && !userData;
+    const isGuest = !auth.currentUser || (!userData && !userDataLoading);
+    const returnTo = `/InfoPage?tmdbID=${encodeURIComponent(tmdbID || "")}&verticalPoster=${encodeURIComponent(verticalPoster || "")}&largeVerticalPoster=${encodeURIComponent(largeVerticalPoster || "")}&horizontalPoster=${encodeURIComponent(horizontalPoster || "")}`;
+    const [lists, setLists] = useState<ListMinimalData[] | null>(userData ? [...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []] : getGuestLists());
 
     const [info, setInfo] = useState<ContentInfoData | null>();
     const [selectedRecommendation, setSelectedRecommendation] = useState<ContentPartialData>(null);
@@ -66,15 +70,16 @@ export default function InfoPage() {
         setAlertMessage("");
         setAlertType(Alert.Error);
         try {
-            const updatedInfo: ContentInfoData = await getContentInfo(router, await auth.currentUser.getIdToken(), 
-                                                                        { tmdbID: info?.content?.tmdbID, 
-                                                                            VerticalPoster: info?.content?.verticalPoster, 
-                                                                            LargeVerticalPoster: info?.content.largeVerticalPoster,
-                                                                            HorizontalPoster: info?.content?.horizontalPoster
-                                                                        } as ContentRequestData, 
-                                                                        setAlertMessage, setAlertType,
-                                                                        true // REFRESH
-                                                                );
+            const updatedInfo: ContentInfoData = await getContentInfo(
+                router, await getCurrentUserToken(), 
+                { tmdbID: info?.content?.tmdbID, 
+                    VerticalPoster: info?.content?.verticalPoster, 
+                    LargeVerticalPoster: info?.content.largeVerticalPoster,
+                    HorizontalPoster: info?.content?.horizontalPoster
+                } satisfies ContentRequestData, 
+                setAlertMessage, setAlertType,
+                true // REFRESH
+            );
             if (updatedInfo) {
                 if (updatedInfo.content.tmdbID !== info.content.tmdbID) {
                     console.warn("TMDB ID changed on refresh somehow");
@@ -122,14 +127,15 @@ export default function InfoPage() {
     };
 
     const getRuntime = (content: ContentData): string => {
-        return (!content ? 
-                    (tmdbID.split('/')[0] === TMDB_MEDIA_TYPE.MOVIE ? "0h 0m" : "Seasons: 5  |  Episodes: 10") 
-                    : (
-                        content.showType === 'movie' ? (
-                        content.runtime ? toHoursAndMinutes(content.runtime) : ""
-                    ) : (
-                        content.seasonCount && content.episodeCount ? `Seasons: ${content.seasonCount}  |  Episodes: ${content.episodeCount}` : ""
-                )));
+        return (
+            !content 
+            ?  (tmdbID.split('/')[0] === TMDB_MEDIA_TYPE.MOVIE ? "0h 0m" : "Seasons: 5  |  Episodes: 10") 
+            : (
+                content.showType === 'movie' 
+                ? (content.runtime ? toHoursAndMinutes(content.runtime) : "") 
+                : (content.seasonCount && content.episodeCount ? `Seasons: ${content.seasonCount} | Episodes: ${content.episodeCount}` : "")
+            )
+        );
     };
 
     const handlePress = (content: ContentPartialData) => {
@@ -140,6 +146,7 @@ export default function InfoPage() {
     }
     
     const handleLongPress = (content: ContentPartialData) => {
+        if (waitingForUserData) return;
         setSelectedRecommendation(content); setRecommendedListModalVisible(true);
     }
 
@@ -147,14 +154,14 @@ export default function InfoPage() {
         const fetchContent = async () => {
             if (!tmdbID) return;
 
-            const token = await auth.currentUser.getIdToken();
+            const token = await getCurrentUserToken();
     
             let info: ContentInfoData | null = getCachedContent(tmdbID);
 
             try {
                 if (!info || !info?.content?.largeVerticalPoster) {
                     const shouldRefresh: boolean = !info?.content?.largeVerticalPoster;
-                    info = await getContentInfo(router, token, {tmdbID:tmdbID, VerticalPoster:verticalPoster, LargeVerticalPoster: largeVerticalPoster, HorizontalPoster:horizontalPoster} as ContentRequestData, setAlertMessage, setAlertType, shouldRefresh);
+                    info = await getContentInfo(router, token, {tmdbID:tmdbID, VerticalPoster:verticalPoster, LargeVerticalPoster: largeVerticalPoster, HorizontalPoster:horizontalPoster} satisfies ContentRequestData, setAlertMessage, setAlertType, shouldRefresh);
                 }
             } finally {
                 if (info) {
@@ -166,6 +173,10 @@ export default function InfoPage() {
         }
         fetchContent();
     }, [tmdbID, verticalPoster, largeVerticalPoster, horizontalPoster]);
+
+    useEffect(() => {
+        setLists(userData ? [...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []] : getGuestLists());
+    }, [userData]);
 
     const renderTabContent = () => {
         switch (activeTab) {
@@ -236,7 +247,8 @@ export default function InfoPage() {
                 <Text style={styles.text}>{
                     info && info?.content?.genres.map((genre) => (
                         genre.name
-                    )).join(' | ')}
+                    )).join(' | ')
+                }
                 </Text>
 
                 <Text style={styles.sectionTitle}>Cast</Text>
@@ -276,7 +288,13 @@ export default function InfoPage() {
                                         isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
                                         size={20}
                                         background={true}
-                                        onPress={async () => await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)}
+                                        onPress={async () => {
+                                            return waitingForUserData 
+                                                    ? undefined 
+                                                    : isGuest 
+                                                        ? requireAccount(returnTo) 
+                                                        : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)
+                                        }}
                                     />
                                 </View>
                             </View>
@@ -286,7 +304,7 @@ export default function InfoPage() {
             </View>
             );
         default:
-            break;
+            return (<></>);
         }
     };
 
@@ -320,9 +338,15 @@ export default function InfoPage() {
                         <Text style={styles.title}>{info?.content?.title}</Text>
                         <View style={styles.attributeContainer}>
                             <Text style={[styles.text, {fontSize: 18, textAlignVertical: "center"}]}>
-                                {(info?.content?.releaseYear > 0 ? info?.content?.releaseYear+ "    " 
-                                        : (info?.content?.releaseYear > 0 
-                                        ? info.content?.releaseYear+ "    " : "")) + getRuntime(info?.content)}
+                                {(
+                                    info?.content?.releaseYear > 0 
+                                        ? info?.content?.releaseYear+ "    " 
+                                            : (
+                                                info?.content?.releaseYear > 0 
+                                                    ? info.content?.releaseYear+ "    " 
+                                                    : ""
+                                            )
+                                ) + getRuntime(info?.content)}
                             </Text>
                         </View>
 
@@ -331,7 +355,15 @@ export default function InfoPage() {
                         <View style={[styles.attributeContainer, {marginTop: 18}]} >
                             <Pressable
                                 style={[appStyles.button, (lists.length > 1) ? {width: 140} : {width: undefined, paddingHorizontal: 10}]}
-                                onPress={() => (lists.length > 1) ? setListModalVisible(true) : setCreateListModalVisible(true)}
+                                onPress={() => {
+                                    return waitingForUserData 
+                                            ? undefined 
+                                            : isGuest 
+                                                ? requireAccount(returnTo) 
+                                                : (lists.length > 1) 
+                                                    ? setListModalVisible(true) 
+                                                    : setCreateListModalVisible(true)
+                                }}
                                 disabled={!info || !info.content}
                             >
                                 <Text style={[appStyles.buttonText, {fontSize: 16}]}>
@@ -342,7 +374,13 @@ export default function InfoPage() {
                             <Heart
                                 isSelected={() => isItemInList(lists, FAVORITE_TAB, tmdbID ? tmdbID : info ? info?.content?.tmdbID : "")}
                                 size={35}
-                                onPress={async () => await moveItemToList(router, info?.content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)}
+                                onPress={async () => {
+                                    return waitingForUserData 
+                                            ? undefined 
+                                            : isGuest 
+                                                ? requireAccount(returnTo) 
+                                                : await moveItemToList(router, info?.content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)
+                                }}
                                 disabled={!info || !info.content}
                             />
                         </View>
@@ -376,7 +414,7 @@ export default function InfoPage() {
                 lists={lists}
 
                 // showLabel={false}
-                showHeart={false}
+                showHeart={isGuest}
                 visibility={listModalVisible}
                 
                 setVisibilityFunc={setListModalVisible}
@@ -386,6 +424,9 @@ export default function InfoPage() {
                 isItemInListFunc={isItemInList}
 
                 setListsFunc={setLists}
+                requiresAuth={isGuest}
+                accountLoading={waitingForUserData}
+                authReturnTo={returnTo}
 
                 setAlertMessageFunc={setAlertMessage}
                 setAlertTypeFunc={setAlertType}
@@ -396,7 +437,7 @@ export default function InfoPage() {
                 lists={lists}
 
                 // showLabel={false}
-                showHeart={false}
+                showHeart={isGuest}
                 visibility={recommendedListModalVisible}
 
                 setVisibilityFunc={setRecommendedListModalVisible}
@@ -406,6 +447,9 @@ export default function InfoPage() {
                 isItemInListFunc={isItemInList}
 
                 setListsFunc={setLists}
+                requiresAuth={isGuest}
+                accountLoading={waitingForUserData}
+                authReturnTo={returnTo}
 
                 setAlertMessageFunc={setAlertMessage}
                 setAlertTypeFunc={setAlertType}
@@ -434,7 +478,7 @@ export default function InfoPage() {
             />
 
             {/* Overlay */}
-            {isLoading && (
+            {(isLoading || waitingForUserData) && (
                 <View style={appStyles.overlay}>
                     <ActivityIndicator size="large" color="#fff" />
                 </View>

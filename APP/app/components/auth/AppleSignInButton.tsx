@@ -8,6 +8,8 @@ import { appStyles } from "../../../styles/appStyles";
 import { Colors } from "../../../constants/Colors";
 import { AuthUserCredential } from '../../types/AuthUserCredential';
 import { LogOut } from '../../../app/helpers/authHelper';
+import { DEFAULT_AUTH_RETURN_TO } from '../../stores/authPromptStore';
+import { getPostSignUpReturnTo, navigateToReturnTo } from '../../helpers/StreamTrack/authRequiredHelper';
 
 interface AppleSignInButtonProps {
     router: Router, 
@@ -24,10 +26,11 @@ interface AppleSignInButtonProps {
     ) => Promise<boolean>;
     setAlertMessageFunc: React.Dispatch<React.SetStateAction<string>>;
     setAlertTypeFunc: React.Dispatch<React.SetStateAction<Alert>>;
+    returnTo?: string;
 }
 
 export const AppleSignInButton: React.FC<AppleSignInButtonProps> = ({ 
-    router, onSignIn, onSignUp, setAlertMessageFunc, setAlertTypeFunc 
+    router, onSignIn, onSignUp, setAlertMessageFunc, setAlertTypeFunc, returnTo = DEFAULT_AUTH_RETURN_TO
 }) => {
     const [loading, setLoading] = useState(false);
 
@@ -67,6 +70,7 @@ export const AppleSignInButton: React.FC<AppleSignInButtonProps> = ({
                                 pathname: '/ProfilePage',
                                 params: { 
                                     isSigningUp: 1,
+                                    returnTo: getPostSignUpReturnTo(returnTo),
                                     ...(firstName && { firstName }),
                                     ...(lastName && { lastName }),
                                 },
@@ -77,7 +81,7 @@ export const AppleSignInButton: React.FC<AppleSignInButtonProps> = ({
                     } else {
                         const success: boolean = await  onSignIn(appleCredential, router, email, setAlertMessageFunc, setAlertTypeFunc);
                         if (success === true) {
-                            router.replace("/LandingPage");
+                            navigateToReturnTo(router, returnTo);
                         } else {
                             await LogOut(auth);
                         }

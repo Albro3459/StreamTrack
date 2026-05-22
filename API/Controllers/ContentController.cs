@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 
 using API.DTOs;
 using API.Infrastructure;
@@ -82,18 +83,8 @@ public class ContentController : ControllerBase {
 
     // GET: API/Content/Search?keyword={keyword}
     [HttpGet("Search")]
+    [AllowAnonymous]
     public async Task<ActionResult<List<ContentPartialDTO>>> SearchTMDB([FromQuery] string? keyword = "") {
-        // Get the user's auth token to get the firebase uuid to get the correct user's data
-        // User's can only get their own data
-
-        string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (string.IsNullOrEmpty(uid))
-            return Unauthorized();
-
-        var user = await context.User.FirstOrDefaultAsync(u => u.UserID == uid);
-        if (user == null) return Unauthorized();
-
         if (string.IsNullOrWhiteSpace(keyword)) {
             return BadRequest();
         }
@@ -140,18 +131,8 @@ public class ContentController : ControllerBase {
     //   but if it was in a list or popular, it would already be in the DB
     // POST: API/Content/Info?shouldRefresh={shouldRefresh}
     [HttpPost("Info")]
+    [AllowAnonymous]
     public async Task<ActionResult<ContentInfoDTO>> FetchContentInfo([FromBody] ContentRequestDTO requestDTO, [FromQuery] bool? shouldRefresh = false) {
-        // Get the user's auth token to get the firebase uuid to get the correct user's data
-        // User's can only get their own data
-
-        string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (string.IsNullOrEmpty(uid))
-            return Unauthorized();
-
-        var user = await context.User.FirstOrDefaultAsync(u => u.UserID == uid);
-        if (user == null) return Unauthorized();
-
         ContentDetail? detail = await context.ContentDetail
                                                 .Include(c => c.Partial)
                                                     .ThenInclude(p => p.Poster)
@@ -281,15 +262,8 @@ public class ContentController : ControllerBase {
     // Count: 10 from carousel + 5 * 10 per section = 10 + 50 = 60 contents
     // GET: API/Content/Popular
     [HttpGet("Popular")]
+    [AllowAnonymous]
     public async Task<ActionResult<PopularContentDTO>> GetPopularContent() {
-        string? uid = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-        if (string.IsNullOrEmpty(uid))
-            return Unauthorized();
-
-        var user = await context.User.FirstOrDefaultAsync(u => u.UserID == uid);
-        if (user == null) return Unauthorized();
-
         List<ContentDetail> contents = await context.ContentDetail
                 .Include(c => c.Partial)
                     .ThenInclude(p => p.Poster)

@@ -5,6 +5,7 @@ import { ContentPartialData, UserData, UserMinimalData } from '../types/dataType
 import { getUserContents, getUserMinimalData } from '../helpers/StreamTrack/userHelper';
 import { Alert } from '../components/alertMessageComponent';
 import { Router } from 'expo-router';
+import { setUserAccountDataClearer } from '../helpers/StreamTrack/authApiHelper';
 
 // Wrappers
 export const fetchUserData = (router: Router, token: string,
@@ -53,7 +54,7 @@ export const useUserDataStore = create<UserDataStore>((set) => ({
         const contentMinimalData: ContentPartialData[] = await getUserContents(router, token);
 
         if (userMinimalData && contentMinimalData) {
-            set({ userData: {user: userMinimalData, contents: contentMinimalData} as UserData, loading: false });
+            set({ userData: {user: userMinimalData, contents: contentMinimalData} satisfies UserData, loading: false });
         } else {
             set({ error: 'Fetch failed', loading: false });
             if (setAlertMessageFunc) setAlertMessageFunc('Fetch failed'); 
@@ -67,5 +68,7 @@ export const useUserDataStore = create<UserDataStore>((set) => ({
 
   setUserData: (data: UserData) => set({ userData: data, loading: false })
 }));
+
+setUserAccountDataClearer(clearUserData);
 
 export default {};

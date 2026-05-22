@@ -11,9 +11,31 @@ import { TMDB_Posters } from '../types/tmdbType';
 
 
 
-const isBadPoster = (url: string): boolean => {
-    if (!url ||  url.toLowerCase().includes('svg') || url.toLowerCase().startsWith("https://www.")) return true;
+const expiresRegex = /(?:^|[?&])Expires=(\d+)(?:&|$)/i;
+
+const isBadPoster = (url?: string | null): boolean => {
+    if (!url?.trim()) return true;
+
+    const lowered = url.toLowerCase();
+    if (lowered.includes('svg') || lowered.startsWith("https://www.")) return true;
+    if (lowered.includes('cdn.movie') && !lowered.includes('signature')) return true;
     return false;
+};
+
+const isExpiringSoon = (url?: string | null): boolean => {
+    if (!url?.trim()) return true;
+
+    const match = expiresRegex.exec(url);
+    if (!match) return false;
+
+    const epochSeconds = Number(match[1]);
+    if (!Number.isFinite(epochSeconds)) return false;
+
+    return epochSeconds * 1000 <= Date.now() + 24 * 60 * 60 * 1000;
+};
+
+const shouldRefreshPoster = (url?: string | null): boolean => {
+    return isBadPoster(url) || isExpiringSoon(url);
 };
 
 export const fetchByServiceAndGenre = async (RAPIDAPI_KEY: string, TMDB_BEARER_TOKEN: string, RATING_CUTOFF: number, service: SERVICE, genre: GENRE, show_type: SHOW_TYPE, order_by: ORDER_BY, order_direction: ORDER_DIRECTION): Promise<ContentData[] | null> => {
@@ -54,9 +76,9 @@ export const fetchByServiceAndGenre = async (RAPIDAPI_KEY: string, TMDB_BEARER_T
                                                 .map(c => convertContentToContentData(c));
 
     await Promise.all(contentData.map(async c => {
-        const badVerticalPoster: boolean = isBadPoster(c.verticalPoster);
-        const badLargeVerticalPoster: boolean = isBadPoster(c.largeVerticalPoster);
-        const badHorizontalPoster: boolean = isBadPoster(c.horizontalPoster);
+        const badVerticalPoster: boolean = shouldRefreshPoster(c.verticalPoster);
+        const badLargeVerticalPoster: boolean = shouldRefreshPoster(c.largeVerticalPoster);
+        const badHorizontalPoster: boolean = shouldRefreshPoster(c.horizontalPoster);
         if (badVerticalPoster || badLargeVerticalPoster || badHorizontalPoster) {
             try {
                 const posters: TMDB_Posters = await getPosters(TMDB_BEARER_TOKEN, c.tmdbID);
