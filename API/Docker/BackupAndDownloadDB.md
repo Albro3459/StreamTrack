@@ -25,7 +25,7 @@ Run the backup script:
 The script prints the full backup path at the end, like:
 
 ```text
-Backup saved to /home/ubuntu/StreamTrack/API/Docker/backups/streamtrack_2026-05-19_15-23-44.sql
+Backup saved to /home/ubuntu/StreamTrack/API/Docker/backups/streamtrack_2026-05-22_04-47-00.sql
 ```
 
 Copy that full file path.
@@ -52,11 +52,11 @@ mkdir -p backups
 
 Copy the backup from the server, replacing the path with the one printed by `BackupDB.sh`:
 ```sh
-scp streamtrack:~/StreamTrack/API/Docker/backups/streamtrack_2026-05-19_15-23-44.sql ~/GitHub/StreamTrack/API/Docker/backups/
+scp streamtrack:~/StreamTrack/API/Docker/backups/streamtrack_2026-05-22_04-47-00.sql ~/GitHub/StreamTrack/API/Docker/backups/
 ```
 
 If `scp` looks stuck, it may just be copying without progress output. Add `-v` for connection details or use `rsync` for progress:
 * Note `rsync` must be installed on both the VM and local Mac
 ```sh
-rsync -avP streamtrack:/home/ubuntu/StreamTrack/API/Docker/backups/streamtrack_2026-05-19_15-23-44.sql ./backups/
+rsync -avP streamtrack:/home/ubuntu/StreamTrack/API/Docker/backups/streamtrack_2026-05-22_04-47-00.sql ./backups/
 ```

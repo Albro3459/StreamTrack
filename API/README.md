@@ -9,6 +9,12 @@ cd StreamTrack/API
 
 **NOTE**: For Docker commands, you have to be in the Docker directory and you should only run these commands from the docker directory anyway.
 
+#### Tail API logs
+```sh
+cd Docker
+docker compose logs -f --tail=50 api
+```
+
 #### Make a DB backup!
 * Please make a backup before any database changes
 * On the server, use [BackupDB](./Docker/BackupDB.sh) to make the backup.
