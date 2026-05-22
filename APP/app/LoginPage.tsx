@@ -78,7 +78,10 @@ export default function LoginPage() {
                 if (auth?.currentUser) {
                     router.replace({
                         pathname: '/ProfilePage',
-                        params: { isSigningUp: 1, returnTo: getPostSignUpReturnTo(returnTo) }, // Have to pass as number or string
+                        params: { 
+                            isSigningUp: 1, // Have to pass as number or string
+                            returnTo: getPostSignUpReturnTo(returnTo) 
+                        }
                     });
                 } else {
                     await LogOut(auth);

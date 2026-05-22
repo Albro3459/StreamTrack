@@ -229,7 +229,13 @@ export default function LandingPage () {
                                                     isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
                                                     size={20}
                                                     background={true}
-                                                    onPress={async () => waitingForUserData ? undefined : isGuest ? requireAccount("/LandingPage") : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)}
+                                                    onPress={async () => {
+                                                        return waitingForUserData 
+                                                                ? undefined 
+                                                                : isGuest 
+                                                                    ? requireAccount("/LandingPage") 
+                                                                    : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)
+                                                    }}
                                                 />
                                             </View>
                                         </View>
@@ -278,7 +284,13 @@ export default function LandingPage () {
             <View style={styles.libraryOverlay}>
                 <Pressable
                     style={styles.libraryButton}
-                    onPress={() => waitingForUserData ? undefined : isGuest ? requireAccount("/LibraryPage") : router.push('/LibraryPage')} // Navigate to the Library page
+                    onPress={() => {
+                        return waitingForUserData 
+                                ? undefined 
+                                : isGuest 
+                                    ? requireAccount("/LibraryPage") 
+                                    : router.push('/LibraryPage')
+                    }}
                 >
                     <Text style={styles.libraryButtonText}>Library</Text>
                 </Pressable>
