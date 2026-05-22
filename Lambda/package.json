@@ -1,4 +1,6 @@
 {
+    "name": "popular-content-lambda",
+    "version": "0.0.1",
     "scripts": {
         "clean": "rm -rf dist",
         "build": "npm run clean && tsc"

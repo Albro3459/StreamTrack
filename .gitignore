@@ -53,3 +53,5 @@ API/Docker/backups/
 **/*.tfvars.*
 !**/*.tfvars.example
 !**/example.*.tfvars
+
+**/.publish/
