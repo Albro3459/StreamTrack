@@ -167,7 +167,16 @@ export const moveItemToList = async (router: Router, content: ContentPartialData
             if (shouldRemove && !isInOtherList) {
                 newContents = newContents.filter(c => c.tmdbID !== content.tmdbID);
             } else if (!newContents.some(c => c.tmdbID === content.tmdbID)) {
-                newContents.push({ tmdbID: content.tmdbID, title: content.title, releaseYear: content.releaseYear, verticalPoster: content.verticalPoster, largeVerticalPoster: content.largeVerticalPoster, horizontalPoster: content.horizontalPoster } as ContentPartialData);
+                newContents.push({ 
+                    tmdbID: content.tmdbID, 
+                    title: content.title,
+                    overview: content.overview || '',
+                    rating: content.rating || 0,
+                    releaseYear: content.releaseYear, 
+                    verticalPoster: content.verticalPoster, 
+                    largeVerticalPoster: content.largeVerticalPoster, 
+                    horizontalPoster: content.horizontalPoster 
+                } satisfies ContentPartialData);
             }
             setUserData({
                 ...userData,
@@ -176,7 +185,7 @@ export const moveItemToList = async (router: Router, content: ContentPartialData
                     listsOwned: newListsOwned
                 },
                 contents: newContents
-            } as UserData, true);
+            } satisfies UserData, true);
         } else {
             if (setAlertMessageFunc) setAlertMessageFunc(prev => {
                 if (prev.includes("limit")) {

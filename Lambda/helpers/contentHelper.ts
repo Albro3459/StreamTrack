@@ -1,4 +1,4 @@
-import { Content, SHOW_TYPE } from "../types/contentType";
+import { Content } from "../types/contentType";
 import { ContentData } from "../types/dataTypes";
 
 export const convertContentToContentData = (content: Content): ContentData => {
@@ -9,7 +9,7 @@ export const convertContentToContentData = (content: Content): ContentData => {
         releaseYear: content.releaseYear,
         rapidID: content.id,    
         imdbID: content.imdbId,
-        showType: content.showType as SHOW_TYPE,
+        showType: content.showType,
         genres: content.genres.map(g => ({ name: g.name })),
         cast: content.cast,
         directors: content.directors,

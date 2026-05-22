@@ -70,15 +70,16 @@ export default function InfoPage() {
         setAlertMessage("");
         setAlertType(Alert.Error);
         try {
-            const updatedInfo: ContentInfoData = await getContentInfo(router, await getCurrentUserToken(), 
-                                                                        { tmdbID: info?.content?.tmdbID, 
-                                                                            VerticalPoster: info?.content?.verticalPoster, 
-                                                                            LargeVerticalPoster: info?.content.largeVerticalPoster,
-                                                                            HorizontalPoster: info?.content?.horizontalPoster
-                                                                        } as ContentRequestData, 
-                                                                        setAlertMessage, setAlertType,
-                                                                        true // REFRESH
-                                                                );
+            const updatedInfo: ContentInfoData = await getContentInfo(
+                router, await getCurrentUserToken(), 
+                { tmdbID: info?.content?.tmdbID, 
+                    VerticalPoster: info?.content?.verticalPoster, 
+                    LargeVerticalPoster: info?.content.largeVerticalPoster,
+                    HorizontalPoster: info?.content?.horizontalPoster
+                } satisfies ContentRequestData, 
+                setAlertMessage, setAlertType,
+                true // REFRESH
+            );
             if (updatedInfo) {
                 if (updatedInfo.content.tmdbID !== info.content.tmdbID) {
                     console.warn("TMDB ID changed on refresh somehow");
@@ -126,14 +127,15 @@ export default function InfoPage() {
     };
 
     const getRuntime = (content: ContentData): string => {
-        return (!content ? 
-                    (tmdbID.split('/')[0] === TMDB_MEDIA_TYPE.MOVIE ? "0h 0m" : "Seasons: 5  |  Episodes: 10") 
-                    : (
-                        content.showType === 'movie' ? (
-                        content.runtime ? toHoursAndMinutes(content.runtime) : ""
-                    ) : (
-                        content.seasonCount && content.episodeCount ? `Seasons: ${content.seasonCount}  |  Episodes: ${content.episodeCount}` : ""
-                )));
+        return (
+            !content 
+            ?  (tmdbID.split('/')[0] === TMDB_MEDIA_TYPE.MOVIE ? "0h 0m" : "Seasons: 5  |  Episodes: 10") 
+            : (
+                content.showType === 'movie' 
+                ? (content.runtime ? toHoursAndMinutes(content.runtime) : "") 
+                : (content.seasonCount && content.episodeCount ? `Seasons: ${content.seasonCount} | Episodes: ${content.episodeCount}` : "")
+            )
+        );
     };
 
     const handlePress = (content: ContentPartialData) => {
@@ -159,7 +161,7 @@ export default function InfoPage() {
             try {
                 if (!info || !info?.content?.largeVerticalPoster) {
                     const shouldRefresh: boolean = !info?.content?.largeVerticalPoster;
-                    info = await getContentInfo(router, token, {tmdbID:tmdbID, VerticalPoster:verticalPoster, LargeVerticalPoster: largeVerticalPoster, HorizontalPoster:horizontalPoster} as ContentRequestData, setAlertMessage, setAlertType, shouldRefresh);
+                    info = await getContentInfo(router, token, {tmdbID:tmdbID, VerticalPoster:verticalPoster, LargeVerticalPoster: largeVerticalPoster, HorizontalPoster:horizontalPoster} satisfies ContentRequestData, setAlertMessage, setAlertType, shouldRefresh);
                 }
             } finally {
                 if (info) {
@@ -245,7 +247,8 @@ export default function InfoPage() {
                 <Text style={styles.text}>{
                     info && info?.content?.genres.map((genre) => (
                         genre.name
-                    )).join(' | ')}
+                    )).join(' | ')
+                }
                 </Text>
 
                 <Text style={styles.sectionTitle}>Cast</Text>
@@ -285,7 +288,13 @@ export default function InfoPage() {
                                         isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
                                         size={20}
                                         background={true}
-                                        onPress={async () => waitingForUserData ? undefined : isGuest ? requireAccount(returnTo) : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)}
+                                        onPress={async () => {
+                                            return waitingForUserData 
+                                                    ? undefined 
+                                                    : isGuest 
+                                                        ? requireAccount(returnTo) 
+                                                        : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)
+                                        }}
                                     />
                                 </View>
                             </View>
@@ -295,7 +304,7 @@ export default function InfoPage() {
             </View>
             );
         default:
-            break;
+            return (<></>);
         }
     };
 
@@ -329,9 +338,15 @@ export default function InfoPage() {
                         <Text style={styles.title}>{info?.content?.title}</Text>
                         <View style={styles.attributeContainer}>
                             <Text style={[styles.text, {fontSize: 18, textAlignVertical: "center"}]}>
-                                {(info?.content?.releaseYear > 0 ? info?.content?.releaseYear+ "    " 
-                                        : (info?.content?.releaseYear > 0 
-                                        ? info.content?.releaseYear+ "    " : "")) + getRuntime(info?.content)}
+                                {(
+                                    info?.content?.releaseYear > 0 
+                                        ? info?.content?.releaseYear+ "    " 
+                                            : (
+                                                info?.content?.releaseYear > 0 
+                                                    ? info.content?.releaseYear+ "    " 
+                                                    : ""
+                                            )
+                                ) + getRuntime(info?.content)}
                             </Text>
                         </View>
 
@@ -340,7 +355,15 @@ export default function InfoPage() {
                         <View style={[styles.attributeContainer, {marginTop: 18}]} >
                             <Pressable
                                 style={[appStyles.button, (lists.length > 1) ? {width: 140} : {width: undefined, paddingHorizontal: 10}]}
-                                onPress={() => waitingForUserData ? undefined : isGuest ? requireAccount(returnTo) : (lists.length > 1) ? setListModalVisible(true) : setCreateListModalVisible(true)}
+                                onPress={() => {
+                                    return waitingForUserData 
+                                            ? undefined 
+                                            : isGuest 
+                                                ? requireAccount(returnTo) 
+                                                : (lists.length > 1) 
+                                                    ? setListModalVisible(true) 
+                                                    : setCreateListModalVisible(true)
+                                }}
                                 disabled={!info || !info.content}
                             >
                                 <Text style={[appStyles.buttonText, {fontSize: 16}]}>
@@ -351,7 +374,13 @@ export default function InfoPage() {
                             <Heart
                                 isSelected={() => isItemInList(lists, FAVORITE_TAB, tmdbID ? tmdbID : info ? info?.content?.tmdbID : "")}
                                 size={35}
-                                onPress={async () => waitingForUserData ? undefined : isGuest ? requireAccount(returnTo) : await moveItemToList(router, info?.content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)}
+                                onPress={async () => {
+                                    return waitingForUserData 
+                                            ? undefined 
+                                            : isGuest 
+                                                ? requireAccount(returnTo) 
+                                                : await moveItemToList(router, info?.content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)
+                                }}
                                 disabled={!info || !info.content}
                             />
                         </View>

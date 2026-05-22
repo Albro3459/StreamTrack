@@ -54,7 +54,7 @@ export const useUserDataStore = create<UserDataStore>((set) => ({
         const contentMinimalData: ContentPartialData[] = await getUserContents(router, token);
 
         if (userMinimalData && contentMinimalData) {
-            set({ userData: {user: userMinimalData, contents: contentMinimalData} as UserData, loading: false });
+            set({ userData: {user: userMinimalData, contents: contentMinimalData} satisfies UserData, loading: false });
         } else {
             set({ error: 'Fetch failed', loading: false });
             if (setAlertMessageFunc) setAlertMessageFunc('Fetch failed'); 

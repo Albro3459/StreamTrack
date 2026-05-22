@@ -4,8 +4,9 @@ import { clearCache } from "../../stores/contentCacheStore";
 import { DEFAULT_AUTH_RETURN_TO, showAuthPrompt } from "../../stores/authPromptStore";
 import { auth, signOut } from "../../../firebaseConfig";
 
+// Have to do this BS because of circular deps. 
+// userDataStore -> userHelper -> authApiHelper -> userDataStore
 let clearUserAccountData = () => {};
-
 export const setUserAccountDataClearer = (clearer: () => void) => {
     clearUserAccountData = clearer;
 };

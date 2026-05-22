@@ -26,6 +26,6 @@ export const getPosters = async (TMDB_BEARER_TOKEN: string, tmdbID: string): Pro
     return { verticalPoster: data.poster_path ? "https://image.tmdb.org/t/p/w185" + data.poster_path : null,
              largeVerticalPoster: data.poster_path ? "https://image.tmdb.org/t/p/w500" + data.poster_path : null,
              horizontalPoster: data.backdrop_path ? "https://image.tmdb.org/t/p/w1280" + data.backdrop_path : null
-    } as TMDB_Posters;
+    } satisfies TMDB_Posters;
 
 }
