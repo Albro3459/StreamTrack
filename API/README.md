@@ -29,12 +29,26 @@ cd Docker
 ./DockerScript.sh
 ```
 
-#### Use the Reset DB script ()
+#### Postgres
+```sh
+cd Docker
+docker compose exec db psql -U admin -d StreamTrack
+# or with pager (less) off
+docker compose exec db psql -P pager=off -U admin -d StreamTrack
+```
+
+Tips once inside `psql`:
+* Exit: `exit`
+* Clear: `\! clear`
+* Set pager off
+    * `\pset pager off`
+
+<!-- #### Use the Reset DB script ()
 * NOTE: Make a backup first: [Backup!](#make-a-db-backup)
 ```sh
 cd Docker
 ./resetPostgreSQLDB.sh
-```
+``` -->
 
 #### Create new migration (does not apply it)
 * NOTE: Make a backup first: [Backup!](#make-a-db-backup)
@@ -47,7 +61,7 @@ dotnet ef migrations add MIGRATION_NAME -o Migrations
 * NOTE: Make a backup first: [Backup!](#make-a-db-backup)
 * NOTE: Please make sure the migration does not delete data unintentionally or irreversibly. 
     * You can add sql scripts to Up and Down for this. See the [NormalizePosters Migration](./Migrations/20260227144325_NormalizePosters.cs)
-* Uncomment the lines about building the migrate service and running the migrate service
+* **Uncomment the lines about building the migrate service and running the migrate service**
 ```sh
 cd Docker
 ./DockerScript.sh
@@ -67,7 +81,9 @@ cd Docker
 dotnet ef migrations script > out.txt
 ```
 
-## PostgreSQL
+<!-- ## PostgreSQL -->
+
+<!-- ### Old other way I guess:
 
 #### Start background service
 ```sh
@@ -84,11 +100,11 @@ CREATE USER username WITH PASSWORD '...';
 CREATE DATABASE "StreamTrack" OWNER username;
 GRANT ALL PRIVILEGES ON DATABASE "StreamTrack" TO username;
 \q
-```
+``` -->
 
 # Check OCI locally
 ```sh
-oci iam region list --config-file /Users/alexbrodsky/.oci/config --profile DEFAULT --auth security_token
+oci iam region list --profile oracle
 ```
 
 ## OCI VM Server with Docker
