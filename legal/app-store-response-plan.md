@@ -29,7 +29,6 @@
 - Add App Review Notes that explain the backend data flow:
   - Client app calls StreamTracker backend.
   - Backend calls TMDB and Movie of the Night/Streaming Availability API.
-  - API keys are server-side and are not exposed in the app build.
   - User account identifiers, email, name, lists, and favorites are not forwarded to TMDB or Movie of the Night for normal content lookup.
   - Search text may be sent to the backend and then to TMDB to fulfill search requests; title IDs may be sent to the availability provider to fulfill detail/availability requests.
 - Attach or link:

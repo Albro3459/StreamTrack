@@ -14,7 +14,7 @@ The app displays movie and TV metadata, poster images, provider identifiers, str
 
 The submitted app is not affiliated with, endorsed by, sponsored by, or certified by Disney, Pixar, TMDB, Movie of the Night, RapidAPI, or any streaming provider. Disney/Pixar marks or works are not used in the app name, app icon, developer name, or app branding. Third-party names, logos, images, and metadata are used only for functional title identification, provider identification, discovery, watchlist, and legal availability purposes.
 
-For transparency, the compiled client app calls the StreamTracker backend. The backend retrieves movie and TV metadata and image URLs from The Movie Database (TMDB), and retrieves streaming availability/provider/deep-link information from Movie of the Night's Streaming Availability API through RapidAPI. API credentials are kept server-side and are not exposed in the app build. User account identifiers, email, name, custom lists, favorites, and profile preferences are not forwarded to those content-data providers for normal content lookups.
+For transparency, the compiled client app calls the StreamTracker backend. The backend retrieves movie and TV metadata and image URLs from The Movie Database (TMDB), and retrieves streaming availability/provider/deep-link information from Movie of the Night's Streaming Availability API through RapidAPI. User account identifiers, email, name, custom lists, favorites, and profile preferences are not forwarded to those content-data providers for normal content lookups.
 
 We have included documentary evidence in App Review Information for the data sources and the app's behavior, including provider documentation and screenshots showing that the app has no video player, no download controls, and only discovery/watchlist/provider-link functionality. We have also updated the privacy policy to describe the content-data providers and data flow more explicitly.
 
@@ -31,7 +31,6 @@ Data flow:
 - The iOS app calls the StreamTracker backend.
 - The backend calls TMDB for title metadata and poster/backdrop image URLs.
 - The backend calls Movie of the Night's Streaming Availability API through RapidAPI for streaming availability, prices, provider names/logos, and provider deep links.
-- API credentials are stored server-side and are not present in the compiled app.
 - Account identifiers, email, name, custom lists, favorites, and profile preferences are not sent to TMDB, Movie of the Night, or RapidAPI for ordinary content lookups.
 - Search terms may be sent to the backend and TMDB to return search results.
 - Movie/TV identifiers may be sent to the availability provider to return content details and legal availability information.
