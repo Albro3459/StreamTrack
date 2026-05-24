@@ -89,17 +89,17 @@ Redaction rules:
 Paste this after the evidence is uploaded and the live privacy policy is verified.
 
 ```text
-Hello App Review,
+Hi App Review,
 
-Thank you for the follow-up.
+Thank you for the review.
 
-We believe there may be a misunderstanding about the app's functionality. StreamTracker is a media discovery and watchlist app. It does not host, stream, download, sell, or distribute Disney/Pixar video content, or any other third-party video content.
+We believe there may be a misunderstanding about the app's functionality. StreamTracker is a media discovery and watchlist app. It does not host, stream, download, sell, or distribute any third-party video content.
 
-The app displays movie and TV metadata, poster images, provider identifiers, streaming availability, prices, and provider links so users can identify titles and find where they may legally watch or purchase them from official providers. Any provider links open the official third-party destination when available. StreamTracker does not unlock or play that content in the app.
+The app displays movie and TV metadata, poster images, provider identifiers, streaming availability, prices, and provider links so users can identify titles and find where they may legally watch or purchase them from official providers. Any provider links open the official third-party destination when available. StreamTracker does not unlock or play content in the app.
 
-The submitted app is not affiliated with, endorsed by, sponsored by, or certified by Disney, Pixar, TMDB, Movie of the Night, RapidAPI, or any streaming provider. Disney/Pixar marks or works are not used in the app name, app icon, developer name, or app branding. Third-party names, logos, images, and metadata are used only for functional title identification, provider identification, discovery, watchlist, and legal availability purposes.
+The submitted app is not affiliated with, endorsed by, sponsored by, or certified by TMDB, Movie of the Night, RapidAPI, or any studio, rights holder, content provider, or streaming provider. Third-party marks or works are not used in the app name, app icon, developer name, or app branding. Third-party names, logos, images, and metadata are used only for functional title identification, provider identification, discovery, watchlist, and legal availability purposes.
 
-For transparency, the compiled client app calls the StreamTracker backend. The backend retrieves movie and TV metadata and image URLs from The Movie Database (TMDB), and retrieves streaming availability/provider/deep-link information from Movie of the Night's Streaming Availability API through RapidAPI. User account identifiers, email, name, custom lists, favorites, and profile preferences are not forwarded to those content-data providers for normal content lookups.
+For transparency, the compiled client app calls the StreamTracker backend. The backend retrieves movie and TV metadata and image URLs from The Movie Database (TMDB), and retrieves streaming availability/provider/deep-link information from Movie of the Night's Streaming Availability API through RapidAPI. User account identifiers, email, name, custom lists, favorites, and profile preferences are not forwarded to those content-data providers.
 
 The app has no video player, no download controls, and only discovery/watchlist/provider-link functionality. We have also updated the privacy policy and App Privacy disclosures.
 
