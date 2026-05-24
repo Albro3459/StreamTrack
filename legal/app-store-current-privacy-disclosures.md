@@ -1,11 +1,11 @@
-# App Privacy
+# App Privacy  
 
 ## Privacy Policy
 
-* **Privacy Policy URL:**
-  [https://streamtrack.gocloudlaunch.com/privacy-policy](https://streamtrack.gocloudlaunch.com/privacy-policy)
+- **Privacy Policy URL:**  
+  https://streamtrack.gocloudlaunch.com/privacy-policy
 
-* **User Privacy Choices URL:**
+- **User Privacy Choices URL:**  
   *(Not provided)*
 
 ---
@@ -13,28 +13,32 @@
 ## Data Summary
 
 ### Data Linked to You
-
 The following data may be collected and linked to your identity:
 
-* Identifiers
-* Contact Info
+- Identifiers  
+- User Content  
+- Contact Info  
+- Other Data  
 
 ### Data Not Linked to You
-
 The following data may be collected but is not linked to your identity:
 
-* Diagnostics
+- Diagnostics  
+- Search History  
 
 ---
 
 ## Data Types Collected
 
-This app collects **4 types of data**:
+This app collects **7 data types**:
 
-* User ID
-* Email Address
-* Crash Data
-* Name
+- User ID  
+- Other User Content  
+- Email Address  
+- Crash Data  
+- Name  
+- Other Data Types  
+- Search History  
 
 ---
 
@@ -43,30 +47,49 @@ This app collects **4 types of data**:
 ### Contact Info
 
 #### Name
-
-* Used for app functionality
-* Linked to the user’s identity
+- Used for app functionality  
+- Linked to the user's identity  
 
 #### Email Address
+- Used for app functionality  
+- Linked to the user's identity  
 
-* Used for app functionality
-* Linked to the user’s identity
+---
+
+### User Content
+
+#### Other User Content
+- Used for app functionality  
+- Linked to the user's identity  
 
 ---
 
 ### Identifiers
 
 #### User ID
-
-* Used for app functionality
-* Linked to the user’s identity
+- Used for app functionality  
+- Linked to the user's identity  
 
 ---
 
 ### Diagnostics
 
 #### Crash Data
-
-* Used for app functionality
+- Used for app functionality  
+- Not linked to the user's identity  
 
 ---
+
+### Search History
+
+#### Search History
+- Used for app functionality  
+- Not linked to the user's identity  
+
+---
+
+### Other Data
+
+#### Other Data Types
+- Used for app functionality  
+- Linked to the user's identity  

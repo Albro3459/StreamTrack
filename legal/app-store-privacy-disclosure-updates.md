@@ -2,7 +2,7 @@
 
 Date: 2026-05-24
 
-Source reviewed: `legal/app-store-current-privacy-disclosures.md`.
+Source reviewed: `legal/app-store-current-privacy-disclosures.md`, updated by the user before this pass.
 
 Apple's App Privacy guidance says the label must disclose data collected by the app or third-party partners, even when used only for app functionality. Apple defines "Search History" as searches performed in the app, "Other User Content" as other user-generated content, and "Other Data Types" as data not covered by another category.
 
@@ -11,18 +11,21 @@ Primary Apple source:
 - `https://developer.apple.com/app-store/app-privacy-details/`
 - `https://developer.apple.com/help/app-store-connect/manage-app-information/manage-app-privacy`
 
-## Current Disclosure
+## Current Updated Disclosure
 
-The current App Store privacy label discloses:
+The current App Store privacy label now discloses:
 
 - Name: linked to user, used for app functionality.
 - Email Address: linked to user, used for app functionality.
 - User ID: linked to user, used for app functionality.
+- Other User Content: linked to user, used for app functionality.
+- Other Data Types: included in the collected data summary and linked to user.
+- Search History: not linked to user, used for app functionality.
 - Crash Data: not linked to user, used for app functionality.
 
-## Recommended Updates
+## Remaining Recommended Updates
 
-Keep the current disclosures, then add or update the following before resubmission.
+The current disclosures now match the intended privacy posture. Keep the current disclosures, with the notes below as optional refinements only.
 
 ### Contact Info
 
@@ -30,7 +33,7 @@ Name:
 
 - Keep: Data Linked to You.
 - Keep: Used for App Functionality.
-- Add: Product Personalization, if the App Store Connect form allows multiple purposes, because the app displays the user's first name in the user experience.
+- Optional: Add Product Personalization if the App Store Connect form allows multiple purposes and you want to reflect that the app displays the user's first name in the user experience.
 
 Email Address:
 
@@ -48,7 +51,7 @@ User ID:
 
 ### User Content
 
-Add Other User Content for:
+Keep Other User Content for:
 
 - Custom list names.
 - Favorites.
@@ -64,7 +67,7 @@ Recommended answers:
 
 ### Other Data Types
 
-Add Other Data Types for:
+Keep Other Data Types for:
 
 - Favorite genres.
 - Favorite streaming services.
@@ -74,12 +77,15 @@ Recommended answers:
 
 - Data Linked to You: Yes.
 - Purpose: App Functionality.
-- Purpose: Product Personalization, if these preferences customize content or recommendations.
 - Tracking: No.
+
+Current status:
+
+- `legal/app-store-current-privacy-disclosures.md` includes the Other Data Types detail section. No disclosure change is needed for Other Data Types.
 
 ### Search History
 
-Add Search History as the conservative App Review answer because the app sends search terms off-device to the StreamTracker backend and then to TMDB to fulfill search requests.
+Keep Search History because the app sends search terms off-device to the StreamTracker backend and then to TMDB to fulfill search requests.
 
 Recommended default answers:
 
@@ -88,10 +94,11 @@ Recommended default answers:
 
 Linking answer:
 
-- Choose Data Not Linked to You only if backend, CDN, provider, and log retention are configured so search terms are not stored with account identifiers, auth tokens, IP-derived identity, or other identifiers.
-- Choose Data Linked to You if search terms are retained in logs, analytics, support tooling, or databases with account identifiers, auth tokens, IP-derived identity, or other identifiers.
+- Keep Data Not Linked to You. The owner has confirmed that searches are not connected to users in logs.
 
-Given the current app sends an auth header during logged-in search requests, verify server/proxy logging before choosing the final linked/not-linked answer.
+Current status:
+
+- Search History as Data Not Linked to You matches the stated implementation fact that search terms are not saved to account profiles and are not connected to user identity in logs.
 
 ### Diagnostics
 
@@ -100,6 +107,8 @@ Crash Data:
 - Keep: Data Not Linked to You, if crash reports are not tied to account identity.
 - Keep: Used for App Functionality.
 - Do not mark Tracking.
+
+Optional: Add Other Diagnostic Data if retained server/request logs are surfaced in App Store Connect as a separate diagnostic collection beyond Crash Data.
 
 Add Performance Data only if Expo, Apple, Firebase, or another tool collects launch time, hang rate, energy use, performance traces, or similar diagnostics in a way you can access.
 
