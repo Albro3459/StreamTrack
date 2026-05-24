@@ -1,6 +1,6 @@
 # App Store Review Response Draft
 
-Use this after uploading the documentary evidence listed below in App Review Information. Do not attach API keys, secrets, backend source code, private database records, or screenshots containing credentials.
+Use `legal/app-store-final-submission-packet.md` for the current copy/paste packet, pre-send blocker, and final checklist. Use this file as the working draft. Do not attach API keys, secrets, backend source code, private database records, or screenshots containing credentials.
 
 ## Resolution Center Reply
 
