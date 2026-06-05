@@ -67,7 +67,7 @@ export default function SearchPage() {
     const debouncedSearch = useRef(
         debounce(async (text: string) => {
             await search(text); // await works here
-        }, 400)
+        }, 500)
     ).current;
 
     const search = async (searchText: string) => {
