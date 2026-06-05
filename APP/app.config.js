@@ -7,7 +7,7 @@ export default {
         name: "StreamTrack",
         slug: "streamtrack",
         owner: "albro3459",
-        version: "1.0.0",
+        version: "1.0.1",
         orientation: "portrait",
         icon: "./assets/images/AppIconDark.png",
         scheme: "streamtrack",
@@ -17,7 +17,7 @@ export default {
             resizeMode: "contain",
             backgroundColor: BackgroundColor.backgroundColor
         },
-        runtimeVersion: "1.0.0",
+        runtimeVersion: "1.0.1",
         ios: {
             supportsTablet: true,
             // Apple

@@ -110,6 +110,11 @@ For file secrets, like `GOOGLE_SERVICES_PLIST`:
 * Go to environmental variables under project settings
 * Add variable `GOOGLE_SERVICES_PLIST` with the **file** upload button as a Secret in both dev and production
 
+**IF YOU ARE DEPLOYING AN UPDATE ONCE ALREADY IN THE APP STORE!!**
+```sh
+npm version patch --no-git-tag-version
+```
+
 Start the EAS build to the cloud:
 ```sh
 npx eas build -p ios --profile production
