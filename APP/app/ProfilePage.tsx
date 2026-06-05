@@ -230,8 +230,15 @@ export default function ProfilePage() {
         }
     }, [firstName, isSigningUp, lastName, userData]);
 
+    const handleBackPress = () => {
+        if (router.canGoBack()) {
+            router.back();
+        } else {
+            router.replace("/LandingPage");
+        }
+    };
     const backButton = (
-        <HeaderButton accessibilityLabel="Back" onPress={() => router.back()}>
+        <HeaderButton accessibilityLabel="Back" onPress={handleBackPress}>
             <Feather name="chevron-left" size={32} color={Colors.selectedTextColor} />
         </HeaderButton>
     );

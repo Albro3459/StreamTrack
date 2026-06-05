@@ -18,8 +18,16 @@ export default function RootLayout() {
     const router = useRouter();
     const headerIconColor = Colors.selectedTextColor;
 
+    const handleBackPress = () => {
+        if (router.canGoBack()) {
+            router.back();
+        } else {
+            router.replace('/LandingPage');
+        }
+    };
+
     const backButton = (
-        <HeaderButton accessibilityLabel="Back" onPress={() => router.back()}>
+        <HeaderButton accessibilityLabel="Back" onPress={handleBackPress}>
             <Feather name="chevron-left" size={32} color={headerIconColor} />
         </HeaderButton>
     );

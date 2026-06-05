@@ -242,8 +242,15 @@ export default function LibraryPage() {
             <Text style={{ color: Colors.selectedTextColor, fontWeight: "bold" }}>Done</Text>
         </HeaderButton>
     );
+    const handleBackPress = () => {
+        if (router.canGoBack()) {
+            router.back();
+        } else {
+            router.replace("/LandingPage");
+        }
+    };
     const backButton = (
-        <HeaderButton accessibilityLabel="Back" onPress={() => router.back()}>
+        <HeaderButton accessibilityLabel="Back" onPress={handleBackPress}>
             <Feather name="chevron-left" size={32} color={Colors.selectedTextColor} />
         </HeaderButton>
     );
