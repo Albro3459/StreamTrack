@@ -2,7 +2,7 @@
 
 import { Text, TextInput, View, StyleSheet, ScrollView, Pressable, ActivityIndicator, RefreshControl, Keyboard, Modal } from "react-native";
 import React, { useEffect, useState } from 'react';
-import { PressableBubblesGroup,} from './components/formComponents';
+import { PressableBubblesGroup, } from './components/formComponents';
 import { Stack, useLocalSearchParams, useRouter } from "expo-router"
 import { Feather } from "@expo/vector-icons";
 import { Colors } from "../constants/Colors";
@@ -53,7 +53,7 @@ export default function ProfilePage() {
     // State for text inputs
     const [firstNameText, setFirstNameText] = useState<string>(firstName ?? userData?.user?.firstName ?? "");
     const [lastNameText, setLastNameText] = useState<string>(lastName ?? userData?.user?.lastName ?? "");
-    
+
     const [selectedGenres, setSelectedGenres] = useState<Set<string>>(
         userData?.user?.genreNames ? new Set(userData.user.genreNames) // Objects work weird in sets. Use the strings
             : new Set()
@@ -65,7 +65,12 @@ export default function ProfilePage() {
     );
 
     const [refreshing, setRefreshing] = useState(false);
-    const isGuest = !auth.currentUser || (!userData && !userDataLoading);
+    const hasFirebaseUser = !!auth.currentUser;
+    const isSigningUpUser = Number(isSigningUp) === 1;
+    const isGuest = !hasFirebaseUser || (!userData && !userDataLoading);
+    const waitingForUserData = hasFirebaseUser && userDataLoading && !userData && !isSigningUpUser;
+    const showGuestProfileOverlay = isGuest && !isSigningUpUser;
+    const profileUnavailable = showGuestProfileOverlay || waitingForUserData;
     const onRefresh = async () => {
         if (isGuest) return;
         setRefreshing(true);
@@ -80,17 +85,17 @@ export default function ProfilePage() {
         }
     };
 
-    const saveProfile = async (firstName: string | null, lastName: string | null, 
-                                genres: Set<string>, streamingServices: Set<string>,
-                                setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
-                                setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+    const saveProfile = async (firstName: string | null, lastName: string | null,
+        genres: Set<string>, streamingServices: Set<string>,
+        setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>,
+        setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
     ) => {
         let saved = false;
         try {
             setSaving(true);
             const user = auth.currentUser;
             const token = user ? await user?.getIdToken() : null;
-    
+
             const userMinimalData: UserMinimalData = await updateUserProfile(router, token, firstName?.trim(), lastName?.trim(), genres, streamingServices, setAlertMessageFunc, setAlertTypeFunc);
             if (userMinimalData) {
                 const newUserData: UserData = {
@@ -101,14 +106,14 @@ export default function ProfilePage() {
                 setIsEditing(false);
                 saved = true;
             }
-            
-        } catch(e: any) {
+
+        } catch (e: any) {
             console.warn("Error saving user profile: ", e);
             if (setAlertMessageFunc) setAlertMessageFunc('Error saving user profile');
             if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
         } finally {
             setSaving(false);
-    
+
             if (saved && Number(isSigningUp) === 1) {
                 navigateToReturnTo(router, returnTo || DEFAULT_AUTH_RETURN_TO);
             }
@@ -225,8 +230,6 @@ export default function ProfilePage() {
         }
     }, [firstName, isSigningUp, lastName, userData]);
 
-    const isSigningUpUser = Number(isSigningUp) === 1;
-    const showGuestProfileOverlay = isGuest && !isSigningUpUser;
     const backButton = (
         <HeaderButton accessibilityLabel="Back" onPress={() => router.back()}>
             <Feather name="chevron-left" size={32} color={Colors.selectedTextColor} />
@@ -248,7 +251,7 @@ export default function ProfilePage() {
                     message={alertMessage}
                     setMessage={setAlertMessage}
                 />
-                <ScrollView 
+                <ScrollView
                     style={styles.background}
                     onScroll={Keyboard.dismiss}
                     refreshControl={
@@ -261,69 +264,74 @@ export default function ProfilePage() {
                     }
                 >
                     <View style={styles.profileBodyWrapper}>
-                    {/* First container */}
-                    <View
-                        style={[styles.container, showGuestProfileOverlay && styles.guestProfileBody]}
-                        pointerEvents={showGuestProfileOverlay ? "none" : "auto"}
-                    >
-                        <View style={[styles.labelContainer, {paddingTop: 10}]}>
-                            <Text style={styles.labelText}>First Name</Text>
-                        </View>
-                        <TextInput
-                            style={styles.textInput}
-                            placeholderTextColor={Colors.italicTextColor}
-                            value={firstNameText || ""}
-                            autoCapitalize="words"
-                            onChangeText={(newText) => {setFirstNameText(newText); setIsEditing(true);}}
-                            editable={!showGuestProfileOverlay}
-                        />
-                        <View style={styles.labelContainer}>
-                            <Text style={styles.labelText}>Last Name</Text>
-                        </View>
-                        <TextInput
-                            style={styles.textInput}
-                            placeholderTextColor={Colors.italicTextColor}
-                            value={lastNameText || ""}
-                            autoCapitalize="words"
-                            onChangeText={(newText) => {setLastNameText(newText); setIsEditing(true);}}
-                            editable={!showGuestProfileOverlay}
-                        />
-
-                        <View style={styles.labelContainer}>
-                            <Text style={styles.labelText}>Favorite Genres</Text>
-                        </View>
-                        <View style={styles.pressableContainer}>
-                            {renderOptionsState(genreLoading || (!genreData && !genreError), genreError, !!genreData?.length)}
-                            <PressableBubblesGroup
-                                labels={genreData?.map(g => g.name)}
-                                selectedLabels={selectedGenres}
-                                setLabelState={setSelectedGenres}
-                                styles={styles}
-                                onChange={setIsEditing}
+                        {/* First container */}
+                        <View
+                            style={[styles.container, (showGuestProfileOverlay || waitingForUserData) && styles.guestProfileBody]}
+                            pointerEvents={profileUnavailable ? "none" : "auto"}
+                        >
+                            <View style={[styles.labelContainer, { paddingTop: 10 }]}>
+                                <Text style={styles.labelText}>First Name</Text>
+                            </View>
+                            <TextInput
+                                style={styles.textInput}
+                                placeholderTextColor={Colors.italicTextColor}
+                                value={firstNameText || ""}
+                                autoCapitalize="words"
+                                onChangeText={(newText) => { setFirstNameText(newText); setIsEditing(true); }}
+                                editable={!profileUnavailable}
                             />
-                        </View>
-
-                        <View style={styles.labelContainer}>
-                            <Text style={styles.labelText}>Streaming Services</Text>
-                        </View>
-                        <View style={styles.pressableContainer}>
-                            {renderOptionsState(streamingServiceLoading || (!streamingServiceData && !streamingServiceError), streamingServiceError, !!streamingServiceData?.length)}
-                            <PressableBubblesGroup
-                                selectedLabels={selectedStreamingServices}
-                                setLabelState={setSelectedStreamingServices}
-                                styles={styles}
-                                onChange={setIsEditing}
-                                services={streamingServiceData}
+                            <View style={styles.labelContainer}>
+                                <Text style={styles.labelText}>Last Name</Text>
+                            </View>
+                            <TextInput
+                                style={styles.textInput}
+                                placeholderTextColor={Colors.italicTextColor}
+                                value={lastNameText || ""}
+                                autoCapitalize="words"
+                                onChangeText={(newText) => { setLastNameText(newText); setIsEditing(true); }}
+                                editable={!profileUnavailable}
                             />
+
+                            <View style={styles.labelContainer}>
+                                <Text style={styles.labelText}>Favorite Genres</Text>
+                            </View>
+                            <View style={styles.pressableContainer}>
+                                {renderOptionsState(genreLoading || (!genreData && !genreError), genreError, !!genreData?.length)}
+                                <PressableBubblesGroup
+                                    labels={genreData?.map(g => g.name)}
+                                    selectedLabels={selectedGenres}
+                                    setLabelState={setSelectedGenres}
+                                    styles={styles}
+                                    onChange={setIsEditing}
+                                />
+                            </View>
+
+                            <View style={styles.labelContainer}>
+                                <Text style={styles.labelText}>Streaming Services</Text>
+                            </View>
+                            <View style={styles.pressableContainer}>
+                                {renderOptionsState(streamingServiceLoading || (!streamingServiceData && !streamingServiceError), streamingServiceError, !!streamingServiceData?.length)}
+                                <PressableBubblesGroup
+                                    selectedLabels={selectedStreamingServices}
+                                    setLabelState={setSelectedStreamingServices}
+                                    styles={styles}
+                                    onChange={setIsEditing}
+                                    services={streamingServiceData}
+                                />
+                            </View>
                         </View>
-                    </View>
-                    {showGuestProfileOverlay && (
-                        <View style={styles.guestPromptOverlay}>
-                            <Pressable style={styles.guestPromptButton} onPress={() => requireAccount("/ProfilePage?isSigningUp=0")}>
-                                <Text style={appStyles.buttonText}>Sign In / Sign Up</Text>
-                            </Pressable>
-                        </View>
-                    )}
+                        {showGuestProfileOverlay && (
+                            <View style={styles.guestPromptOverlay}>
+                                <Pressable style={styles.guestPromptButton} onPress={() => requireAccount("/ProfilePage?isSigningUp=0")}>
+                                    <Text style={appStyles.buttonText}>Sign In / Sign Up</Text>
+                                </Pressable>
+                            </View>
+                        )}
+                        {waitingForUserData && (
+                            <View style={styles.guestPromptOverlay}>
+                                <ActivityIndicator size="large" color={Colors.selectedTextColor} />
+                            </View>
+                        )}
                     </View>
 
                     {/* <View style={styles.separatorLine}></View> */}
@@ -331,13 +339,13 @@ export default function ProfilePage() {
                     {/* Button container */}
                     <View style={styles.buttonContainer} >
                         {/* Button */}
-                        { showGuestProfileOverlay ? null : isEditing || Number(isSigningUp) === 1 ? (
+                        {profileUnavailable ? null : isEditing || Number(isSigningUp) === 1 ? (
                             <Pressable style={appStyles.button} onPress={async () => await saveProfile(firstNameText, lastNameText, selectedGenres, selectedStreamingServices, setAlertMessage, setAlertType)}>
                                 <Text style={appStyles.buttonText}>Save</Text>
                             </Pressable>
                         ) : (
                             <>
-                                <Pressable style={appStyles.button} onPress={async () => { await LogOut(auth); router.replace('/LoginPage');}}>
+                                <Pressable style={appStyles.button} onPress={async () => { await LogOut(auth); router.replace('/LoginPage'); }}>
                                     <Text style={appStyles.buttonText}>Logout</Text>
                                 </Pressable>
                                 {showAddPasswordLogin() && (
@@ -508,13 +516,13 @@ const styles = StyleSheet.create({
 
     pressableBubble: {
         height: 45,
-        minWidth: 45*1.5,
+        minWidth: 45 * 1.5,
         borderRadius: 30,
         backgroundColor: Colors.grayCell,
         paddingVertical: 8,
         paddingHorizontal: 16,
         justifyContent: 'center',
-        alignItems: 'center', 
+        alignItems: 'center',
     },
     pressableText: {
         fontSize: 16,

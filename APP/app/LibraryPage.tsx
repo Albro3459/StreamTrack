@@ -1,19 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  Image,
-  Modal,
-  Pressable,
-  Dimensions,
-  ActivityIndicator,
-  RefreshControl,
-  Animated,
-} from 'react-native';
+import { View, Text, FlatList, StyleSheet, Image, Modal, Pressable, Dimensions, ActivityIndicator, RefreshControl, Animated } from 'react-native';
 import PagerView from 'react-native-pager-view';
 import * as SplashScreen from "expo-splash-screen";
 import { Stack, useRouter } from 'expo-router';
@@ -100,8 +88,8 @@ export default function LibraryPage() {
     const setRefs = (index: number, length: number) => {
         index = index >= 0 ? index : 0;
         pagerViewRef?.current?.setPage(index);
-        flatListRef?.current?.scrollToIndex({ 
-            index: index, animated: true, 
+        flatListRef?.current?.scrollToIndex({
+            index: index, animated: true,
             viewPosition: index <= 1 ? 0 : index === length - 1 ? 1 : 0.5 // 0: start, 0.5: center, 1: end
         });
     };
@@ -167,7 +155,7 @@ export default function LibraryPage() {
         }
     }, [userData]);
 
-     useEffect(() => {
+    useEffect(() => {
         if (isGuest) {
             requireAccount("/LibraryPage");
             router.replace("/LandingPage");
@@ -185,70 +173,70 @@ export default function LibraryPage() {
                 wiggleAnimations?.current?.pop();
             }
         }
-    }, [isGuest, lists, isLoading, wiggleAnimations]);
+    }, [router, isGuest, lists, isLoading, wiggleAnimations]);
 
     const renderTabContent = (contents: ContentPartialData[], list: string) => {
         if (!contents || contents.length === 0) {
-        return (
-            <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-                <Text style={{ fontSize: 16, color: 'gray', textAlign: 'center' }}>
-                    Your list is empty. Start adding content!
-                </Text>
-            </View>
-        );
-        }
-  
-        return (
-        <FlatList<ContentPartialData>
-            data={contents}
-            numColumns={3}
-            keyExtractor={(content, index) => `${content.tmdbID}-${index}-${list}`}
-            refreshControl={
-                <RefreshControl
-                    refreshing={refreshing}
-                    onRefresh={onRefresh}
-                    tintColor={Colors.selectedTextColor} // iOS spinner color
-                    colors={[Colors.selectedTextColor]} // Android spinner color
-                />
-            }
-            renderItem={({ item: content }) => (
-                <View style={styles.movieCard} >
-                    <Pressable
-                        style={({ pressed }) => [
-                            pressed && appStyles.pressed,
-                        ]}
-                        onPress={() => {
-                            router.push({
-                                pathname: '/InfoPage',
-                                params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, largeVerticalPoster: content.largeVerticalPoster, horizontalPoster: content.horizontalPoster },
-                            });
-                        }}
-                        onLongPress={() => {
-                            setSelectedContent(content);
-                            setMoveModalVisible(true);
-                        }}
-                    >   
-                        <Image
-                            source={getPoster(content)}
-                            style={[styles.movieImage]}
-                        />
-                        <View style={appStyles.heartIconWrapper}>
-                            <Heart
-                                isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
-                                size={20}
-                                background={true}
-                                onPress={async () => await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)}
-                            />
-                        </View>
-                    </Pressable>
-                    <Text style={styles.movieTitle}>{content.title}</Text>
+            return (
+                <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                    <Text style={{ fontSize: 16, color: 'gray', textAlign: 'center' }}>
+                        Your list is empty. Start adding content!
+                    </Text>
                 </View>
-            )}
-        />
+            );
+        }
+
+        return (
+            <FlatList<ContentPartialData>
+                data={contents}
+                numColumns={3}
+                keyExtractor={(content, index) => `${content.tmdbID}-${index}-${list}`}
+                refreshControl={
+                    <RefreshControl
+                        refreshing={refreshing}
+                        onRefresh={onRefresh}
+                        tintColor={Colors.selectedTextColor} // iOS spinner color
+                        colors={[Colors.selectedTextColor]} // Android spinner color
+                    />
+                }
+                renderItem={({ item: content }) => (
+                    <View style={styles.movieCard} >
+                        <Pressable
+                            style={({ pressed }) => [
+                                pressed && appStyles.pressed,
+                            ]}
+                            onPress={() => {
+                                router.push({
+                                    pathname: '/InfoPage',
+                                    params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, largeVerticalPoster: content.largeVerticalPoster, horizontalPoster: content.horizontalPoster },
+                                });
+                            }}
+                            onLongPress={() => {
+                                setSelectedContent(content);
+                                setMoveModalVisible(true);
+                            }}
+                        >
+                            <Image
+                                source={getPoster(content)}
+                                style={[styles.movieImage]}
+                            />
+                            <View style={appStyles.heartIconWrapper}>
+                                <Heart
+                                    isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
+                                    size={20}
+                                    background={true}
+                                    onPress={async () => await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsLoading, () => { }, () => { }, setAlertMessage, setAlertType)}
+                                />
+                            </View>
+                        </Pressable>
+                        <Text style={styles.movieTitle}>{content.title}</Text>
+                    </View>
+                )}
+            />
         );
     };
 
-    {/* Main Content */}
+    {/* Main Content */ }
     const doneButton = (
         <HeaderButton accessibilityLabel="Done" onPress={() => doneDeleting(lists)}>
             <Text style={{ color: Colors.selectedTextColor, fontWeight: "bold" }}>Done</Text>
@@ -291,7 +279,7 @@ export default function LibraryPage() {
                 />
 
                 {/* Tab Bar */}
-                <View style={{position: 'relative'}}>
+                <View style={{ position: 'relative' }}>
                     {deleting && (
                         <Pressable
                             style={StyleSheet.absoluteFill}
@@ -299,7 +287,7 @@ export default function LibraryPage() {
                             onPress={() => doneDeleting(lists)}
                         />
                     )}
-                    <View style={[styles.tabBar, (lists && lists.length <= 4) && {paddingLeft: 24}]}
+                    <View style={[styles.tabBar, (lists && lists.length <= 4) && { paddingLeft: 24 }]}
                         pointerEvents={deleting ? "box-none" : "auto"}
                     >
                         <FlatList<string>
@@ -315,17 +303,17 @@ export default function LibraryPage() {
                                     inputRange: [-1, 1],
                                     outputRange: ['-3deg', '3deg'],
                                 });
-                                
+
                                 return (
                                     <Animated.View style={{ transform: [{ rotate: deleting ? wiggle : '0deg' }] }}>
                                         <>
                                             <Pressable
-                                                style={[styles.tabItem, activeTab === listName && styles.activeTabItem, {paddingHorizontal:8}, (lists && lists.length <= 4) && {paddingHorizontal: 12}]}
+                                                style={[styles.tabItem, activeTab === listName && styles.activeTabItem, { paddingHorizontal: 8 }, (lists && lists.length <= 4) && { paddingHorizontal: 12 }]}
                                                 onPress={async () => deleting ? doneDeleting(lists) : handleTabPress(listName) /* do nothing if deleting */}
                                                 onLongPress={() => lists.length > 1 && startDeleting(lists)}
                                             >
-                                                { listName === FAVORITE_TAB ? (
-                                                    <Heart 
+                                                {listName === FAVORITE_TAB ? (
+                                                    <Heart
                                                         size={25}
                                                         onPress={async () => deleting ? doneDeleting(lists) : handleTabPress(listName)}
                                                         disabled={true}
@@ -354,12 +342,12 @@ export default function LibraryPage() {
                             }}
                         />
                         <Pressable onPress={() => deleting ? doneDeleting(lists) : setCreateListModalVisible(true)} >
-                                <Ionicons name="add" size={28} color="white" />
+                            <Ionicons name="add" size={28} color="white" />
                         </Pressable>
                     </View>
                 </View>
 
-                <View style={{flex: 1}}>
+                <View style={{ flex: 1 }}>
                     {/* Pager View */}
                     <PagerView
                         style={{ flex: 1, marginTop: 20, marginBottom: 50 }}
@@ -373,7 +361,7 @@ export default function LibraryPage() {
                         {lists.map((list) => {
                             const contents = userData?.contents ? getContentsInList(userData.contents, lists, list.listName) : [];
                             return (
-                                <View style={{paddingHorizontal: 5}} key={list.listName}>
+                                <View style={{ paddingHorizontal: 5 }} key={list.listName}>
                                     {renderTabContent(contents, list.listName)}
                                 </View>
                             );
@@ -435,7 +423,7 @@ export default function LibraryPage() {
                             <Pressable style={styles.modalOverlay} onPress={() => doneDeleting(lists)}>
                                 <View style={styles.modalContent}>
                                     <Text style={styles.modalTitle}>Delete List?</Text>
-                                    <Text style={[appStyles.optionText, {marginTop: 10, marginBottom: 15, textAlign: "center", fontSize: 14}]}>
+                                    <Text style={[appStyles.optionText, { marginTop: 10, marginBottom: 15, textAlign: "center", fontSize: 14 }]}>
                                         Are you sure you want to delete
                                         {deleteTab ? ` "${deleteTab}"` : ""}?
                                         This cannot be undone.
@@ -487,7 +475,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         ...appStyles.shadow
-},
+    },
 
     loadingContainer: {
         flex: 1,
@@ -519,27 +507,27 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
     },
-    activeTabItem: { 
+    activeTabItem: {
         backgroundColor: Colors.altBackgroundColor,
         //  ...appStyles.shadow
     },
-    tabText: { 
-        color: Colors.reviewTextColor, 
+    tabText: {
+        color: Colors.reviewTextColor,
         fontSize: 14,
         textAlign: "center",
     },
     activeTabText: { color: 'white', fontWeight: 'bold' },
 
-    movieCard: { 
-        flex: 1, 
-        margin: 5, 
-        alignItems: 'center', 
+    movieCard: {
+        flex: 1,
+        margin: 5,
+        alignItems: 'center',
         paddingBottom: 10,
     },
-    movieImage: { 
-        aspectRatio: 17/24, 
-        width: screenWidth * 0.22, 
-        height: screenWidth * 0.33, 
+    movieImage: {
+        aspectRatio: 17 / 24,
+        width: screenWidth * 0.22,
+        height: screenWidth * 0.33,
         borderRadius: 10,
         ...appStyles.shadow,
     },

@@ -46,16 +46,17 @@ export default function InfoPage() {
     const [alertMessage, setAlertMessage] = useState<string>("");
     const [alertType, setAlertType] = useState<Alert>(Alert.Error);
 
-    const waitingForUserData = !!auth.currentUser && userDataLoading && !userData;
-    const isGuest = !auth.currentUser || (!userData && !userDataLoading);
+    const hasFirebaseUser = !!auth.currentUser;
+    const waitingForUserData = hasFirebaseUser && userDataLoading && !userData;
+    const isGuest = !hasFirebaseUser || (!userData && !userDataLoading);
     const returnTo = `/InfoPage?tmdbID=${encodeURIComponent(tmdbID || "")}&verticalPoster=${encodeURIComponent(verticalPoster || "")}&largeVerticalPoster=${encodeURIComponent(largeVerticalPoster || "")}&horizontalPoster=${encodeURIComponent(horizontalPoster || "")}`;
-    const [lists, setLists] = useState<ListMinimalData[] | null>(userData ? [...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []] : getGuestLists());
+    const [lists, setLists] = useState<ListMinimalData[]>(userData ? [...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []] : isGuest ? getGuestLists() : []);
 
     const [info, setInfo] = useState<ContentInfoData | null>();
     const [selectedRecommendation, setSelectedRecommendation] = useState<ContentPartialData>(null);
 
     const [isLoading, setIsLoading] = useState(true);
-    
+
     const [listModalVisible, setListModalVisible] = useState(false);
     const [recommendedListModalVisible, setRecommendedListModalVisible] = useState(false);
 
@@ -71,19 +72,20 @@ export default function InfoPage() {
         setAlertType(Alert.Error);
         try {
             const updatedInfo: ContentInfoData = await getContentInfo(
-                router, await getCurrentUserToken(), 
-                { tmdbID: info?.content?.tmdbID, 
-                    VerticalPoster: info?.content?.verticalPoster, 
+                router, await getCurrentUserToken(),
+                {
+                    tmdbID: info?.content?.tmdbID,
+                    VerticalPoster: info?.content?.verticalPoster,
                     LargeVerticalPoster: info?.content.largeVerticalPoster,
                     HorizontalPoster: info?.content?.horizontalPoster
-                } satisfies ContentRequestData, 
+                } satisfies ContentRequestData,
                 setAlertMessage, setAlertType,
                 true // REFRESH
             );
             if (updatedInfo) {
                 if (updatedInfo.content.tmdbID !== info.content.tmdbID) {
                     console.warn("TMDB ID changed on refresh somehow");
-                    if (setAlertMessage) setAlertMessage('Error refreshing content'); 
+                    if (setAlertMessage) setAlertMessage('Error refreshing content');
                     if (setAlertType) setAlertType(Alert.Error);
                     return;
                 }
@@ -93,7 +95,7 @@ export default function InfoPage() {
                 // Update User Data
                 if (userData?.contents.map(c => c.tmdbID).includes(updatedInfo.content.tmdbID)) {
                     const newContents = [...userData.contents.map(c =>
-                        c.tmdbID === info.content.tmdbID ? {...updatedInfo.content} : {...c}
+                        c.tmdbID === info.content.tmdbID ? { ...updatedInfo.content } : { ...c }
                     )];
                     setUserData({
                         ...userData,
@@ -109,7 +111,7 @@ export default function InfoPage() {
         }
     };
 
-    const getServicePrice = (option: StreamingOptionData) : string => {
+    const getServicePrice = (option: StreamingOptionData): string => {
         if (option && option.streamingService && option.price) {
             const priceAmount = parseFloat(option.price);
             if (!isNaN(priceAmount)) {
@@ -128,13 +130,13 @@ export default function InfoPage() {
 
     const getRuntime = (content: ContentData): string => {
         return (
-            !content 
-            ?  (tmdbID.split('/')[0] === TMDB_MEDIA_TYPE.MOVIE ? "0h 0m" : "Seasons: 5  |  Episodes: 10") 
-            : (
-                content.showType === 'movie' 
-                ? (content.runtime ? toHoursAndMinutes(content.runtime) : "") 
-                : (content.seasonCount && content.episodeCount ? `Seasons: ${content.seasonCount} | Episodes: ${content.episodeCount}` : "")
-            )
+            !content
+                ? (tmdbID.split('/')[0] === TMDB_MEDIA_TYPE.MOVIE ? "0h 0m" : "Seasons: 5  |  Episodes: 10")
+                : (
+                    content.showType === 'movie'
+                        ? (content.runtime ? toHoursAndMinutes(content.runtime) : "")
+                        : (content.seasonCount && content.episodeCount ? `Seasons: ${content.seasonCount} | Episodes: ${content.episodeCount}` : "")
+                )
         );
     };
 
@@ -144,9 +146,8 @@ export default function InfoPage() {
             params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, largeVerticalPoster: content.largeVerticalPoster, horizontalPoster: content.horizontalPoster },
         });
     }
-    
+
     const handleLongPress = (content: ContentPartialData) => {
-        if (waitingForUserData) return;
         setSelectedRecommendation(content); setRecommendedListModalVisible(true);
     }
 
@@ -155,13 +156,13 @@ export default function InfoPage() {
             if (!tmdbID) return;
 
             const token = await getCurrentUserToken();
-    
+
             let info: ContentInfoData | null = getCachedContent(tmdbID);
 
             try {
                 if (!info || !info?.content?.largeVerticalPoster) {
                     const shouldRefresh: boolean = !info?.content?.largeVerticalPoster;
-                    info = await getContentInfo(router, token, {tmdbID:tmdbID, VerticalPoster:verticalPoster, LargeVerticalPoster: largeVerticalPoster, HorizontalPoster:horizontalPoster} satisfies ContentRequestData, setAlertMessage, setAlertType, shouldRefresh);
+                    info = await getContentInfo(router, token, { tmdbID: tmdbID, VerticalPoster: verticalPoster, LargeVerticalPoster: largeVerticalPoster, HorizontalPoster: horizontalPoster } satisfies ContentRequestData, setAlertMessage, setAlertType, shouldRefresh);
                 }
             } finally {
                 if (info) {
@@ -175,136 +176,134 @@ export default function InfoPage() {
     }, [tmdbID, verticalPoster, largeVerticalPoster, horizontalPoster]);
 
     useEffect(() => {
-        setLists(userData ? [...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []] : getGuestLists());
-    }, [userData]);
+        setLists(userData ? [...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []] : isGuest ? getGuestLists() : []);
+    }, [isGuest, userData]);
 
     const renderTabContent = () => {
         switch (activeTab) {
-        case TABS.ABOUT:
-            return (
-            <View style={styles.content}>
-                <Text style={styles.sectionTitle}>Overview</Text>
-                <Text style={styles.text}>{info && info?.content?.overview}</Text>
+            case TABS.ABOUT:
+                return (
+                    <View style={styles.content}>
+                        <Text style={styles.sectionTitle}>Overview</Text>
+                        <Text style={styles.text}>{info && info?.content?.overview}</Text>
 
-                <Text style={[styles.sectionTitle, {marginBottom: 0} ]}>Where to Stream</Text>
-                <View style={styles.streamingLogoContainer}>
-                    {info && info?.content?.streamingOptions.filter(s => !s.price).map((streamingOption, index) => (
-                        <Pressable
-                            key={index+streamingOption.deepLink}
-                            style={styles.streamingLogo}
-                            onPress={() => {
-                                if (streamingOption.deepLink) {
-                                    Linking.openURL(streamingOption.deepLink).catch(err => {
-                                        console.warn("Failed to open URL:", err); 
-                                        setAlertMessage("Failed to open URL");
-                                        setAlertType(Alert.Error);
-                                    });
-                                } else {
-                                    console.warn("No link available");
-                                    setAlertMessage("No link available");
-                                    setAlertType(Alert.Error);
-                                }
-                            }}
-                        >
-                            <SvgUri
-                                uri={streamingOption.streamingService.darkLogo}
-                                width={STREAMING_LOGO_WIDTH}
-                                height={STREAMING_LOGO_HEIGHT}
-                                preserveAspectRatio="xMidYMid meet"
-                            />
-                        </Pressable>
-                    ))}
-                     {info && info?.content?.streamingOptions.filter(s => s.price).map((streamingOption, index) => (
-                        <Pressable
-                            key={index+streamingOption.deepLink}
-                            style={styles.streamingLogo}
-                            onPress={() => {
-                                if (streamingOption.deepLink) {
-                                    Linking.openURL(streamingOption.deepLink).catch(err => {
-                                        console.warn("Failed to open URL:", err); 
-                                        setAlertMessage("Failed to open URL");
-                                        setAlertType(Alert.Error);
-                                    });
-                                } else {
-                                    console.warn("No link available");
-                                    setAlertMessage("No link available");
-                                    setAlertType(Alert.Error);
-                                }
-                            }}
-                        >
-                            <SvgUri
-                                uri={streamingOption.streamingService.darkLogo}
-                                width={STREAMING_LOGO_WIDTH}
-                                height={STREAMING_LOGO_HEIGHT}
-                                preserveAspectRatio="xMidYMid meet"
-                            />
-                            <Text style={{color: Colors.reviewTextColor, fontSize: 12, marginTop: -10, paddingBottom: 10}}>{getServicePrice(streamingOption)}</Text>
-                        </Pressable>
-                    ))}
-                </View>
-
-                <Text style={styles.sectionTitle}>Genres</Text>
-                <Text style={styles.text}>{
-                    info && info?.content?.genres.map((genre) => (
-                        genre.name
-                    )).join(' | ')
-                }
-                </Text>
-
-                <Text style={styles.sectionTitle}>Cast</Text>
-                <Text style={styles.text}>
-                {info && info?.content?.cast.join(' | ')}
-                </Text>
-            </View>
-            );
-        case TABS.RECOMMENDED:
-            return (
-            <View style={styles.content}>
-                <Text style={[styles.sectionTitle, {paddingBottom: 10}]}>Explore similar content</Text>
-                <FlatList<ContentPartialData>
-                    data={info?.recommendations}
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    keyExtractor={item => item.tmdbID}
-                    contentContainerStyle={styles.railListContent}
-                    renderItem={({ item: content }) => (
-                        <Pressable
-                            style={({ pressed }) => [
-                                styles.card,
-                                pressed && styles.cardPressed,
-                            ]}
-                            onPress={() => handlePress(content)}
-                            onLongPress={() => handleLongPress(content)}
-                            android_ripple={{ color: Colors.grayCell }}
-                        >
-                            <View style={[styles.imageWrapper]}>
-                                <Image
-                                    source={{ uri: content.verticalPoster || content.horizontalPoster }}
-                                    style={styles.image}
-                                    resizeMode="cover"
-                                />
-                                <View style={appStyles.heartIconWrapper}>
-                                    <Heart
-                                        isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
-                                        size={20}
-                                        background={true}
-                                        onPress={async () => {
-                                            return waitingForUserData 
-                                                    ? undefined 
-                                                    : isGuest 
-                                                        ? requireAccount(returnTo) 
-                                                        : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)
-                                        }}
+                        <Text style={[styles.sectionTitle, { marginBottom: 0 }]}>Where to Stream</Text>
+                        <View style={styles.streamingLogoContainer}>
+                            {info && info?.content?.streamingOptions.filter(s => !s.price).map((streamingOption, index) => (
+                                <Pressable
+                                    key={index + streamingOption.deepLink}
+                                    style={styles.streamingLogo}
+                                    onPress={() => {
+                                        if (streamingOption.deepLink) {
+                                            Linking.openURL(streamingOption.deepLink).catch(err => {
+                                                console.warn("Failed to open URL:", err);
+                                                setAlertMessage("Failed to open URL");
+                                                setAlertType(Alert.Error);
+                                            });
+                                        } else {
+                                            console.warn("No link available");
+                                            setAlertMessage("No link available");
+                                            setAlertType(Alert.Error);
+                                        }
+                                    }}
+                                >
+                                    <SvgUri
+                                        uri={streamingOption.streamingService.darkLogo}
+                                        width={STREAMING_LOGO_WIDTH}
+                                        height={STREAMING_LOGO_HEIGHT}
+                                        preserveAspectRatio="xMidYMid meet"
                                     />
-                                </View>
-                            </View>
-                        </Pressable>
-                    )}
-                />
-            </View>
-            );
-        default:
-            return (<></>);
+                                </Pressable>
+                            ))}
+                            {info && info?.content?.streamingOptions.filter(s => s.price).map((streamingOption, index) => (
+                                <Pressable
+                                    key={index + streamingOption.deepLink}
+                                    style={styles.streamingLogo}
+                                    onPress={() => {
+                                        if (streamingOption.deepLink) {
+                                            Linking.openURL(streamingOption.deepLink).catch(err => {
+                                                console.warn("Failed to open URL:", err);
+                                                setAlertMessage("Failed to open URL");
+                                                setAlertType(Alert.Error);
+                                            });
+                                        } else {
+                                            console.warn("No link available");
+                                            setAlertMessage("No link available");
+                                            setAlertType(Alert.Error);
+                                        }
+                                    }}
+                                >
+                                    <SvgUri
+                                        uri={streamingOption.streamingService.darkLogo}
+                                        width={STREAMING_LOGO_WIDTH}
+                                        height={STREAMING_LOGO_HEIGHT}
+                                        preserveAspectRatio="xMidYMid meet"
+                                    />
+                                    <Text style={{ color: Colors.reviewTextColor, fontSize: 12, marginTop: -10, paddingBottom: 10 }}>{getServicePrice(streamingOption)}</Text>
+                                </Pressable>
+                            ))}
+                        </View>
+
+                        <Text style={styles.sectionTitle}>Genres</Text>
+                        <Text style={styles.text}>{
+                            info && info?.content?.genres.map((genre) => (
+                                genre.name
+                            )).join(' | ')
+                        }
+                        </Text>
+
+                        <Text style={styles.sectionTitle}>Cast</Text>
+                        <Text style={styles.text}>
+                            {info && info?.content?.cast.join(' | ')}
+                        </Text>
+                    </View>
+                );
+            case TABS.RECOMMENDED:
+                return (
+                    <View style={styles.content}>
+                        <Text style={[styles.sectionTitle, { paddingBottom: 10 }]}>Explore similar content</Text>
+                        <FlatList<ContentPartialData>
+                            data={info?.recommendations}
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            keyExtractor={item => item.tmdbID}
+                            contentContainerStyle={styles.railListContent}
+                            renderItem={({ item: content }) => (
+                                <Pressable
+                                    style={({ pressed }) => [
+                                        styles.card,
+                                        pressed && styles.cardPressed,
+                                    ]}
+                                    onPress={() => handlePress(content)}
+                                    onLongPress={() => handleLongPress(content)}
+                                    android_ripple={{ color: Colors.grayCell }}
+                                >
+                                    <View style={[styles.imageWrapper]}>
+                                        <Image
+                                            source={{ uri: content.verticalPoster || content.horizontalPoster }}
+                                            style={styles.image}
+                                            resizeMode="cover"
+                                        />
+                                        <View style={appStyles.heartIconWrapper}>
+                                            <Heart
+                                                isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
+                                                size={20}
+                                                background={true}
+                                                onPress={async () => {
+                                                    return isGuest
+                                                        ? requireAccount(returnTo)
+                                                        : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsLoading, () => { }, () => { }, setAlertMessage, setAlertType)
+                                                }}
+                                            />
+                                        </View>
+                                    </View>
+                                </Pressable>
+                            )}
+                        />
+                    </View>
+                );
+            default:
+                return (<></>);
         }
     };
 
@@ -316,7 +315,7 @@ export default function InfoPage() {
                 setMessage={setAlertMessage}
             />
 
-            <ScrollView 
+            <ScrollView
                 showsVerticalScrollIndicator={false}
                 refreshControl={
                     <RefreshControl
@@ -332,54 +331,52 @@ export default function InfoPage() {
                     <View style={styles.posterContainer}>
                         <Image source={getPoster(info?.content, POSTER.LARGE_VERTICAL)} style={[styles.posterImage]} />
                     </View>
-                    
+
                     {/* Movie Info */}
                     <View style={styles.infoSection}>
                         <Text style={styles.title}>{info?.content?.title}</Text>
                         <View style={styles.attributeContainer}>
-                            <Text style={[styles.text, {fontSize: 18, textAlignVertical: "center"}]}>
+                            <Text style={[styles.text, { fontSize: 18, textAlignVertical: "center" }]}>
                                 {(
-                                    info?.content?.releaseYear > 0 
-                                        ? info?.content?.releaseYear+ "    " 
-                                            : (
-                                                info?.content?.releaseYear > 0 
-                                                    ? info.content?.releaseYear+ "    " 
-                                                    : ""
-                                            )
+                                    info?.content?.releaseYear > 0
+                                        ? info?.content?.releaseYear + "    "
+                                        : (
+                                            info?.content?.releaseYear > 0
+                                                ? info.content?.releaseYear + "    "
+                                                : ""
+                                        )
                                 ) + getRuntime(info?.content)}
                             </Text>
                         </View>
 
                         <StarRating rating={info?.content?.rating} size={22} />
 
-                        <View style={[styles.attributeContainer, {marginTop: 18}]} >
+                        <View style={[styles.attributeContainer, { marginTop: 18 }]} >
                             <Pressable
-                                style={[appStyles.button, (lists.length > 1) ? {width: 140} : {width: undefined, paddingHorizontal: 10}]}
+                                style={[appStyles.button, (lists.length > 1) ? { width: 140 } : { width: undefined, paddingHorizontal: 10 }]}
                                 onPress={() => {
-                                    return waitingForUserData 
-                                            ? undefined 
-                                            : isGuest 
-                                                ? requireAccount(returnTo) 
-                                                : (lists.length > 1) 
-                                                    ? setListModalVisible(true) 
-                                                    : setCreateListModalVisible(true)
+                                    return isGuest
+                                        ? requireAccount(returnTo)
+                                        : waitingForUserData
+                                            ? setListModalVisible(true)
+                                            : (lists.length > 1)
+                                                ? setListModalVisible(true)
+                                                : setCreateListModalVisible(true)
                                 }}
                                 disabled={!info || !info.content}
                             >
-                                <Text style={[appStyles.buttonText, {fontSize: 16}]}>
+                                <Text style={[appStyles.buttonText, { fontSize: 16 }]}>
                                     {(lists.length > 1) ? "Add to List" : "Create & Add to List"}
                                 </Text>
                             </Pressable>
-                            
+
                             <Heart
                                 isSelected={() => isItemInList(lists, FAVORITE_TAB, tmdbID ? tmdbID : info ? info?.content?.tmdbID : "")}
                                 size={35}
                                 onPress={async () => {
-                                    return waitingForUserData 
-                                            ? undefined 
-                                            : isGuest 
-                                                ? requireAccount(returnTo) 
-                                                : await moveItemToList(router, info?.content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)
+                                    return isGuest
+                                        ? requireAccount(returnTo)
+                                        : await moveItemToList(router, info?.content, FAVORITE_TAB, lists, setLists, setIsLoading, () => { }, () => { }, setAlertMessage, setAlertType)
                                 }}
                                 disabled={!info || !info.content}
                             />
@@ -390,16 +387,16 @@ export default function InfoPage() {
                 <View style={styles.tabContainer}>
                     {Object.values(TABS).map((tab) => (
                         <Pressable
-                        key={tab}
-                        style={[
-                            styles.tab,
-                            activeTab === tab && styles.activeTab,
-                        ]}
-                        onPress={() => setActiveTab(tab)}
+                            key={tab}
+                            style={[
+                                styles.tab,
+                                activeTab === tab && styles.activeTab,
+                            ]}
+                            onPress={() => setActiveTab(tab)}
                         >
-                        <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
-                            {tab}
-                        </Text>
+                            <Text style={[styles.tabText, activeTab === tab && styles.activeTabText]}>
+                                {tab}
+                            </Text>
                         </Pressable>
                     ))}
                 </View>
@@ -416,7 +413,7 @@ export default function InfoPage() {
                 // showLabel={false}
                 showHeart={isGuest}
                 visibility={listModalVisible}
-                
+
                 setVisibilityFunc={setListModalVisible}
                 setIsLoadingFunc={setIsLoading}
 
@@ -472,13 +469,13 @@ export default function InfoPage() {
                 selectedContent={info?.content}
 
                 onRequestCloseFunc={() => setCreateListModalVisible(false)}
-                
+
                 setAlertMessageFunc={setAlertMessage}
                 setAlertTypeFunc={setAlertType}
             />
 
             {/* Overlay */}
-            {(isLoading || waitingForUserData) && (
+            {isLoading && (
                 <View style={appStyles.overlay}>
                     <ActivityIndicator size="large" color="#fff" />
                 </View>
@@ -490,7 +487,7 @@ export default function InfoPage() {
 const styles = StyleSheet.create({
     screen: {
         flex: 1,
-        padding: 16, 
+        padding: 16,
         backgroundColor: Colors.backgroundColor,
     },
     movieContainer: {
@@ -500,13 +497,13 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     attributeContainer: {
-        flexDirection: 'row', 
-        columnGap: 15, 
+        flexDirection: 'row',
+        columnGap: 15,
         alignItems: "center",
     },
 
-    posterContainer: { 
-        aspectRatio: 17/24,
+    posterContainer: {
+        aspectRatio: 17 / 24,
         height: 300,
         borderRadius: 15,
         overflow: 'hidden',
@@ -524,7 +521,7 @@ const styles = StyleSheet.create({
     },
 
     infoSection: {
-      alignItems: "center", // Centers text under the poster
+        alignItems: "center", // Centers text under the poster
     },
     title: {
         fontSize: 32,
@@ -536,32 +533,32 @@ const styles = StyleSheet.create({
         ...appStyles.shadow
     },
     buttonContainer: {
-      flexDirection: "row",
-      justifyContent: "space-around",
-      marginVertical: 16,
+        flexDirection: "row",
+        justifyContent: "space-around",
+        marginVertical: 16,
     },
     tabContainer: {
-      flexDirection: 'row',
-      columnGap: 10,
-      borderRadius: 10,
+        flexDirection: 'row',
+        columnGap: 10,
+        borderRadius: 10,
     },
     tab: {
-      padding: 12,
-      alignItems: 'center',
-      borderTopLeftRadius: 10,
-      borderTopRightRadius: 10,
-      backgroundColor: Colors.selectedColor,
+        padding: 12,
+        alignItems: 'center',
+        borderTopLeftRadius: 10,
+        borderTopRightRadius: 10,
+        backgroundColor: Colors.selectedColor,
     },
     activeTab: {
-      backgroundColor: Colors.selectedColor,
+        backgroundColor: Colors.selectedColor,
     },
     tabText: {
-      color: Colors.reviewTextColor,
-      fontSize: 16,
-      fontWeight: 'bold',
+        color: Colors.reviewTextColor,
+        fontSize: 16,
+        fontWeight: 'bold',
     },
     activeTabText: {
-      color: '#FFFFFF',
+        color: '#FFFFFF',
     },
     streamingLogo: {
         width: STREAMING_LOGO_WIDTH,
@@ -580,25 +577,25 @@ const styles = StyleSheet.create({
         paddingBottom: 16,
     },
     content: {
-      padding: 16,
-      marginBottom: 100,
-      backgroundColor: Colors.selectedColor,
-      borderTopRightRadius: 8,
-      borderBottomLeftRadius: 8,
-      borderBottomRightRadius: 8,
-      minHeight: 150
+        padding: 16,
+        marginBottom: 100,
+        backgroundColor: Colors.selectedColor,
+        borderTopRightRadius: 8,
+        borderBottomLeftRadius: 8,
+        borderBottomRightRadius: 8,
+        minHeight: 150
     },
     sectionTitle: {
-      fontSize: 18,
-      fontWeight: 'bold',
-      marginVertical: 8,
-      color: 'white',
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginVertical: 8,
+        color: 'white',
     },
     text: {
-      fontSize: 14,
-      color: Colors.reviewTextColor,
-      marginVertical: 4,
-      paddingBottom: 10,
+        fontSize: 14,
+        color: Colors.reviewTextColor,
+        marginVertical: 4,
+        paddingBottom: 10,
     },
 
     railListContent: {
@@ -623,7 +620,7 @@ const styles = StyleSheet.create({
     },
     imageWrapper: {
         width: '100%',
-        aspectRatio: 17/24,
+        aspectRatio: 17 / 24,
         borderRadius: 10,
         overflow: 'hidden',
         backgroundColor: Colors.grayCell,

@@ -14,7 +14,7 @@ import { showAuthPrompt } from "../stores/authPromptStore";
 import { Colors } from "../../constants/Colors";
 
 interface MoveModalProps {
-    router: Router, 
+    router: Router,
     selectedContent: ContentPartialData;
     lists: ListMinimalData[];
 
@@ -25,14 +25,14 @@ interface MoveModalProps {
     setVisibilityFunc: React.Dispatch<React.SetStateAction<boolean>>;
     setIsLoadingFunc: React.Dispatch<React.SetStateAction<boolean>>;
     setAutoPlayFunc?: React.Dispatch<React.SetStateAction<boolean>>;
-    
-    moveItemFunc: (router: Router, selectedItem: any, listName: string, lists: ListMinimalData[], 
-                    setListsFunc:  React.Dispatch<React.SetStateAction<ListMinimalData[]>>,
-                    setIsLoadingFunc: React.Dispatch<React.SetStateAction<boolean>>,
-                    setVisibilityFunc: React.Dispatch<React.SetStateAction<boolean>>,
-                    setAutoPlayFunc?: React.Dispatch<React.SetStateAction<boolean>>,
-                    setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
-                    setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>   
+
+    moveItemFunc: (router: Router, selectedItem: any, listName: string, lists: ListMinimalData[],
+        setListsFunc: React.Dispatch<React.SetStateAction<ListMinimalData[]>>,
+        setIsLoadingFunc: React.Dispatch<React.SetStateAction<boolean>>,
+        setVisibilityFunc: React.Dispatch<React.SetStateAction<boolean>>,
+        setAutoPlayFunc?: React.Dispatch<React.SetStateAction<boolean>>,
+        setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>,
+        setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
     ) => Promise<void>;
     isItemInListFunc: (lists: ListMinimalData[], listName: string, tmdbID: string) => boolean;
 
@@ -49,18 +49,18 @@ interface MoveModalProps {
     authReturnTo?: string;
 }
 
-export default function MoveModal({ 
+export default function MoveModal({
     router,
     selectedContent,
-    lists, 
-    showLabel = true, 
-    showHeart = true, 
-    visibility, 
-    setVisibilityFunc, 
-    setIsLoadingFunc, 
-    setAutoPlayFunc, 
-    moveItemFunc, 
-    isItemInListFunc, 
+    lists,
+    showLabel = true,
+    showHeart = true,
+    visibility,
+    setVisibilityFunc,
+    setIsLoadingFunc,
+    setAutoPlayFunc,
+    moveItemFunc,
+    isItemInListFunc,
     setListsFunc,
     setAlertMessageFunc,
     setAlertTypeFunc,
@@ -69,7 +69,7 @@ export default function MoveModal({
     requiresAuth = false,
     accountLoading = false,
     authReturnTo = "/LandingPage",
-} : MoveModalProps) {
+}: MoveModalProps) {
 
     const [createListModalVisible, setCreateListModalVisible] = useState<boolean>(false);
     const [newListName, setNewListName] = useState<string>("");
@@ -84,100 +84,104 @@ export default function MoveModal({
 
     return (
         <>
-        <Modal
-            transparent={true}
-            visible={visibility}
-            animationType="none"
-            onRequestClose={() => { setVisibilityFunc(false); setAutoPlayFunc && setAutoPlayFunc(true); }}
-        >
-            <Pressable
-                style={[appStyles.modalOverlay]}
-                onPress={() =>  { setVisibilityFunc(false); setAutoPlayFunc && setAutoPlayFunc(true); }}
+            <Modal
+                transparent={true}
+                visible={visibility}
+                animationType="none"
+                onRequestClose={() => { setVisibilityFunc(false); setAutoPlayFunc && setAutoPlayFunc(true); }}
             >
-                <View style={[appStyles.modalContent, showHeart && {paddingBottom: 10}]}>
-                    <View style={{ position: "relative", alignItems: "center", width: "100%", minHeight: 30 }}>
-                        {showLabel && (
-                            <Text style={appStyles.modalTitle}>
-                                Add to List
-                            </Text>
-                        )}
-                        <Pressable
-                            onPress={() => accountLoading ? undefined : requiresAuth ? showAccountPrompt() : (setVisibilityFunc(false), setCreateListModalVisible(true))}
-                            style={{ position: "absolute", right: 0, top: -5 }}
-                        >
-                            <Ionicons name="add" size={28} color="white" />
-                        </Pressable>
-                    </View>
-                    {accountLoading && (
-                        <ActivityIndicator size="small" color={Colors.selectedTextColor} style={{ marginVertical: 12 }} />
-                    )}
-                    <>
-                        {/* Render all tabs except FAVORITE_TAB */}
-                        {sortLists(lists)
-                            .filter((list) => list.listName !== FAVORITE_TAB)
-                            .map((list, index) => {
-                                const isSelected = isItemInListFunc(lists, list.listName, selectedContent.tmdbID);
-                                return (<Pressable
-                                    key={`LandingPage-${selectedContent.tmdbID}-${list.listName}-${index}`}
-                                    style={[
-                                        appStyles.modalButton,
-                                        isSelected && appStyles.selectedModalButton,
-                                    ]}
-                                    onPress={async () => accountLoading ? undefined : requiresAuth ? showAccountPrompt() : await moveItemFunc(router, selectedContent, list.listName, lists, setListsFunc, setIsLoadingFunc, setVisibilityFunc, setAutoPlayFunc, setAlertMessageFunc, setAlertTypeFunc)}
-                                >
-                                    <Text style={[
-                                        appStyles.modalButtonText,
-                                        isSelected && appStyles.selectedModalButtonText,
-                                    ]}>
-                                        {list.listName} {isSelected ? "✓" : ""}
-                                    </Text>
-                                </Pressable>)}
-                        )}
-
-                        {/* Render FAVORITE_TAB at the bottom */}
-                        {showHeart && lists.find(l => l.listName === FAVORITE_TAB) && (
-                            <View
-                                key={`LandingPage-${selectedContent.tmdbID}-heart`}
-                                style={{ paddingTop: 10 }}
+                <Pressable
+                    style={[appStyles.modalOverlay]}
+                    onPress={() => { setVisibilityFunc(false); setAutoPlayFunc && setAutoPlayFunc(true); }}
+                >
+                    <View style={[appStyles.modalContent, showHeart && { paddingBottom: 10 }]}>
+                        <View style={{ position: "relative", alignItems: "center", width: "100%", minHeight: 30 }}>
+                            {showLabel && (
+                                <Text style={appStyles.modalTitle}>
+                                    Add to List
+                                </Text>
+                            )}
+                            <Pressable
+                                onPress={() => accountLoading ? undefined : requiresAuth ? showAccountPrompt() : (setVisibilityFunc(false), setCreateListModalVisible(true))}
+                                disabled={accountLoading}
+                                style={{ position: "absolute", right: 0, top: -5 }}
                             >
-                            <Heart
-                                isSelected={() => isItemInListFunc(lists, FAVORITE_TAB, selectedContent?.tmdbID)}
-                                size={35}
-                                onPress={async () => accountLoading ? undefined : requiresAuth ? showAccountPrompt() : await moveItemFunc(router, selectedContent, FAVORITE_TAB, lists, setListsFunc, setIsLoadingFunc, setVisibilityFunc, setAutoPlayFunc)}
-                            />
-                            </View>
+                                <Ionicons name="add" size={28} color="white" />
+                            </Pressable>
+                        </View>
+                        {accountLoading && (
+                            <ActivityIndicator size="small" color={Colors.selectedTextColor} style={{ marginVertical: 12 }} />
                         )}
-                    </>
-                </View>
-            </Pressable>
-        </Modal>
-        
-        <CreateNewListModal
-            router={router}
-            visible={createListModalVisible}
-            setVisibilityFunc={setCreateListModalVisible}
-            setMoveVisibilityFunc={setVisibilityFunc}
-            setIsLoadingFunc={setIsLoadingFunc}
+                        <>
+                            {/* Render all tabs except FAVORITE_TAB */}
+                            {sortLists(lists)
+                                .filter((list) => list.listName !== FAVORITE_TAB)
+                                .map((list, index) => {
+                                    const isSelected = isItemInListFunc(lists, list.listName, selectedContent.tmdbID);
+                                    return (<Pressable
+                                        key={`LandingPage-${selectedContent.tmdbID}-${list.listName}-${index}`}
+                                        style={[
+                                            appStyles.modalButton,
+                                            isSelected && appStyles.selectedModalButton,
+                                        ]}
+                                        disabled={accountLoading}
+                                        onPress={async () => accountLoading ? undefined : requiresAuth ? showAccountPrompt() : await moveItemFunc(router, selectedContent, list.listName, lists, setListsFunc, setIsLoadingFunc, setVisibilityFunc, setAutoPlayFunc, setAlertMessageFunc, setAlertTypeFunc)}
+                                    >
+                                        <Text style={[
+                                            appStyles.modalButtonText,
+                                            isSelected && appStyles.selectedModalButtonText,
+                                        ]}>
+                                            {list.listName} {isSelected ? "✓" : ""}
+                                        </Text>
+                                    </Pressable>)
+                                }
+                                )}
 
-            title={"Create & Add to New List"}
+                            {/* Render FAVORITE_TAB at the bottom */}
+                            {showHeart && lists.find(l => l.listName === FAVORITE_TAB) && (
+                                <View
+                                    key={`LandingPage-${selectedContent.tmdbID}-heart`}
+                                    style={{ paddingTop: 10 }}
+                                >
+                                    <Heart
+                                        isSelected={() => isItemInListFunc(lists, FAVORITE_TAB, selectedContent?.tmdbID)}
+                                        size={35}
+                                        onPress={async () => accountLoading ? undefined : requiresAuth ? showAccountPrompt() : await moveItemFunc(router, selectedContent, FAVORITE_TAB, lists, setListsFunc, setIsLoadingFunc, setVisibilityFunc, setAutoPlayFunc, setAlertMessageFunc, setAlertTypeFunc)}
+                                        disabled={accountLoading}
+                                    />
+                                </View>
+                            )}
+                        </>
+                    </View>
+                </Pressable>
+            </Modal>
 
-            listName={newListName}
-            setListNameFunc={setNewListName}
-            lists={lists}
-            setListsFunc={setListsFunc}
+            <CreateNewListModal
+                router={router}
+                visible={createListModalVisible}
+                setVisibilityFunc={setCreateListModalVisible}
+                setMoveVisibilityFunc={setVisibilityFunc}
+                setIsLoadingFunc={setIsLoadingFunc}
 
-            onCreateNewTabFunc={handleCreateNewTab}
-            moveItemFunc={moveItemFunc}
-            selectedContent={selectedContent}
-            setAutoPlayFunc={setAutoPlayFunc}
-            setRefsFunc={setRefsFunc}
-            setActiveTabFunc={setActiveTabFunc}
+                title={"Create & Add to New List"}
 
-            onRequestCloseFunc={() => setCreateListModalVisible(false)}
+                listName={newListName}
+                setListNameFunc={setNewListName}
+                lists={lists}
+                setListsFunc={setListsFunc}
 
-            setAlertMessageFunc={setAlertMessageFunc}
-            setAlertTypeFunc={setAlertTypeFunc}
-        />
+                onCreateNewTabFunc={handleCreateNewTab}
+                moveItemFunc={moveItemFunc}
+                selectedContent={selectedContent}
+                setAutoPlayFunc={setAutoPlayFunc}
+                setRefsFunc={setRefsFunc}
+                setActiveTabFunc={setActiveTabFunc}
+
+                onRequestCloseFunc={() => setCreateListModalVisible(false)}
+
+                setAlertMessageFunc={setAlertMessageFunc}
+                setAlertTypeFunc={setAlertTypeFunc}
+            />
         </>
     );
 };

@@ -2,7 +2,7 @@
 
 import { ContentPartialData, ListMinimalData, UserData } from "../../../app/types/dataTypes";
 import { auth, User, secrets } from "../../../firebaseConfig";
-import { setUserData, useUserDataStore } from "../../../app/stores/userDataStore";
+import { ensureUserDataLoaded, setUserData, useUserDataStore } from "../../../app/stores/userDataStore";
 import { Alert } from "../../../app/components/alertMessageComponent";
 import { Router } from "expo-router";
 import { authHeader, handleAccountUnauthorized } from "./authApiHelper";
@@ -28,9 +28,9 @@ export const sortLists = <T extends { listName: string }>(lists: T[]): T[] => {
 
 export const getContentsInList = (contents: ContentPartialData[], lists: ListMinimalData[], listName: string): ContentPartialData[] => {
     const list: ListMinimalData = lists.find(l => l.listName === listName);
-    return (list && contents) 
-                ? contents.filter(c => list.tmdbIDs.includes(c.tmdbID)) 
-                : [];
+    return (list && contents)
+        ? contents.filter(c => list.tmdbIDs.includes(c.tmdbID))
+        : [];
 };
 
 export const isItemInList = (lists: ListMinimalData[], listName: string, tmdbID: string) => {
@@ -45,29 +45,55 @@ export const isItemInList = (lists: ListMinimalData[], listName: string, tmdbID:
 // };
 
 export const handleCreateNewTab = async (
-                router: Router,
-                listName: string, 
-                lists: ListMinimalData[],
-                setListsFunc: React.Dispatch<React.SetStateAction<ListMinimalData[]>>,
-                setListNameFunc: React.Dispatch<React.SetStateAction<string>>,
-                setAlertMessageFunc: React.Dispatch<React.SetStateAction<string>>,
-                setAlertTypeFunc: React.Dispatch<React.SetStateAction<Alert>>,
-                setIsLoadingFunc: React.Dispatch<React.SetStateAction<boolean>>,
-                setVisibilityFunc: React.Dispatch<React.SetStateAction<boolean>>,
-               
-                moveItemFunc?: (router: Router, selectedContent: ContentPartialData, listName: string, lists: ListMinimalData[], 
-                    setListsFunc:  React.Dispatch<React.SetStateAction<ListMinimalData[]>>,
-                    setIsLoadingFunc: React.Dispatch<React.SetStateAction<boolean>>,
-                    setVisibilityFunc: React.Dispatch<React.SetStateAction<boolean>>,
-                    setAutoPlayFunc?: React.Dispatch<React.SetStateAction<boolean>>
-                ) => Promise<void>,
-                selectedContent?: ContentPartialData,
-                setAutoPlayFunc?: React.Dispatch<React.SetStateAction<boolean>>,
+    router: Router,
+    listName: string,
+    lists: ListMinimalData[],
+    setListsFunc: React.Dispatch<React.SetStateAction<ListMinimalData[]>>,
+    setListNameFunc: React.Dispatch<React.SetStateAction<string>>,
+    setAlertMessageFunc: React.Dispatch<React.SetStateAction<string>>,
+    setAlertTypeFunc: React.Dispatch<React.SetStateAction<Alert>>,
+    setIsLoadingFunc: React.Dispatch<React.SetStateAction<boolean>>,
+    setVisibilityFunc: React.Dispatch<React.SetStateAction<boolean>>,
 
-                setRefsFunc?: (index: number, length: number) => void,
-                setActiveTabFunc?: React.Dispatch<React.SetStateAction<string>>,
+    moveItemFunc?: (router: Router, selectedContent: ContentPartialData, listName: string, lists: ListMinimalData[],
+        setListsFunc: React.Dispatch<React.SetStateAction<ListMinimalData[]>>,
+        setIsLoadingFunc: React.Dispatch<React.SetStateAction<boolean>>,
+        setVisibilityFunc: React.Dispatch<React.SetStateAction<boolean>>,
+        setAutoPlayFunc?: React.Dispatch<React.SetStateAction<boolean>>
+    ) => Promise<void>,
+    selectedContent?: ContentPartialData,
+    setAutoPlayFunc?: React.Dispatch<React.SetStateAction<boolean>>,
+
+    setRefsFunc?: (index: number, length: number) => void,
+    setActiveTabFunc?: React.Dispatch<React.SetStateAction<string>>,
 ) => {
-    if (lists.length >= MAX_USER_LIST_COUNT) {
+    setIsLoadingFunc(true);
+
+    const user: User | null = auth.currentUser;
+    if (!user) {
+        await handleAccountUnauthorized("/LandingPage", true);
+        setIsLoadingFunc(false);
+        setVisibilityFunc(false);
+        return;
+    }
+
+    const token = await user.getIdToken();
+    let userData = useUserDataStore.getState().userData;
+    if (!userData) {
+        userData = await ensureUserDataLoaded(router, token, setAlertMessageFunc, setAlertTypeFunc);
+    }
+    if (!userData) {
+        setAlertMessageFunc('Unable to load account data');
+        setAlertTypeFunc(Alert.Error);
+        setIsLoadingFunc(false);
+        setVisibilityFunc(false);
+        return;
+    }
+
+    let readyLists: ListMinimalData[] = sortLists([...userData.user.listsOwned, ...userData.user.listsSharedWithMe]);
+    setListsFunc(readyLists);
+
+    if (readyLists.length >= MAX_USER_LIST_COUNT) {
         console.warn(`User reached Max User List Count: ` + MAX_USER_LIST_COUNT);
         setAlertMessageFunc(`You have reached the max amount of lists: ${MAX_USER_LIST_COUNT}`);
         setAlertTypeFunc(Alert.Error);
@@ -75,30 +101,19 @@ export const handleCreateNewTab = async (
         setVisibilityFunc(false);
         return;
     } else {
-        let finalLists: ListMinimalData[] = [...lists];
+        let finalLists: ListMinimalData[] = [...readyLists];
         listName = listName?.trim();
         if (listName) {
             try {
-                if (!lists.map(l => l.listName.toLowerCase()).includes(listName.toLowerCase())) {
-                    const user: User | null = auth.currentUser;
-                    const userData = useUserDataStore.getState().userData;
-                    if (!user) {
-                        await handleAccountUnauthorized("/LandingPage", true);
-                        return;
-                    }
-                    if (!userData) {
-                        await handleAccountUnauthorized("/LandingPage", true);
-                        return;
-                    }
-                    const token = await user.getIdToken();
+                if (!readyLists.map(l => l.listName.toLowerCase()).includes(listName.toLowerCase())) {
                     const newList: ListMinimalData = await createNewUserList(router, token, listName, setAlertMessageFunc, setAlertTypeFunc);
                     if (!newList) {
                         return;
                     }
                     setListNameFunc("");
-                    finalLists = sortLists([...lists, newList]);
+                    finalLists = sortLists([...readyLists, newList]);
                     setListsFunc(finalLists);
-    
+
                     setUserData({
                         ...userData,
                         user: {
@@ -106,9 +121,9 @@ export const handleCreateNewTab = async (
                             listsOwned: [...userData.user.listsOwned, newList],
                         }
                     });
-                
+
                     if (setActiveTabFunc) setActiveTabFunc(listName);
-                    if (moveItemFunc) await moveItemFunc(router, selectedContent, listName, finalLists, setListsFunc, setIsLoadingFunc, setVisibilityFunc, setAutoPlayFunc, );
+                    if (moveItemFunc) await moveItemFunc(router, selectedContent, listName, finalLists, setListsFunc, setIsLoadingFunc, setVisibilityFunc, setAutoPlayFunc,);
                 } else {
                     console.warn(`List "${listName}" already exists`);
                     setAlertMessageFunc(`List "${listName}" already exists`);
@@ -122,60 +137,70 @@ export const handleCreateNewTab = async (
                     setRefsFunc(index, finalLists.length);
                 }
             }
+        } else {
+            setIsLoadingFunc(false);
         }
     }
 };
 
-export const moveItemToList = async (router: Router, content: ContentPartialData, listName: string, lists: ListMinimalData[], 
-                                setLists: React.Dispatch<React.SetStateAction<ListMinimalData[]>>,
-                                setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
-                                setMoveModalVisible?: React.Dispatch<React.SetStateAction<boolean>>,      
-                                setAutoPlay?: React.Dispatch<React.SetStateAction<boolean>>,
-                                setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
-                                setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>      
+export const moveItemToList = async (router: Router, content: ContentPartialData, listName: string, lists: ListMinimalData[],
+    setLists: React.Dispatch<React.SetStateAction<ListMinimalData[]>>,
+    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
+    setMoveModalVisible?: React.Dispatch<React.SetStateAction<boolean>>,
+    setAutoPlay?: React.Dispatch<React.SetStateAction<boolean>>,
+    setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>,
+    setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ) => {
     // Only works for user owned lists for now
     try {
         setIsLoading(true);
-        listName = listName.trim();
-        let list: ListMinimalData = lists.find(l => l.listName === listName);
-        if (!list) {
+        if (!content) {
             return;
         }
+        listName = listName.trim();
         const user: User | null = auth.currentUser;
         if (!user) {
             await handleAccountUnauthorized("/LandingPage", true);
             return;
         }
-        const userData = useUserDataStore.getState().userData;
+        const token = await user.getIdToken();
+        const userData = useUserDataStore.getState().userData
+            ?? await ensureUserDataLoaded(router, token, setAlertMessageFunc, setAlertTypeFunc);
         if (!userData) {
-            await handleAccountUnauthorized("/LandingPage", true);
+            if (setAlertMessageFunc) setAlertMessageFunc('Unable to load account data');
+            if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
             return;
         }
-        const token = await user.getIdToken();
+        const readyLists = sortLists([...userData.user.listsOwned, ...userData.user.listsSharedWithMe]);
+        let list: ListMinimalData = readyLists.find(l => l.listName === listName);
+        if (!list) {
+            if (setAlertMessageFunc) setAlertMessageFunc('List not found');
+            if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
+            return;
+        }
 
         const shouldRemove: boolean = list.tmdbIDs.includes(content.tmdbID);
-        const updatedList: ListMinimalData = shouldRemove 
-                ? await removeContentFromUserList(router, token, list.listName, content.tmdbID, setAlertMessageFunc, setAlertTypeFunc)
-                : await addContentToUserList(router, token, list.listName, content, setAlertMessageFunc, setAlertTypeFunc);
+        const updatedList: ListMinimalData = shouldRemove
+            ? await removeContentFromUserList(router, token, list.listName, content.tmdbID, setAlertMessageFunc, setAlertTypeFunc)
+            : await addContentToUserList(router, token, list.listName, content, setAlertMessageFunc, setAlertTypeFunc);
         if (updatedList) {
             const newListsOwned: ListMinimalData[] = userData.user.listsOwned.map(l => l.listName === updatedList.listName ? updatedList : l);
             setLists(sortLists([...newListsOwned, ...userData.user.listsSharedWithMe]));
 
-            const isInOtherList = lists.some(l => l.listName !== listName && l.tmdbIDs.includes(content.tmdbID));
+            const isInOtherList = readyLists.some(l => l.listName !== listName && l.tmdbIDs.includes(content.tmdbID));
             let newContents = [...userData.contents];
             if (shouldRemove && !isInOtherList) {
                 newContents = newContents.filter(c => c.tmdbID !== content.tmdbID);
             } else if (!newContents.some(c => c.tmdbID === content.tmdbID)) {
-                newContents.push({ 
-                    tmdbID: content.tmdbID, 
+                newContents.push({
+                    tmdbID: content.tmdbID,
                     title: content.title,
                     overview: content.overview || '',
                     rating: content.rating || 0,
-                    releaseYear: content.releaseYear, 
-                    verticalPoster: content.verticalPoster, 
-                    largeVerticalPoster: content.largeVerticalPoster, 
-                    horizontalPoster: content.horizontalPoster 
+                    releaseYear: content.releaseYear,
+                    verticalPoster: content.verticalPoster,
+                    largeVerticalPoster: content.largeVerticalPoster,
+                    horizontalPoster: content.horizontalPoster
                 } satisfies ContentPartialData);
             }
             setUserData({
@@ -192,12 +217,12 @@ export const moveItemToList = async (router: Router, content: ContentPartialData
                     return prev;
                 }
                 else return 'Moving item to list failed';
-            }); 
+            });
             if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
         }
     } catch (e: any) {
         console.warn("Error move item func: ", e);
-        if (setAlertMessageFunc) setAlertMessageFunc('Error moving item to list'); 
+        if (setAlertMessageFunc) setAlertMessageFunc('Error moving item to list');
         if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
     } finally {
         setIsLoading(false);
@@ -207,14 +232,14 @@ export const moveItemToList = async (router: Router, content: ContentPartialData
 };
 
 export const addContentToUserList = async (router: Router, token: string | null, listName: string, content: ContentPartialData,
-                                            setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
-                                            setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+    setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>,
+    setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ): Promise<ListMinimalData | null> => {
     try {
         if (!token) return null;
 
         const url = secrets.dataAPIURL + `API/List/${encodeURIComponent(listName.trim())}/Add`;
-                
+
         const options = {
             method: 'POST',
             headers: {
@@ -246,20 +271,20 @@ export const addContentToUserList = async (router: Router, token: string | null,
         }
 
         const data: ListMinimalData = await result.json();
-        
+
         return data;
 
     } catch (err) {
         console.warn('Adding content to list failed:', err);
-        if (setAlertMessageFunc) setAlertMessageFunc('Adding content to list failed'); 
+        if (setAlertMessageFunc) setAlertMessageFunc('Adding content to list failed');
         if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
         return null;
     }
 };
 
 export const removeContentFromUserList = async (router: Router, token: string | null, listName: string, tmdbID: string,
-                                                setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
-                                                setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+    setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>,
+    setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
 ): Promise<ListMinimalData | null> => {
     try {
         if (!token) return null;
@@ -285,32 +310,32 @@ export const removeContentFromUserList = async (router: Router, token: string | 
             }
             const text = await result.text();
             console.warn(`Error removing content from list ${result.status}: ${text}`);
-            if (setAlertMessageFunc) setAlertMessageFunc('Error removing content from list'); 
+            if (setAlertMessageFunc) setAlertMessageFunc('Error removing content from list');
             if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
             return null;
         }
 
         const data: ListMinimalData = await result.json();
-        
+
         return data;
 
     } catch (err) {
         console.warn('Removing content from list failed:', err);
-        if (setAlertMessageFunc) setAlertMessageFunc('Removing content from list failed'); 
+        if (setAlertMessageFunc) setAlertMessageFunc('Removing content from list failed');
         if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
         return null;
     }
 };
 
-export const createNewUserList = async (router: Router, token: string | null, listName: string, 
-                                        setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
-                                        setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
-                                    ) : Promise<ListMinimalData | null> => {
+export const createNewUserList = async (router: Router, token: string | null, listName: string,
+    setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>,
+    setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+): Promise<ListMinimalData | null> => {
     try {
         if (!token) return null;
 
         const url = secrets.dataAPIURL + `API/List/${encodeURIComponent(listName.trim())}/Create`;
-                
+
         const options = {
             method: 'POST',
             headers: {
@@ -330,32 +355,32 @@ export const createNewUserList = async (router: Router, token: string | null, li
             }
             const text = await result.text();
             console.warn(`Error creating new list ${result.status}: ${text}`);
-            if (setAlertMessageFunc) setAlertMessageFunc('Error creating new list'); 
+            if (setAlertMessageFunc) setAlertMessageFunc('Error creating new list');
             if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
             return null;
         }
 
         const data: ListMinimalData = await result.json();
-        
+
         return data;
 
     } catch (err) {
         console.warn('Creating new list failed:', err);
-        if (setAlertMessageFunc) setAlertMessageFunc('Creating new list failed'); 
+        if (setAlertMessageFunc) setAlertMessageFunc('Creating new list failed');
         if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
         return null;
     }
 };
 
-export const deleteUserList = async (router: Router, token: string | null, listName: string, 
-                                        setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
-                                        setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
-                                    ) : Promise<boolean> => {
+export const deleteUserList = async (router: Router, token: string | null, listName: string,
+    setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>,
+    setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+): Promise<boolean> => {
     try {
         if (!token) return null;
 
         const url = secrets.dataAPIURL + `API/List/${encodeURIComponent(listName.trim())}/Remove`;
-                
+
         const options = {
             method: 'DELETE',
             headers: {
@@ -375,7 +400,7 @@ export const deleteUserList = async (router: Router, token: string | null, listN
             }
             const text = await result.text();
             console.warn(`Error deleting list ${result.status}: ${text}`);
-            if (setAlertMessageFunc) setAlertMessageFunc('Error deleting list'); 
+            if (setAlertMessageFunc) setAlertMessageFunc('Error deleting list');
             if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
             return false;
         }
@@ -384,7 +409,7 @@ export const deleteUserList = async (router: Router, token: string | null, listN
 
     } catch (err) {
         console.warn('Deleting list failed:', err);
-        if (setAlertMessageFunc) setAlertMessageFunc('Deleting list failed'); 
+        if (setAlertMessageFunc) setAlertMessageFunc('Deleting list failed');
         if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
         return false;
     }

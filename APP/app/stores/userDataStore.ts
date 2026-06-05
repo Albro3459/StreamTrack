@@ -7,66 +7,99 @@ import { Alert } from '../components/alertMessageComponent';
 import { Router } from 'expo-router';
 import { setUserAccountDataClearer } from '../helpers/StreamTrack/authApiHelper';
 
+let userDataFetchPromise: Promise<UserData | null> | null = null;
+let userDataFetchVersion = 0;
+
 // Wrappers
-export const fetchUserData = (router: Router, token: string,
-                                setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
-                                setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
-) => {
+export const fetchUserData = (
+    router: Router, token: string,
+    setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>,
+    setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+): Promise<UserData | null> => {
     const store = useUserDataStore.getState();
-    if (store.loading) return;
-    store.fetchUserData(router, token, setAlertMessageFunc, setAlertTypeFunc);
+    if (userDataFetchPromise) return userDataFetchPromise;
+
+    userDataFetchPromise = store.fetchUserData(router, token, setAlertMessageFunc, setAlertTypeFunc)
+        .finally(() => {
+            userDataFetchPromise = null;
+        });
+    return userDataFetchPromise;
 };
 
-export const clearUserData = () => useUserDataStore.getState().clearUserData();
+export const ensureUserDataLoaded = (router: Router, token: string | null,
+    setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>,
+    setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+): Promise<UserData | null> => {
+    if (!token) return Promise.resolve(null);
+    const store = useUserDataStore.getState();
+    if (store.userData) return Promise.resolve(store.userData);
+    return fetchUserData(router, token, setAlertMessageFunc, setAlertTypeFunc);
+};
+
+export const clearUserData = () => {
+    userDataFetchVersion++;
+    userDataFetchPromise = null;
+    useUserDataStore.getState().clearUserData();
+};
 
 export const setUserData = (data: UserData, force: boolean = false) => {
     const store = useUserDataStore.getState();
     if (!force && store.loading) return;
+    userDataFetchVersion++;
+    userDataFetchPromise = null;
     store.clearUserData();
     store.setUserData(data);
 }
 
 // Store
 interface UserDataStore {
-  userData: UserData | null;
-  loading: boolean;
-  error: string | null;
-  fetchUserData: (router: Router, token: string, 
-                    setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
-                    setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
-                ) => Promise<void>;
-  clearUserData: () => void;
-  setUserData: (data: UserData) => void;
+    userData: UserData | null;
+    loading: boolean;
+    error: string | null;
+    fetchUserData: (router: Router, token: string,
+        setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>,
+        setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+    ) => Promise<UserData | null>;
+    clearUserData: () => void;
+    setUserData: (data: UserData) => void;
 }
 
 export const useUserDataStore = create<UserDataStore>((set) => ({
-  userData: null,
-  loading: false,
-  error: null,
+    userData: null,
+    loading: false,
+    error: null,
 
-  fetchUserData: async (router: Router, token: string,
-                        setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>, 
-                        setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
-  ) => {
+    fetchUserData: async (router: Router, token: string,
+        setAlertMessageFunc?: React.Dispatch<React.SetStateAction<string>>,
+        setAlertTypeFunc?: React.Dispatch<React.SetStateAction<Alert>>
+    ) => {
+        const fetchVersion = userDataFetchVersion;
         set({ loading: true, error: null });
 
-        const userMinimalData: UserMinimalData = await getUserMinimalData(router, token);
-        const contentMinimalData: ContentPartialData[] = await getUserContents(router, token);
+        const userMinimalData: UserMinimalData | null = await getUserMinimalData(router, token, setAlertMessageFunc, setAlertTypeFunc);
+        const contentMinimalData: ContentPartialData[] | null = await getUserContents(router, token, setAlertMessageFunc, setAlertTypeFunc);
+
+        if (fetchVersion !== userDataFetchVersion) {
+            return null;
+        }
 
         if (userMinimalData && contentMinimalData) {
-            set({ userData: {user: userMinimalData, contents: contentMinimalData} satisfies UserData, loading: false });
+            const userData = { user: userMinimalData, contents: contentMinimalData } satisfies UserData;
+            set({ userData: userData, loading: false });
+            return userData;
         } else {
             set({ error: 'Fetch failed', loading: false });
-            if (setAlertMessageFunc) setAlertMessageFunc('Fetch failed'); 
+            if (setAlertMessageFunc) setAlertMessageFunc('Fetch failed');
             if (setAlertTypeFunc) setAlertTypeFunc(Alert.Error);
+            return null;
         }
-  },
+    },
 
-  clearUserData: () => {
+    clearUserData: () => {
         set({ userData: null, error: null, loading: false });
-  },
+    },
 
-  setUserData: (data: UserData) => set({ userData: data, loading: false })
+    setUserData: (data: UserData) => set({ userData: data, loading: false })
 }));
 
 setUserAccountDataClearer(clearUserData);

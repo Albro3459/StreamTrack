@@ -24,19 +24,19 @@ import { getCurrentUserToken, requireAccount } from './helpers/StreamTrack/authR
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
-export default function SearchPage() {    
+export default function SearchPage() {
     const router = useRouter();
-    
+
     const { userData, loading: userDataLoading } = useUserDataStore();
     const { contentCache, cacheSearch } = useCacheStore();
     const { popularContent } = usePopularContentStore();
-    
+
     const [alertMessage, setAlertMessage] = useState<string>("");
     const [alertType, setAlertType] = useState<Alert>(Alert.Error);
 
     const flatListRef = useRef<FlatList>(null);
-    const searchInputRef = useRef<TextInput>(null);  
-    
+    const searchInputRef = useRef<TextInput>(null);
+
     const [isSearching, setIsSearching] = useState<boolean>(false);
     const [showNoResults, setShowNoResults] = useState<boolean>(false);
 
@@ -44,24 +44,24 @@ export default function SearchPage() {
 
     const [moveModalVisible, setMoveModalVisible] = useState<boolean>(false);
 
-    const waitingForUserData = !!auth.currentUser && userDataLoading && !userData;
-    const isGuest = !auth.currentUser || (!userData && !userDataLoading);
-    const [lists, setLists] = useState<ListMinimalData[] | null>(sortLists(userData ? [...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []] : getGuestLists()));
+    const hasFirebaseUser = !!auth.currentUser;
+    const waitingForUserData = hasFirebaseUser && userDataLoading && !userData;
+    const isGuest = !hasFirebaseUser || (!userData && !userDataLoading);
+    const [lists, setLists] = useState<ListMinimalData[]>(sortLists(userData ? [...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []] : isGuest ? getGuestLists() : []));
 
     const [selectedContent, setSelectedContent] = useState<ContentPartialData>(null);
 
     const [contents, setContents] = useState<ContentPartialData[]>([]);
 
     const handleLongPress = (content: ContentPartialData) => {
-        if (waitingForUserData) return;
         setSelectedContent(content);
         setMoveModalVisible(true);
     };
 
     const noResultsOrTrySearching: (searchText: string, showNoResults: boolean, isSearching: boolean) => boolean = (
         searchText: string, showNoResults: boolean, isSearching: boolean
-    ) => { 
-            return searchText.length > 0 && showNoResults && !isSearching
+    ) => {
+        return searchText.length > 0 && showNoResults && !isSearching
     };
 
     const debouncedSearch = useRef(
@@ -87,7 +87,7 @@ export default function SearchPage() {
 
             } finally { // Scroll back up to top
                 if (flatListRef.current && contents && contents.length > 0) {
-                    flatListRef.current.scrollToOffset({ animated: true, offset: 0});
+                    flatListRef.current.scrollToOffset({ animated: true, offset: 0 });
                 }
                 setIsSearching(false);
             }
@@ -96,12 +96,12 @@ export default function SearchPage() {
 
     useFocusEffect(
         useCallback(() => {
-            setLists(sortLists(userData ? [...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []] : getGuestLists()));
-        }, [userData])
+            setLists(sortLists(userData ? [...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []] : isGuest ? getGuestLists() : []));
+        }, [isGuest, userData])
     );
 
     useEffect(() => {
-        const store = usePopularContentStore.getState(); 
+        const store = usePopularContentStore.getState();
         if (popularContent && !isSearching) {
             setIsSearching(false); // loading but whatever
         }
@@ -111,7 +111,7 @@ export default function SearchPage() {
     }, [popularContent, isSearching]);
 
     return (
-        <Pressable style={{height: screenHeight-70}} onPress={Keyboard.dismiss}>
+        <Pressable style={{ height: screenHeight - 70 }} onPress={Keyboard.dismiss}>
             <View style={[styles.container]}>
                 <AlertMessage
                     type={alertType}
@@ -119,16 +119,16 @@ export default function SearchPage() {
                     setMessage={setAlertMessage}
                 />
                 {/* Search Bar */}
-                <View style={[styles.searchBarContainer, {paddingHorizontal: 16}]} >
-                    <Pressable 
-                        style={{...appStyles.shadow}} 
+                <View style={[styles.searchBarContainer, { paddingHorizontal: 16 }]} >
+                    <Pressable
+                        style={{ ...appStyles.shadow }}
                         onPress={async () => await search(searchText)}
                     >
                         <Feather name="search" size={24} color="white" />
                     </Pressable>
                     <TextInput
                         ref={searchInputRef}
-                        style={[styles.searchBar, {flex: 1}]}
+                        style={[styles.searchBar, { flex: 1 }]}
                         placeholder="Search for a movie or TV show..."
                         placeholderTextColor={Colors.reviewTextColor}
                         value={searchText}
@@ -137,7 +137,7 @@ export default function SearchPage() {
                             if (showNoResults) setShowNoResults(false);
                             debouncedSearch(text); // search while typing :)
                         }}
-                        onSubmitEditing={async () => await search(searchText) /* Search on enter key press */ }
+                        onSubmitEditing={async () => await search(searchText) /* Search on enter key press */}
                         returnKeyType="search" // makes the return key say search
                         clearButtonMode='while-editing'
                         autoFocus={(!contentCache || contentCache.length <= 0) && (!popularContent?.search || popularContent?.search.length <= 0)}
@@ -145,17 +145,17 @@ export default function SearchPage() {
                 </View>
 
                 {/* Recommended && Recently Viewed && Search Results */}
-                {(!contents || contents.length <= 0) ? 
+                {(!contents || contents.length <= 0) ?
                     (!contentCache || contentCache.length <= 0) || noResultsOrTrySearching(searchText, showNoResults, isSearching) ? (
-                        ((searchText?.length > 0) || !popularContent?.search ? 
+                        ((searchText?.length > 0) || !popularContent?.search ?
                             <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 16 }}>
                                 <Text style={{ fontSize: 16, color: 'gray', textAlign: 'center', marginTop: -80 }}>
-                                {noResultsOrTrySearching(searchText, showNoResults, isSearching) ? "No Results :(" : ""}
+                                    {noResultsOrTrySearching(searchText, showNoResults, isSearching) ? "No Results :(" : ""}
                                 </Text>
                             </View>
                             :
-                            <View style={{paddingHorizontal: 55, height: screenHeight-230}}>
-                                <Text style={[styles.sectionTitle, {paddingBottom: 10}]}>Recommended</Text>
+                            <View style={{ paddingHorizontal: 55, height: screenHeight - 230 }}>
+                                <Text style={[styles.sectionTitle, { paddingBottom: 10 }]}>Recommended</Text>
                                 <FlatList<ContentSimpleData>
                                     ref={flatListRef}
                                     data={popularContent?.search}
@@ -163,6 +163,58 @@ export default function SearchPage() {
                                     showsVerticalScrollIndicator={false}
                                     onScroll={Keyboard.dismiss}
                                     renderItem={({ item: content }) => (
+                                        <Pressable
+                                            style={({ pressed }) => [
+                                                pressed && appStyles.pressed,
+                                            ]}
+                                            onPress={() => {
+                                                router.push({
+                                                    pathname: '/InfoPage',
+                                                    params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, largeVerticalPoster: content.largeVerticalPoster, horizontalPoster: content.horizontalPoster },
+                                                });
+                                            }}
+                                            onLongPress={() => handleLongPress(content)}
+                                        >
+                                            <View style={[appStyles.cardContainer]}>
+                                                <Image source={getPoster(content)} style={[appStyles.cardPoster, { height: 70, borderRadius: 7 }]} />
+                                                <View style={[
+                                                    appStyles.cardContent,
+                                                    {
+                                                        flexDirection: "column",
+                                                        minHeight: 70,
+                                                    }
+                                                ]}>
+                                                    <View style={{ flex: 1, justifyContent: "center" }}>
+                                                        <Text style={[appStyles.cardTitle, { marginBottom: 0, marginTop: 10 }]} numberOfLines={2}>{content.title}</Text>
+                                                    </View>
+                                                    <View style={{ flex: 1 }} />
+                                                    <StarRating rating={content.rating} />
+                                                </View>
+                                                <Heart
+                                                    isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
+                                                    size={30}
+                                                    onPress={async () => {
+                                                        return isGuest
+                                                            ? requireAccount("/SearchPage")
+                                                            : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsSearching, () => { }, () => { }, setAlertMessage, setAlertType)
+                                                    }}
+                                                />
+                                            </View>
+                                        </Pressable>
+                                    )}
+                                />
+                            </View>
+                        )
+                    ) : (
+                        <View style={{ paddingHorizontal: 55, height: screenHeight - 230 }}>
+                            <Text style={[styles.sectionTitle, { paddingBottom: 10 }]}>Recently Viewed</Text>
+                            <FlatList<ContentData>
+                                ref={flatListRef}
+                                data={contentCache?.map(i => i.content)}
+                                keyExtractor={(item) => item.tmdbID}
+                                showsVerticalScrollIndicator={false}
+                                onScroll={Keyboard.dismiss}
+                                renderItem={({ item: content }) => (
                                     <Pressable
                                         style={({ pressed }) => [
                                             pressed && appStyles.pressed,
@@ -176,47 +228,43 @@ export default function SearchPage() {
                                         onLongPress={() => handleLongPress(content)}
                                     >
                                         <View style={[appStyles.cardContainer]}>
-                                            <Image source={getPoster(content)} style={[appStyles.cardPoster, {height: 70, borderRadius: 7}]} />
+                                            <Image source={getPoster(content)} style={[appStyles.cardPoster, { height: 70, borderRadius: 7 }]} />
                                             <View style={[
                                                 appStyles.cardContent,
                                                 {
                                                     flexDirection: "column",
                                                     minHeight: 70,
                                                 }
-                                                ]}>
-                                            <View style={{flex: 1, justifyContent: "center"}}>
-                                                    <Text style={[appStyles.cardTitle, {marginBottom: 0, marginTop: 10}]} numberOfLines={2}>{content.title}</Text>
+                                            ]}>
+                                                <View style={{ flex: 1, justifyContent: "center" }}>
+                                                    <Text style={[appStyles.cardTitle, { marginBottom: 0, marginTop: 10 }]} numberOfLines={2}>{content.title}</Text>
                                                 </View>
-                                                <View style={{flex: 1}} />
-                                                <StarRating rating={content.rating}/>
+                                                <View style={{ flex: 1 }} />
+                                                <StarRating rating={content.rating} />
                                             </View>
-                                            <Heart 
+                                            <Heart
                                                 isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
                                                 size={30}
                                                 onPress={async () => {
-                                                    return waitingForUserData 
-                                                            ? undefined 
-                                                            : isGuest 
-                                                                ? requireAccount("/SearchPage") 
-                                                                : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsSearching, () => {}, () => {}, setAlertMessage, setAlertType)
+                                                    return isGuest
+                                                        ? requireAccount("/SearchPage")
+                                                        : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsSearching, () => { }, () => { }, setAlertMessage, setAlertType)
                                                 }}
                                             />
                                         </View>
                                     </Pressable>
-                                    )}
-                                />
-                            </View>
-                        )
-                    ) : (
-                        <View style={{paddingHorizontal: 55, height: screenHeight-230}}>
-                            <Text style={[styles.sectionTitle, {paddingBottom: 10}]}>Recently Viewed</Text>
-                            <FlatList<ContentData>
-                                ref={flatListRef}
-                                data={contentCache?.map(i => i.content)}
-                                keyExtractor={(item) => item.tmdbID}
-                                showsVerticalScrollIndicator={false}
-                                onScroll={Keyboard.dismiss}
-                                renderItem={({ item: content }) => (
+                                )}
+                            />
+                        </View>
+                    )
+                    : (
+                        <FlatList<ContentPartialData>
+                            ref={flatListRef}
+                            data={contents}
+                            keyExtractor={(item) => item.tmdbID}
+                            showsVerticalScrollIndicator={false}
+                            onScroll={Keyboard.dismiss}
+                            renderItem={({ item: content }) => (
                                 <Pressable
                                     style={({ pressed }) => [
                                         pressed && appStyles.pressed,
@@ -229,81 +277,27 @@ export default function SearchPage() {
                                     }}
                                     onLongPress={() => handleLongPress(content)}
                                 >
-                                    <View style={[appStyles.cardContainer]}>
-                                        <Image source={getPoster(content)} style={[appStyles.cardPoster, {height: 70, borderRadius: 7}]} />
-                                        <View style={[
-                                            appStyles.cardContent,
-                                            {
-                                                flexDirection: "column",
-                                                minHeight: 70,
-                                            }
-                                            ]}>
-                                           <View style={{flex: 1, justifyContent: "center"}}>
-                                                <Text style={[appStyles.cardTitle, {marginBottom: 0, marginTop: 10}]} numberOfLines={2}>{content.title}</Text>
-                                            </View>
-                                            <View style={{flex: 1}} />
-                                            <StarRating rating={content.rating}/>
+                                    <View style={[appStyles.cardContainer, { marginHorizontal: 16 }]}>
+                                        <Image source={getPoster(content)} style={[appStyles.cardPoster, { width: 60 }]} />
+                                        <View style={appStyles.cardContent}>
+                                            <Text style={appStyles.cardTitle}>{content.title}</Text>
+                                            <Text style={appStyles.cardDescription} numberOfLines={3}>{content.overview}</Text>
+                                            <StarRating rating={content.rating} />
                                         </View>
-                                        <Heart 
+                                        <Heart
                                             isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
-                                            size={30}
+                                            size={35}
                                             onPress={async () => {
-                                                return waitingForUserData 
-                                                        ? undefined 
-                                                        : isGuest 
-                                                            ? requireAccount("/SearchPage") 
-                                                            : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsSearching, () => {}, () => {}, setAlertMessage, setAlertType)
+                                                return isGuest
+                                                    ? requireAccount("/SearchPage")
+                                                    : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsSearching, () => { }, () => { }, setAlertMessage, setAlertType)
                                             }}
                                         />
                                     </View>
                                 </Pressable>
-                                )}
-                            />
-                        </View>
-                    )
-                : (
-                <FlatList<ContentPartialData>
-                    ref={flatListRef}
-                    data={contents}
-                    keyExtractor={(item) => item.tmdbID}
-                    showsVerticalScrollIndicator={false}
-                    onScroll={Keyboard.dismiss}
-                    renderItem={({ item: content }) => (
-                    <Pressable
-                        style={({ pressed }) => [
-                            pressed && appStyles.pressed,
-                        ]}
-                        onPress={() => {
-                            router.push({
-                                pathname: '/InfoPage',
-                                params: { tmdbID: content.tmdbID, verticalPoster: content.verticalPoster, largeVerticalPoster: content.largeVerticalPoster, horizontalPoster: content.horizontalPoster },
-                            });
-                        }}
-                        onLongPress={() => handleLongPress(content)}
-                    >
-                        <View style={[appStyles.cardContainer, {marginHorizontal: 16}]}>
-                            <Image source={getPoster(content)} style={[appStyles.cardPoster, {width: 60}]} />
-                            <View style={appStyles.cardContent}>
-                                <Text style={appStyles.cardTitle}>{content.title}</Text>
-                                <Text style={appStyles.cardDescription} numberOfLines={3}>{content.overview}</Text>
-                                <StarRating rating={content.rating}/>
-                            </View>
-                            <Heart 
-                                isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
-                                size={35}
-                                onPress={async () => {
-                                    return waitingForUserData 
-                                            ? undefined 
-                                            : isGuest 
-                                                ? requireAccount("/SearchPage") 
-                                                : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsSearching, () => {}, () => {}, setAlertMessage, setAlertType)
-                                }}
-                            />
-                        </View>
-                    </Pressable>
+                            )}
+                        />
                     )}
-                />
-                )}
 
                 <MoveModal
                     router={router}
@@ -323,13 +317,13 @@ export default function SearchPage() {
                     requiresAuth={isGuest}
                     accountLoading={waitingForUserData}
                     authReturnTo="/SearchPage"
-                    
+
                     setAlertMessageFunc={setAlertMessage}
                     setAlertTypeFunc={setAlertType}
                 />
 
                 {/* Loading Overlay */}
-                {(isSearching || waitingForUserData) && (
+                {isSearching && (
                     <View style={appStyles.overlay}>
                         <ActivityIndicator size="large" color="#fff" />
                     </View>
@@ -347,13 +341,13 @@ const styles = StyleSheet.create({
         paddingTop: 35,
         paddingBottom: 70
     },
-    searchBarContainer: { 
-        flexDirection: "row", 
-        columnGap: 10, 
+    searchBarContainer: {
+        flexDirection: "row",
+        columnGap: 10,
         marginBottom: 20,
         justifyContent: "center",
         alignItems: "center",
-        ...appStyles.shadow 
+        ...appStyles.shadow
     },
     searchBar: {
         backgroundColor: Colors.altBackgroundColor,
@@ -364,9 +358,9 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     sectionTitle: {
-      fontSize: 18,
-      fontWeight: 'bold',
-      marginVertical: 8,
-      color: 'white',
+        fontSize: 18,
+        fontWeight: 'bold',
+        marginVertical: 8,
+        color: 'white',
     },
 });

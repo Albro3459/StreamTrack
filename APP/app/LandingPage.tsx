@@ -16,13 +16,13 @@ import { runOnJS } from 'react-native-reanimated';
 import { auth } from "../firebaseConfig";
 import AlertMessage, { Alert } from "./components/alertMessageComponent";
 import { useFocusEffect } from "@react-navigation/native";
-import { getPoster, POSTER, PosterURI } from "./helpers/StreamTrack/contentHelper";
+import { getPoster, POSTER } from "./helpers/StreamTrack/contentHelper";
 import Heart from "./components/heartComponent";
 import { getCurrentUserToken, requireAccount } from "./helpers/StreamTrack/authRequiredHelper";
 
 const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
 
-const LIBRARY_OVERLAY_HEIGHT = screenHeight*.095;
+const LIBRARY_OVERLAY_HEIGHT = screenHeight * .095;
 
 const CAROUSEL_AUTOPLAY_INTERVAL: number = 7500; // in milliseconds, so 1000 === 1 sec
 
@@ -30,20 +30,21 @@ interface LandingPageParams {
     justSignedUp?: number;
 }
 
-export default function LandingPage () {
+export default function LandingPage() {
     const router = useRouter();
 
     const { justSignedUp } = useLocalSearchParams() as LandingPageParams;
-    
+
     const { userData, loading: userDataLoading } = useUserDataStore();
     const { popularContent, loading: popularContentLoading, error: popularContentError } = usePopularContentStore();
 
     const [alertMessage, setAlertMessage] = useState<string>("");
     const [alertType, setAlertType] = useState<Alert>(Alert.Error);
 
-    const waitingForUserData = !!auth.currentUser && userDataLoading && !userData;
-    const isGuest = !auth.currentUser || (!userData && !userDataLoading);
-    const [lists, setLists] = useState<ListMinimalData[] | null>(sortLists(userData ? [...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []] : getGuestLists()));
+    const hasFirebaseUser = !!auth.currentUser;
+    const waitingForUserData = hasFirebaseUser && userDataLoading && !userData;
+    const isGuest = !hasFirebaseUser || (!userData && !userDataLoading);
+    const [lists, setLists] = useState<ListMinimalData[]>(sortLists(userData ? [...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []] : isGuest ? getGuestLists() : []));
 
     const [moveModalVisible, setMoveModalVisible] = useState(false);
     const [autoPlay, setAutoPlay] = useState(true);
@@ -80,17 +81,17 @@ export default function LandingPage () {
 
     useFocusEffect(
         useCallback(() => {
-            setLists(sortLists(userData ? [...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []] : getGuestLists()));
-        }, [userData, carouselImagesLoading])
+            setLists(sortLists(userData ? [...userData?.user?.listsOwned || [], ...userData?.user?.listsSharedWithMe || []] : isGuest ? getGuestLists() : []));
+        }, [isGuest, userData])
     );
 
     // Make sure carousel images are loaded
     useEffect(() => {
         if (popularContent?.carousel && popularContent.carousel.length > 0) {
             setCarouselImagesLoading(true);
-            const uris : string[] = popularContent.carousel.map(item => getPoster(item, POSTER.HORIZONTAL))
-                                                            .filter(poster => typeof poster === 'object' && poster.uri)
-                                                            .map(poster => typeof poster === 'object' && poster.uri);
+            const uris: string[] = popularContent.carousel.map(item => getPoster(item, POSTER.HORIZONTAL))
+                .filter(poster => typeof poster === 'object' && poster.uri)
+                .map(poster => typeof poster === 'object' && poster.uri);
             Promise.all(uris.map(uri => Image.prefetch(uri)))
                 .then(() => setCarouselImagesLoading(false))
                 .catch(() => setCarouselImagesLoading(false)); // fail open, show what you can
@@ -100,15 +101,15 @@ export default function LandingPage () {
     }, [popularContent, popularContentLoading]);
 
     useEffect(() => {
-        if (popularContent && lists) {
+        if (popularContent && !(isGuest && carouselImagesLoading)) {
             setIsLoading(false);
         }
-        else if (!lists || (popularContentLoading && !popularContent)) {
+        else if ((popularContentLoading && !popularContent) || (isGuest && carouselImagesLoading)) {
             setIsLoading(true);
         } else {
             setIsLoading(false);
         }
-    }, [popularContent, popularContentLoading, lists]);
+    }, [carouselImagesLoading, isGuest, popularContent, popularContentLoading]);
 
     const handlePress = (content: ContentSimpleData) => {
         router.push({
@@ -118,13 +119,12 @@ export default function LandingPage () {
     }
 
     const handleLongPress = (content: ContentSimpleData) => {
-        if (waitingForUserData) return;
         setSelectedContent(content); setAutoPlay(false); setMoveModalVisible(true);
     }
 
-    const renderCarouselContent = ({ item: content, index } : { item: ContentSimpleData, index: number }) => {
-         const tapGesture = Gesture.Tap()
-            .onEnd((event) => {
+    const renderCarouselContent = ({ item: content }: { item: ContentSimpleData, index: number }) => {
+        const tapGesture = Gesture.Tap()
+            .onEnd(() => {
                 runOnJS(handlePress)(content);
             });
 
@@ -135,7 +135,7 @@ export default function LandingPage () {
             });
 
         const combinedGesture = Gesture.Exclusive(longPressGesture, tapGesture);
-        
+
         return (
             <GestureDetector gesture={combinedGesture}>
                 <View style={styles.slide}>
@@ -156,8 +156,8 @@ export default function LandingPage () {
                 message={alertMessage}
                 setMessage={setAlertMessage}
             />
-            
-            <ScrollView style={{ marginBottom: LIBRARY_OVERLAY_HEIGHT}} showsVerticalScrollIndicator={false}
+
+            <ScrollView style={{ marginBottom: LIBRARY_OVERLAY_HEIGHT }} showsVerticalScrollIndicator={false}
                 refreshControl={
                     <RefreshControl
                         refreshing={refreshing}
@@ -167,7 +167,7 @@ export default function LandingPage () {
                     />
                 }
             >
-                <Text style={styles.welcomeText}>WELCOME{(isGuest || Number(justSignedUp) === 1) ? "" : " BACK"}{userData?.user?.firstName?.length > 0 && " "+userData.user.firstName.toUpperCase()}!</Text>
+                <Text style={styles.welcomeText}>WELCOME{(isGuest || Number(justSignedUp) === 1) ? "" : " BACK"}{userData?.user?.firstName?.length > 0 && " " + userData.user.firstName.toUpperCase()}!</Text>
                 <View style={{ marginBottom: 24, alignItems: "center" }}>
                     <Carousel<ContentSimpleData>
                         ref={carouselRef}
@@ -185,7 +185,7 @@ export default function LandingPage () {
                     {/* Dots below carousel */}
                     <View style={styles.dotsContainer}>
                         {popularContent?.carousel?.map((_, i) => (
-                            <View 
+                            <View
                                 key={i}
                                 style={[
                                     styles.dot,
@@ -195,58 +195,56 @@ export default function LandingPage () {
                         ))}
                     </View>
                 </View>
-                
+
                 {/* Sections */}
-                { (popularContent?.main && Object.entries(popularContent.main).length > 0 ? (
+                {(popularContent?.main && Object.entries(popularContent.main).length > 0 ? (
                     Object.entries(popularContent.main).map(([sectionTitle, sectionItems]) =>
                         sectionItems.length > 0 ? (
-                        <View key={sectionTitle} style={styles.section}>
-                            <Text style={styles.sectionTitle}>{sectionTitle}</Text>
-                            <FlatList<ContentSimpleData>
-                                data={sectionItems}
-                                horizontal
-                                showsHorizontalScrollIndicator={false}
-                                keyExtractor={item => item.tmdbID}
-                                contentContainerStyle={styles.railListContent}
-                                renderItem={({ item: content }) => (
-                                    <Pressable
-                                        style={({ pressed }) => [
-                                            styles.card, {backgroundColor: undefined},
-                                            pressed && appStyles.pressed,
-                                        ]}
-                                        onPress={() => handlePress(content)}
-                                        onLongPress={() => { handleLongPress(content); }}
-                                        android_ripple={{ color: Colors.grayCell }}
-                                    >
-                                        <View style={[styles.imageWrapper]}>
-                                            <Image
-                                                source={carouselImagesLoading ? getPoster(null, POSTER.EMPTY, POSTER.VERTICAL) : getPoster(content)}
-                                                style={styles.image}
-                                                resizeMode="cover"
-                                            />
-                                            <View style={appStyles.heartIconWrapper}>
-                                                <Heart
-                                                    isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
-                                                    size={20}
-                                                    background={true}
-                                                    onPress={async () => {
-                                                        return waitingForUserData 
-                                                                ? undefined 
-                                                                : isGuest 
-                                                                    ? requireAccount("/LandingPage") 
-                                                                    : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsLoading, () => {}, () => {}, setAlertMessage, setAlertType)
-                                                    }}
+                            <View key={sectionTitle} style={styles.section}>
+                                <Text style={styles.sectionTitle}>{sectionTitle}</Text>
+                                <FlatList<ContentSimpleData>
+                                    data={sectionItems}
+                                    horizontal
+                                    showsHorizontalScrollIndicator={false}
+                                    keyExtractor={item => item.tmdbID}
+                                    contentContainerStyle={styles.railListContent}
+                                    renderItem={({ item: content }) => (
+                                        <Pressable
+                                            style={({ pressed }) => [
+                                                styles.card, { backgroundColor: undefined },
+                                                pressed && appStyles.pressed,
+                                            ]}
+                                            onPress={() => handlePress(content)}
+                                            onLongPress={() => { handleLongPress(content); }}
+                                            android_ripple={{ color: Colors.grayCell }}
+                                        >
+                                            <View style={[styles.imageWrapper]}>
+                                                <Image
+                                                    source={carouselImagesLoading ? getPoster(null, POSTER.EMPTY, POSTER.VERTICAL) : getPoster(content)}
+                                                    style={styles.image}
+                                                    resizeMode="cover"
                                                 />
+                                                <View style={appStyles.heartIconWrapper}>
+                                                    <Heart
+                                                        isSelected={() => isItemInList(lists, FAVORITE_TAB, content?.tmdbID)}
+                                                        size={20}
+                                                        background={true}
+                                                        onPress={async () => {
+                                                            return isGuest
+                                                                ? requireAccount("/LandingPage")
+                                                                : await moveItemToList(router, content, FAVORITE_TAB, lists, setLists, setIsLoading, () => { }, () => { }, setAlertMessage, setAlertType)
+                                                        }}
+                                                    />
+                                                </View>
                                             </View>
-                                        </View>
-                                    </Pressable>
-                                )}
-                            />
-                        </View>
+                                        </Pressable>
+                                    )}
+                                />
+                            </View>
                         ) : null
                     )) : (
                     <View style={styles.nothingFoundContainer}>
-                        { !(isLoading || carouselImagesLoading) && (
+                        {!(isLoading || carouselImagesLoading) && (
                             <Text style={styles.nothingFoundText}>No Content Found :(</Text>
                         )}
                     </View>
@@ -275,21 +273,19 @@ export default function LandingPage () {
                 requiresAuth={isGuest}
                 accountLoading={waitingForUserData}
                 authReturnTo="/LandingPage"
-                
+
                 setAlertMessageFunc={setAlertMessage}
                 setAlertTypeFunc={setAlertType}
             />
-        
+
             {/* Library Button & Overlay */}
             <View style={styles.libraryOverlay}>
                 <Pressable
                     style={styles.libraryButton}
                     onPress={() => {
-                        return waitingForUserData 
-                                ? undefined 
-                                : isGuest 
-                                    ? requireAccount("/LibraryPage") 
-                                    : router.push('/LibraryPage')
+                        return isGuest
+                            ? requireAccount("/LibraryPage")
+                            : router.push('/LibraryPage')
                     }}
                 >
                     <Text style={styles.libraryButtonText}>Library</Text>
@@ -297,7 +293,7 @@ export default function LandingPage () {
             </View>
 
             {/* Loading Overlay */}
-            {(isLoading || carouselImagesLoading || waitingForUserData) && (
+            {isLoading && (
                 <View style={appStyles.overlay}>
                     <ActivityIndicator size="large" color="#fff" />
                 </View>
@@ -344,7 +340,7 @@ const styles = StyleSheet.create({
         color: Colors.selectedTextColor,
         fontSize: 18,
         fontWeight: "600",
-        textAlign:"center",
+        textAlign: "center",
     },
 
     slide: {
@@ -420,7 +416,7 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 1 },
     },
     imageWrapper: {
-        aspectRatio: 17/24,
+        aspectRatio: 17 / 24,
         width: '100%',
         borderRadius: 10,
         overflow: 'hidden',
