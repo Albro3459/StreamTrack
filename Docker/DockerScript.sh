@@ -99,6 +99,22 @@ export POSTGRES_DB="StreamTrack"
 export POSTGRES_HOST="db"
 export POSTGRES_PORT="5432"
 
+# Install Cloudflare origin certs for Caddy (Authenticated Origin Pulls).
+# Cert + key live in the OCI Vault secret (PEM with \n-escaped newlines); the
+# origin-pull CA is public and curled. Skipped for LOCAL_API (no Caddy locally).
+if [[ "$LOCAL_API" != "true" ]]; then
+  echo "Installing Cloudflare origin certs for Caddy..."
+  mkdir -p ./certs
+  echo "$SECRET_JSON" | jq -r .CaddyOriginCert > ./certs/origin.pem
+  echo "$SECRET_JSON" | jq -r .CaddyOriginKey  > ./certs/origin.key
+  chmod 644 ./certs/origin.pem
+  chmod 600 ./certs/origin.key
+  if [[ ! -f ./certs/cloudflare-origin-pull-ca.pem ]]; then
+    curl -fsSL https://developers.cloudflare.com/ssl/static/authenticated_origin_pull_ca.pem \
+      -o ./certs/cloudflare-origin-pull-ca.pem
+  fi
+fi
+
 # Run Docker Compose
 
 echo "Starting only the database service..."

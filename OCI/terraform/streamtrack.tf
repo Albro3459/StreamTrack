@@ -10,6 +10,26 @@ variable "hashed_password" {
   type        = string
 }
 
+variable "availability_domain" {
+  description = "OCI availability domain for the StreamTrack instance"
+  type        = string
+}
+
+variable "compartment_id" {
+  description = "OCID of the compartment (tenancy) to deploy into"
+  type        = string
+}
+
+variable "subnet_id" {
+  description = "OCID of the subnet for the instance VNIC"
+  type        = string
+}
+
+variable "image_source_id" {
+  description = "OCID of the boot image"
+  type        = string
+}
+
 resource "oci_core_instance" "generated_oci_core_instance" {
 	agent_config {
 		is_management_disabled = "false"
@@ -58,14 +78,14 @@ resource "oci_core_instance" "generated_oci_core_instance" {
 	availability_config {
 		recovery_action = "RESTORE_INSTANCE"
 	}
-	availability_domain = "xJLJ:US-SANJOSE-1-AD-1"
-	compartment_id = "ocid1.tenancy.oc1..aaaaaaaaaabdayb5d5pi37wn3zd6euzsrcp3fozj2r4jit7xx4bsgpctlhsq"
+	availability_domain = var.availability_domain
+	compartment_id = var.compartment_id
 	create_vnic_details {
 		assign_ipv6ip = "false"
 		assign_private_dns_record = "true"
 		assign_public_ip = "true"
 		display_name = "StreamTrack"
-		subnet_id = "ocid1.subnet.oc1.us-sanjose-1.aaaaaaaa33iu4rbejd56tdtgyp77psnibgeswun2rd4hjul3mcewhp7a6s2q"
+		subnet_id = var.subnet_id
 	}
 	display_name = "StreamTrack"
 	instance_options {
@@ -86,7 +106,7 @@ resource "oci_core_instance" "generated_oci_core_instance" {
 	source_details {
 		boot_volume_size_in_gbs = "50"
 		boot_volume_vpus_per_gb = "10"
-		source_id = "ocid1.image.oc1.us-sanjose-1.aaaaaaaagg6cb3x6qxcoerzncv7zyrhpnwnijp7wuuot6uxrsiiwvzfhaqfq"
+		source_id = var.image_source_id
 		source_type = "image"
 	}
 }

@@ -1,7 +1,4 @@
 export type AWSSecrets = {
-    PostgresUsername?: string;
-    PostgresPassword?: string;
-    RapidAPIKey_Main?: string;
     RapidAPIKey_Lambda?: string;
     TMDBBearerToken?: string;
     LambdaUID?: string;

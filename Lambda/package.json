@@ -6,7 +6,6 @@
         "build": "npm run clean && tsc"
     },
     "dependencies": {
-        "@aws-sdk/client-secrets-manager": "^3.846.0",
         "aws-lambda": "^1.0.7",
         "axios": "^1.10.0",
         "firebase-admin": "^13.4.0",

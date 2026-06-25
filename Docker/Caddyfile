@@ -3,9 +3,18 @@
 }
 
 streamtrack.gocloudlaunch.com {
+    # Cloudflare Origin CA cert (ACME can't validate a proxied hostname). Edge trusts it
+    # in Full (strict). client_auth enforces Authenticated Origin Pulls (mTLS).
+    tls /etc/caddy/certs/origin.pem /etc/caddy/certs/origin.key {
+        client_auth {
+            mode require_and_verify
+            trusted_ca_cert_file /etc/caddy/certs/cloudflare-origin-pull-ca.pem
+        }
+    }
+
     rate_limit {
         zone api_general {
-            key {remote_host}
+            key {http.request.header.CF-Connecting-IP}
             events 300
             window 1m
         }
@@ -15,7 +24,7 @@ streamtrack.gocloudlaunch.com {
     @public_routes path /API/Public/* /API/Auth/* /privacy-policy
     rate_limit @public_routes {
         zone api_public {
-            key {remote_host}
+            key {http.request.header.CF-Connecting-IP}
             events 50
             window 1m
         }

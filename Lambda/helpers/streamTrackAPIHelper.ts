@@ -12,7 +12,8 @@ export const updatePopularContents = async (token: string | null, contents: Cont
             headers: {
                 accept: 'application/json',
                 'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`
+                Authorization: `Bearer ${token}`,
+                'User-Agent': 'StreamTrack-Lambda/1.0'
             },
             body: JSON.stringify(contents)
         };
