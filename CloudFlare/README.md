@@ -6,7 +6,7 @@ so that `streamtrack.gocloudlaunch.com` only accepts traffic through Cloudflare,
 
 Real cert/key/zone files never touch git - the committed `example.*` files are templates. The
 canonical copies live here (gitignored) and are flattened into the **OCI Vault** secret;
-[DockerScript.sh](../API/Docker/DockerScript.sh) writes the runtime copies to `API/Docker/certs/` at
+[DockerScript.sh](../Docker/DockerScript.sh) writes the runtime copies to `Docker/certs/` at
 deploy time. **Never commit the real certificate, private key, or zone export.**
 
 ## Files
@@ -20,8 +20,8 @@ deploy time. **Never commit the real certificate, private key, or zone export.**
 * `example.gocloudlaunch.com.txt` - committed example of the DNS record set.
 
 > Naming note: the canonical files keep the `cloud-gateway.*` name because they're literally the
-> shared zone cert. At runtime [DockerScript.sh](../API/Docker/DockerScript.sh) writes them out as
-> `origin.pem` / `origin.key` under `API/Docker/certs/` (the names the Caddyfile expects).
+> shared zone cert. At runtime [DockerScript.sh](../Docker/DockerScript.sh) writes them out as
+> `origin.pem` / `origin.key` under `Docker/certs/` (the names the Caddyfile expects).
 
 ## Why this exists
 
@@ -37,7 +37,7 @@ of the edge protections (DDoS, rate limiting, Bot Fight Mode) are bypassed.
 
 ## The three runtime files and their roles
 
-At deploy the cert/key plus the public origin-pull CA land in `API/Docker/certs/`, mounted into
+At deploy the cert/key plus the public origin-pull CA land in `Docker/certs/`, mounted into
 Caddy at `/etc/caddy/certs/`:
 
 | File | Has a private key? | Role |
@@ -135,7 +135,7 @@ The API ignores fields it doesn't use, so adding these to the shared secret is h
 
 ## How it reaches the host on deploy
 
-[DockerScript.sh](../API/Docker/DockerScript.sh) already fetches the secret bundle from OCI Vault.
+[DockerScript.sh](../Docker/DockerScript.sh) already fetches the secret bundle from OCI Vault.
 Before starting Caddy (skipped when `LOCAL_API=true`) it:
 
 1. `jq -r .CaddyOriginCert` -> `certs/origin.pem`, `.CaddyOriginKey` -> `certs/origin.key`
@@ -143,8 +143,8 @@ Before starting Caddy (skipped when `LOCAL_API=true`) it:
 2. Curls the public origin-pull CA -> `certs/cloudflare-origin-pull-ca.pem` (only if missing).
 3. `docker compose up -d api caddy`.
 
-[docker-compose.yml](../API/Docker/docker-compose.yml) mounts `./certs` read-only into Caddy at
-`/etc/caddy/certs`, and [Caddyfile](../API/Docker/Caddyfile) serves them via `tls` + `client_auth`
+[docker-compose.yml](../Docker/docker-compose.yml) mounts `./certs` read-only into Caddy at
+`/etc/caddy/certs`, and [Caddyfile](../Docker/Caddyfile) serves them via `tls` + `client_auth`
 (`require_and_verify`). Rotating the cert = update the Vault secret and redeploy. If Caddy doesn't
 pick up changes, force it: `docker compose up -d --force-recreate caddy`.
 

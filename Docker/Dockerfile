@@ -19,9 +19,8 @@ COPY --from=build /app/publish .
 
 RUN apt-get update && apt-get install -y netcat-openbsd
 
-# Copy entrypoint script from context
-COPY ./Docker/APIScript.sh .
-RUN chmod +x /app/APIScript.sh
+# APIScript.sh is bind-mounted at runtime via docker-compose (it's orchestration,
+# not part of the API build), so the build context stays API-only.
 
 EXPOSE 6969
 ENTRYPOINT ["bash", "./APIScript.sh"]

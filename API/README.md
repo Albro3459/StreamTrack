@@ -245,10 +245,10 @@ git clone -b oracle git@github.com:Albro3459/StreamTrack.git # -b oracle for ora
 
 Ready to run!
 ```sh
-cd StreamTrack/API/Docker
+cd StreamTrack/Docker
 ```
 
-Set `SECRET_OCID` in `API/Docker/.env`.
+Set `SECRET_OCID` in `Docker/.env`.
 ```sh
 echo "SECRET_OCID=ocid1.vaultsecret.oc1.us-sanjose-1.amaaaaaa2dnnktiai776n2nf2ge6lxim2kslh5mpi7yddnwzbw75pc2gqtta" >> .env
 ```
@@ -399,7 +399,7 @@ Query PostgreSQL from inside server:
 Postgres container has to be running. 
 Find its name (typically docker-db-1):
 ```sh
-cd ~/StreamTrack/API/Docker
+cd ~/StreamTrack/Docker
 docker ps
 ```
 

@@ -14,9 +14,5 @@ RUN apt-get update && apt-get install -y netcat-openbsd
 RUN dotnet tool install --global dotnet-ef
 ENV PATH="${PATH}:/root/.dotnet/tools"
 
-# Copy entrypoint script from context
-COPY ./Docker/MigrationScript.sh .
-RUN chmod +x ./MigrationScript.sh
-
 EXPOSE 6969
 ENTRYPOINT ["bash", "./MigrationScript.sh"]

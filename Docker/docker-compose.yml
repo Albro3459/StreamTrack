@@ -14,8 +14,8 @@ services:
 
     migrate:
         build:
-            context: ../ # StreamTrack/API/
-            dockerfile: Docker/Dockerfile.migrate
+            context: ../API # StreamTrack/API/
+            dockerfile: ../Docker/Dockerfile.migrate
         depends_on:
             - db
         environment:
@@ -24,12 +24,14 @@ services:
             - OCI_REGION=${OCI_REGION}
             - SECRET_OCID=${SECRET_OCID}
             - STREAMTRACK_SECRET_JSON=${STREAMTRACK_SECRET_JSON}
+        volumes:
+            - ./MigrationScript.sh:/src/MigrationScript.sh:ro
 
     api:
         restart: unless-stopped
         build:
-            context: ../ # StreamTrack/API/
-            dockerfile: Docker/Dockerfile
+            context: ../API # StreamTrack/API/
+            dockerfile: ../Docker/Dockerfile
         depends_on:
             - db
         environment:
@@ -39,6 +41,8 @@ services:
             - OCI_REGION=${OCI_REGION}
             - SECRET_OCID=${SECRET_OCID}
             - STREAMTRACK_SECRET_JSON=${STREAMTRACK_SECRET_JSON}
+        volumes:
+            - ./APIScript.sh:/app/APIScript.sh:ro
         ports:
             - "127.0.0.1:6969:6969"
 

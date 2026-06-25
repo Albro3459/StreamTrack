@@ -21,6 +21,7 @@
 **/expo-env.d.ts
 # @end expo-cli
 
+**/ios
 
 # CSharp
 API/bin
@@ -29,9 +30,7 @@ API/obj
 # DB
 **/StreamTrack.db-wal
 **/StreamTrack.db-shm
-API/Docker/backups/
-
-**/ios
+Docker/backups/
 
 # Hide all the keys
 **/secrets/*
@@ -53,6 +52,8 @@ API/Docker/backups/
 **/*.tfvars.*
 !**/*.tfvars.example
 !**/example.*.tfvars
+
+Docker/certs/
 
 **/*.key
 **/.key.*
