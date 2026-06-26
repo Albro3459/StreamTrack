@@ -2,6 +2,10 @@ This will be used as a cloud lambda function to update the contents in the DB re
 
 Make sure the API is running so it can receive the content!
 
+## Cloudflare Bot Fight Mode
+
+The Lambda's requests to the API can get blocked by Cloudflare's Bot Fight Mode. Before running it (locally or the deployed cron), temporarily turn it off in **Cloudflare > Your domain > Security > Settings > Bot fight mode**, then turn it back on right after.
+
 ## Run
 It needs to be compiled to JS:
 ```sh
@@ -16,8 +20,9 @@ The `STREAMTRACK_SECRETS` environment variable must be set manually in AWS Lambd
 
 Use the deploy script to build, package, and upload the Lambda code:
 ```sh
-cd Lambda
-./deploy.sh
+cd Lambda && 
+./deploy.sh && 
+cd -
 ```
 
 **OR** to manually compile and upload the Zip to AWS Lambda (total Zip must be under 50 MB):
