@@ -1,13 +1,9 @@
 import axios from 'axios';
 import * as admin from 'firebase-admin';
 
-import { AWSSecrets } from '../types/AWSSecretsType';
+import { Secrets } from '../types/secretsType';
 
-// import { FIREBASE_WEB_API_KEY, LAMBDA_UID } from '../secrets/firebase';
-// const ServiceAccount = require("../secrets/FirebaseServiceAccount.json");
-
-
-export const getFirebaseToken = async (secrets: AWSSecrets): Promise<string | null> => {
+export const getFirebaseToken = async (secrets: Secrets): Promise<string | null> => {
     const serviceAccount = {
         type: secrets.Firebase.type,
         project_id: secrets.Firebase.project_id,

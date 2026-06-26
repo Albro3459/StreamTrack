@@ -1,4 +1,4 @@
-export type AWSSecrets = {
+export type Secrets = {
     RapidAPIKey_Lambda?: string;
     TMDBBearerToken?: string;
     LambdaUID?: string;

@@ -5,8 +5,8 @@ import { updatePopularContents } from "./helpers/streamTrackAPIHelper";
 import { getFirebaseToken } from "./helpers/firebaseHelper";
 import { ContentData } from "./types/dataTypes";
 import { GENRE, ORDER_BY, ORDER_DIRECTION, SERVICE, SHOW_TYPE } from "./types/contentFilterOptions";
-import { getAllSecrets } from "./helpers/AWSSecretsHelper";
-import { AWSSecrets } from "./types/AWSSecretsType";
+import { getAllSecrets } from "./helpers/secretsHelper";
+import { Secrets } from "./types/secretsType";
 
 // Cron Schedule: (Min: 59, Hour: 23, Days of the month: ? none specified, Month: * any, Day of week: SUN Sunday, Year: 2025 just in case)
 // cron(59, 23, ? * SUN 2025)
@@ -23,7 +23,7 @@ const order_direction: ORDER_DIRECTION = ORDER_DIRECTION.ASC;
 
 export const handler = async (event: APIGatewayEvent, context: Context) => {
 
-    const secrets: AWSSecrets = await getAllSecrets();
+    const secrets: Secrets = await getAllSecrets();
 
     const token: string | null = await getFirebaseToken(secrets);
 

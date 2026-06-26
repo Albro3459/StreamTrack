@@ -105,8 +105,12 @@ export POSTGRES_PORT="5432"
 if [[ "$LOCAL_API" != "true" ]]; then
   echo "Installing Cloudflare origin certs for Caddy..."
   mkdir -p ./certs
-  echo "$SECRET_JSON" | jq -r .CaddyOriginCert > ./certs/origin.pem
-  echo "$SECRET_JSON" | jq -r .CaddyOriginKey  > ./certs/origin.key
+  origin_cert="$(echo "$SECRET_JSON" | jq -e -r .CaddyOriginCert)" \
+    || { echo "CaddyOriginCert missing/null in Vault secret" >&2; exit 1; }
+  origin_key="$(echo "$SECRET_JSON" | jq -e -r .CaddyOriginKey)" \
+    || { echo "CaddyOriginKey missing/null in Vault secret" >&2; exit 1; }
+  printf '%s\n' "$origin_cert" > ./certs/origin.pem
+  printf '%s\n' "$origin_key"  > ./certs/origin.key
   chmod 644 ./certs/origin.pem
   chmod 600 ./certs/origin.key
   if [[ ! -f ./certs/cloudflare-origin-pull-ca.pem ]]; then
