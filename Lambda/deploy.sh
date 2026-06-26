@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 
-# Zips and publishes the Lambda function to AWS (from CloudLaunch repo)
+# Run from the repo root:
+# cd Lambda
+# ./deploy.sh
+#
+# Zips and deploys the Lambda function to AWS.
 
 set -euo pipefail
 

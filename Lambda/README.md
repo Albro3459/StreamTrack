@@ -11,8 +11,16 @@ npm run build
 node dist/main.js # run the function
 ```
 
-## Upload
-To compile and upload the Zip to AWS Lambda (total Zip must be under 50 MB):
+## Deploy
+The `STREAMTRACK_SECRETS` environment variable must be set manually in AWS Lambda. See [Secrets](#secrets) below.
+
+Use the deploy script to build, package, and upload the Lambda code:
+```sh
+cd Lambda
+./deploy.sh
+```
+
+**OR** to manually compile and upload the Zip to AWS Lambda (total Zip must be under 50 MB):
 ```sh
 cd StreamTrack/Lambda &&
 npm run build &&
