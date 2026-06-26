@@ -12,16 +12,6 @@
         "protocol": "all",
         "tcp-options": null,
         "udp-options": null
-      },
-      {
-        "description": null,
-        "destination": "::/0",
-        "destination-type": "CIDR_BLOCK",
-        "icmp-options": null,
-        "is-stateless": false,
-        "protocol": "all",
-        "tcp-options": null,
-        "udp-options": null
       }
     ],
     "id": "ocid1.securitylist.oc1.us-sanjose-1..replace_me",
@@ -49,16 +39,6 @@
         "tcp-options": null,
         "udp-options": null
       },
-      {
-        "description": "Packet too big (IPv6 PMTUD)",
-        "icmp-options": { "code": 0, "type": 2 },
-        "is-stateless": false,
-        "protocol": "58",
-        "source": "::/0",
-        "source-type": "CIDR_BLOCK",
-        "tcp-options": null,
-        "udp-options": null
-      },
       { "description": "Cloudflare", "icmp-options": null, "is-stateless": false, "protocol": "6", "source": "173.245.48.0/20", "source-type": "CIDR_BLOCK", "tcp-options": { "destination-port-range": { "max": 443, "min": 443 }, "source-port-range": null }, "udp-options": null },
       { "description": "Cloudflare", "icmp-options": null, "is-stateless": false, "protocol": "6", "source": "103.21.244.0/22", "source-type": "CIDR_BLOCK", "tcp-options": { "destination-port-range": { "max": 443, "min": 443 }, "source-port-range": null }, "udp-options": null },
       { "description": "Cloudflare", "icmp-options": null, "is-stateless": false, "protocol": "6", "source": "103.22.200.0/22", "source-type": "CIDR_BLOCK", "tcp-options": { "destination-port-range": { "max": 443, "min": 443 }, "source-port-range": null }, "udp-options": null },
@@ -73,14 +53,7 @@
       { "description": "Cloudflare", "icmp-options": null, "is-stateless": false, "protocol": "6", "source": "104.16.0.0/13", "source-type": "CIDR_BLOCK", "tcp-options": { "destination-port-range": { "max": 443, "min": 443 }, "source-port-range": null }, "udp-options": null },
       { "description": "Cloudflare", "icmp-options": null, "is-stateless": false, "protocol": "6", "source": "104.24.0.0/14", "source-type": "CIDR_BLOCK", "tcp-options": { "destination-port-range": { "max": 443, "min": 443 }, "source-port-range": null }, "udp-options": null },
       { "description": "Cloudflare", "icmp-options": null, "is-stateless": false, "protocol": "6", "source": "172.64.0.0/13", "source-type": "CIDR_BLOCK", "tcp-options": { "destination-port-range": { "max": 443, "min": 443 }, "source-port-range": null }, "udp-options": null },
-      { "description": "Cloudflare", "icmp-options": null, "is-stateless": false, "protocol": "6", "source": "131.0.72.0/22", "source-type": "CIDR_BLOCK", "tcp-options": { "destination-port-range": { "max": 443, "min": 443 }, "source-port-range": null }, "udp-options": null },
-      { "description": "Cloudflare", "icmp-options": null, "is-stateless": false, "protocol": "6", "source": "2400:cb00::/32", "source-type": "CIDR_BLOCK", "tcp-options": { "destination-port-range": { "max": 443, "min": 443 }, "source-port-range": null }, "udp-options": null },
-      { "description": "Cloudflare", "icmp-options": null, "is-stateless": false, "protocol": "6", "source": "2606:4700::/32", "source-type": "CIDR_BLOCK", "tcp-options": { "destination-port-range": { "max": 443, "min": 443 }, "source-port-range": null }, "udp-options": null },
-      { "description": "Cloudflare", "icmp-options": null, "is-stateless": false, "protocol": "6", "source": "2803:f800::/32", "source-type": "CIDR_BLOCK", "tcp-options": { "destination-port-range": { "max": 443, "min": 443 }, "source-port-range": null }, "udp-options": null },
-      { "description": "Cloudflare", "icmp-options": null, "is-stateless": false, "protocol": "6", "source": "2405:b500::/32", "source-type": "CIDR_BLOCK", "tcp-options": { "destination-port-range": { "max": 443, "min": 443 }, "source-port-range": null }, "udp-options": null },
-      { "description": "Cloudflare", "icmp-options": null, "is-stateless": false, "protocol": "6", "source": "2405:8100::/32", "source-type": "CIDR_BLOCK", "tcp-options": { "destination-port-range": { "max": 443, "min": 443 }, "source-port-range": null }, "udp-options": null },
-      { "description": "Cloudflare", "icmp-options": null, "is-stateless": false, "protocol": "6", "source": "2a06:98c0::/29", "source-type": "CIDR_BLOCK", "tcp-options": { "destination-port-range": { "max": 443, "min": 443 }, "source-port-range": null }, "udp-options": null },
-      { "description": "Cloudflare", "icmp-options": null, "is-stateless": false, "protocol": "6", "source": "2c0f:f248::/32", "source-type": "CIDR_BLOCK", "tcp-options": { "destination-port-range": { "max": 443, "min": 443 }, "source-port-range": null }, "udp-options": null }
+      { "description": "Cloudflare", "icmp-options": null, "is-stateless": false, "protocol": "6", "source": "131.0.72.0/22", "source-type": "CIDR_BLOCK", "tcp-options": { "destination-port-range": { "max": 443, "min": 443 }, "source-port-range": null }, "udp-options": null }
     ],
     "vcn-id": "ocid1.vcn.oc1.us-sanjose-1..replace_me"
   }
