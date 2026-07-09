@@ -90,6 +90,7 @@ public class HelperService {
 
     public async Task<User?> GetFullUserByID(string userID) {
         User? user = await context.User
+            .AsSplitQuery()
             .Include(u => u.ListsOwned)
                 .ThenInclude(l => l.ListShares)
             .Include(u => u.ListsOwned)
@@ -97,11 +98,11 @@ public class HelperService {
                     .ThenInclude(p => p.Poster)
             .Include(u => u.ListsOwned)
                 .ThenInclude(l => l.ContentPartials)
-                    .ThenInclude(p => p.Detail)
+                    .ThenInclude(p => p.Detail!)
                         .ThenInclude(d => d.Genres)
             .Include(u => u.ListsOwned)
                 .ThenInclude(l => l.ContentPartials)
-                    .ThenInclude(p => p.Detail)
+                    .ThenInclude(p => p.Detail!)
                         .ThenInclude(d => d.StreamingOptions)
                             .ThenInclude(s => s.StreamingService)
             .Include(u => u.ListShares)
@@ -111,12 +112,12 @@ public class HelperService {
             .Include(u => u.ListShares)
                 .ThenInclude(ls => ls.List)
                     .ThenInclude(l => l.ContentPartials)
-                        .ThenInclude(p => p.Detail)
+                        .ThenInclude(p => p.Detail!)
                             .ThenInclude(d => d.Genres)
             .Include(u => u.ListShares)
                 .ThenInclude(ls => ls.List)
                     .ThenInclude(l => l.ContentPartials)
-                        .ThenInclude(p => p.Detail)
+                        .ThenInclude(p => p.Detail!)
                             .ThenInclude(d => d.StreamingOptions)
                                 .ThenInclude(s => s.StreamingService)
             .Include(u => u.Genres)
@@ -126,6 +127,80 @@ public class HelperService {
         return user;
     }
 
+    public async Task<UserMinimalDataDTO?> GetUserMinimalDTOByID(string userID) {
+        UserMinimalDataDTO? user = await context.User
+            .AsNoTracking()
+            .Where(u => u.UserID == userID)
+            .Select(u => new UserMinimalDataDTO {
+                Email = u.Email,
+                FirstName = u.FirstName,
+                LastName = u.LastName,
+                ListsOwned = u.ListsOwned
+                    .Select(l => new ListMinimalDTO {
+                        IsOwner = true,
+                        ListName = l.ListName,
+                        TMDB_IDs = l.ContentPartials.Select(c => c.TMDB_ID).ToList()
+                    })
+                    .ToList(),
+                ListsSharedWithMe = u.ListShares
+                    .Select(ls => new ListMinimalDTO {
+                        IsOwner = false,
+                        ListName = ls.List.ListName,
+                        TMDB_IDs = ls.List.ContentPartials.Select(c => c.TMDB_ID).ToList()
+                    })
+                    .ToList(),
+                ListsSharedWithOthers = u.ListsOwned
+                    .Where(l => l.ListShares.Any())
+                    .Select(l => new ListMinimalDTO {
+                        IsOwner = true,
+                        ListName = l.ListName,
+                        TMDB_IDs = l.ContentPartials.Select(c => c.TMDB_ID).ToList()
+                    })
+                    .ToList(),
+                GenreNames = u.Genres.Select(g => g.Name).ToList(),
+                StreamingServices = u.StreamingServices
+                    .Select(s => new StreamingServiceDTO {
+                        Name = s.Name,
+                        LightLogo = s.LightLogo,
+                        DarkLogo = s.DarkLogo
+                    })
+                    .ToList()
+            })
+            .FirstOrDefaultAsync();
+
+        return user;
+    }
+
+    public async Task<List<ContentPartialDTO>?> GetUsersContentMinimalDTOsByID(string userID) {
+        bool userExists = await context.User
+            .AsNoTracking()
+            .AnyAsync(u => u.UserID == userID);
+
+        if (!userExists) {
+            return null;
+        }
+
+        List<ContentPartialDTO> contents = await context.List
+            .AsNoTracking()
+            .Where(l => l.OwnerUserID == userID || l.ListShares.Any(ls => ls.UserID == userID))
+            .SelectMany(l => l.ContentPartials)
+            .Select(c => new ContentPartialDTO {
+                TMDB_ID = c.TMDB_ID,
+                Title = c.Title,
+                Overview = c.Overview,
+                Rating = c.Rating,
+                ReleaseYear = c.ReleaseYear,
+                VerticalPoster = c.Poster.VerticalPoster,
+                LargeVerticalPoster = c.Poster.LargeVerticalPoster,
+                HorizontalPoster = c.Poster.HorizontalPoster
+            })
+            .ToListAsync();
+
+        return contents
+            .DistinctBy(c => c.TMDB_ID)
+            .ToList();
+    }
+
 
     public async Task<List<List>> GetFullListsOwnedByUserID(string userID) {
         List<List> lists = await context.List
@@ -133,10 +208,10 @@ public class HelperService {
                     .Include(l => l.ContentPartials)
                         .ThenInclude(p => p.Poster)
                     .Include(l => l.ContentPartials)
-                        .ThenInclude(p => p.Detail)
+                        .ThenInclude(p => p.Detail!)
                             .ThenInclude(d => d.Genres)
                     .Include(l => l.ContentPartials)
-                        .ThenInclude(p => p.Detail)
+                        .ThenInclude(p => p.Detail!)
                             .ThenInclude(p => p.StreamingOptions)
                                 .ThenInclude(s => s.StreamingService)
                     .Include(l => l.ListShares)
@@ -179,18 +254,6 @@ public class HelperService {
         minimalDTO.ListsSharedWithOthers.ForEach(l => l.IsOwner = true);
 
         return minimalDTO;
-    }
-
-    public List<ContentPartialDTO> GetUsersContentMinimalDTOs(User user) {
-
-        HashSet<ContentPartialDTO> set = new();
-
-        user.ListsOwned.ToList().ForEach(l => mapper.Map<ICollection<ContentPartial>, List<ContentPartialDTO>>(l.ContentPartials).ForEach(c => set.Add(c)));
-
-        var listsSharedWithMe = GetListsSharedToUser(user);
-        listsSharedWithMe.ForEach(l => mapper.Map<ICollection<ContentPartial>, List<ContentPartialDTO>>(l.ContentPartials).ForEach(c => set.Add(c)));
-
-        return set.ToList();
     }
 
     public async Task<List<List>> GetListsSharedToUser(string userID) {

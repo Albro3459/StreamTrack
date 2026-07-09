@@ -52,27 +52,16 @@ public class UserController : ControllerBase {
         if (string.IsNullOrEmpty(uid))
             return Unauthorized();
 
-        User? user = await service.GetFullUserByID(uid);
+        await EnsureSingleDefaultListAsync(uid);
+        UserMinimalDataDTO? minimalDTO = await service.GetUserMinimalDTOByID(uid);
 
-        if (user == null) {
+        if (minimalDTO == null) {
             return Unauthorized();
         }
-        if (user.ListsOwned.Where(l => l.ListName == USER_DEFAULT_LIST).ToList().Count > 1) {
-            var defaultLists = user.ListsOwned.Where(l => l.ListName == USER_DEFAULT_LIST).ToList();
-            if (defaultLists.Count > 1) {
-                // Keep only the first, remove others
-                foreach (var list in defaultLists.Skip(1)) {
-                    user.ListsOwned.Remove(list);
-                }
-                await context.SaveChangesAsync();
-            }
-        }
-
-        UserMinimalDataDTO minimalDTO = service.MapUserToMinimalDTO(user);
 
         service.QueuePosterRefresh(
-            user.ListsOwned.SelectMany(l => l.ContentPartials).Select(p => p.TMDB_ID)
-            .Concat(user.ListShares.SelectMany(ls => ls.List.ContentPartials).Select(p => p.TMDB_ID))
+            minimalDTO.ListsOwned.SelectMany(l => l.TMDB_IDs)
+            .Concat(minimalDTO.ListsSharedWithMe.SelectMany(l => l.TMDB_IDs))
         );
 
         return minimalDTO;
@@ -89,23 +78,12 @@ public class UserController : ControllerBase {
         if (string.IsNullOrEmpty(uid))
             return Unauthorized();
 
-        User? user = await service.GetFullUserByID(uid);
+        await EnsureSingleDefaultListAsync(uid);
+        List<ContentPartialDTO>? contents = await service.GetUsersContentMinimalDTOsByID(uid);
 
-        if (user == null) {
+        if (contents == null) {
             return Unauthorized();
         }
-        if (user.ListsOwned.Where(l => l.ListName == USER_DEFAULT_LIST).ToList().Count > 1) {
-            var defaultLists = user.ListsOwned.Where(l => l.ListName == USER_DEFAULT_LIST).ToList();
-            if (defaultLists.Count > 1) {
-                // Keep only the first, remove others
-                foreach (var list in defaultLists.Skip(1)) {
-                    user.ListsOwned.Remove(list);
-                }
-                await context.SaveChangesAsync();
-            }
-        }
-
-        List<ContentPartialDTO> contents = service.GetUsersContentMinimalDTOs(user);
         service.QueuePosterRefresh(contents.Select(c => c.TMDB_ID));
 
         return contents;
@@ -283,5 +261,22 @@ public class UserController : ControllerBase {
 
         return authenticatedAt <= now.AddMinutes(1)
             && now - authenticatedAt <= RecentAuthWindow;
+    }
+
+    private async Task EnsureSingleDefaultListAsync(string uid) {
+        var defaultLists = await context.List
+            .Where(l => l.OwnerUserID == uid && l.ListName == USER_DEFAULT_LIST)
+            .OrderBy(l => l.ListID)
+            .ToListAsync();
+
+        if (defaultLists.Count <= 1) {
+            return;
+        }
+
+        foreach (var list in defaultLists.Skip(1)) {
+            list.IsDeleted = true;
+        }
+
+        await context.SaveChangesAsync();
     }
 }
