@@ -139,14 +139,22 @@ public class HelperService {
                     .Select(l => new ListMinimalDTO {
                         IsOwner = true,
                         ListName = l.ListName,
-                        TMDB_IDs = l.ContentPartials.Select(c => c.TMDB_ID).ToList()
+                        TMDB_IDs = l.ContentPartials
+                            .OrderBy(c => c.Title)
+                            .ThenBy(c => c.TMDB_ID)
+                            .Select(c => c.TMDB_ID)
+                            .ToList()
                     })
                     .ToList(),
                 ListsSharedWithMe = u.ListShares
                     .Select(ls => new ListMinimalDTO {
                         IsOwner = false,
                         ListName = ls.List.ListName,
-                        TMDB_IDs = ls.List.ContentPartials.Select(c => c.TMDB_ID).ToList()
+                        TMDB_IDs = ls.List.ContentPartials
+                            .OrderBy(c => c.Title)
+                            .ThenBy(c => c.TMDB_ID)
+                            .Select(c => c.TMDB_ID)
+                            .ToList()
                     })
                     .ToList(),
                 ListsSharedWithOthers = u.ListsOwned
@@ -154,7 +162,11 @@ public class HelperService {
                     .Select(l => new ListMinimalDTO {
                         IsOwner = true,
                         ListName = l.ListName,
-                        TMDB_IDs = l.ContentPartials.Select(c => c.TMDB_ID).ToList()
+                        TMDB_IDs = l.ContentPartials
+                            .OrderBy(c => c.Title)
+                            .ThenBy(c => c.TMDB_ID)
+                            .Select(c => c.TMDB_ID)
+                            .ToList()
                     })
                     .ToList(),
                 GenreNames = u.Genres.Select(g => g.Name).ToList(),
@@ -184,6 +196,8 @@ public class HelperService {
             .AsNoTracking()
             .Where(l => l.OwnerUserID == userID || l.ListShares.Any(ls => ls.UserID == userID))
             .SelectMany(l => l.ContentPartials)
+            .OrderBy(c => c.Title)
+            .ThenBy(c => c.TMDB_ID)
             .Select(c => new ContentPartialDTO {
                 TMDB_ID = c.TMDB_ID,
                 Title = c.Title,
