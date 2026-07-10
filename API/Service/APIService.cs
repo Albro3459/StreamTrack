@@ -74,7 +74,8 @@ public class APIService {
 
     // DOES NOT SAVE! It is up to the caller to handle that.
     public async Task<ContentDetail?> FetchContentDetailsByTMDBIDAsync(ContentRequestDTO contentDTO) {
-        string url = $"{RapidAPI_Base_Url}{contentDTO.TMDB_ID}{RapidAPI_Ending}";
+        // TMDB IDs contain a slash (e.g. "movie/11072"); encode it so it stays a single path segment
+        string url = $"{RapidAPI_Base_Url}{Uri.EscapeDataString(contentDTO.TMDB_ID)}{RapidAPI_Ending}";
 
         using var request = new HttpRequestMessage(HttpMethod.Get, url);
         request.Headers.Add(RapidApiKeyHeader, await SecretsHelper.GetSecretKey(Secrets.RapidAPIKey_Main));
@@ -304,12 +305,12 @@ public class APIService {
             TMDB_ID = content.tmdbId,
             Title = content.title,
             Overview = content.overview,
-            ReleaseYear = content.releaseYear,
+            ReleaseYear = content.releaseYear != 0 ? content.releaseYear : content.firstAirYear,
             RapidID = content.id,
             IMDB_ID = content.imdbId,
             ShowType = content.showType.ToString().ToLowerInvariant(),
             Cast = content.cast,
-            Directors = content.directors,
+            Directors = content.directors.Count > 0 ? content.directors : content.creators,
             Rating = content.rating,
             Runtime = content.runtime,
             SeasonCount = content.seasonCount,

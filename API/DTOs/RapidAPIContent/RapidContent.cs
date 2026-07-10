@@ -36,10 +36,13 @@ public class RapidContent {
     public string tmdbId { get; set; } = string.Empty;
     public string title { get; set; } = string.Empty;
     public string overview { get; set; } = string.Empty;
-    public int releaseYear { get; set; }
+    public int releaseYear { get; set; } // movies only; series use firstAirYear
+    public int firstAirYear { get; set; } // series only
+    public int lastAirYear { get; set; } // series only
     public string originalTitle { get; set; } = string.Empty;
     public List<RapidGenre> genres { get; set; } = new();
-    public List<string> directors { get; set; } = new();
+    public List<string> directors { get; set; } = new(); // movies only; series use creators
+    public List<string> creators { get; set; } = new(); // series only
     public List<string> cast { get; set; } = new();
     public double rating { get; set; } // double to convert it to a 5 point scale
     public int? runtime { get; set; }
